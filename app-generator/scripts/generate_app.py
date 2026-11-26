@@ -222,6 +222,7 @@ def build_html(
     timing = spec["animation"]
     runtime_config = {
         "steps": data["steps"],
+        "palette": spec["palette"],
         "breakpointPx": spec["layout"]["breakpoint_px"],
         "timing": {
             "autoStartDelayMs": timing["auto_start_delay_ms"],
