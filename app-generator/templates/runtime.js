@@ -13,7 +13,6 @@
     canvas: get("sceneCanvas"),
     mobileSubtitle: get("mobileSubtitle"),
     desktopSubtitle: get("desktopSubtitle"),
-    desktopStep: get("desktopStepIndicator"),
     modalStep: get("modalStepIndicator"),
     playButton: get("playButton"),
     playIcon: get("playIcon"),
@@ -151,7 +150,6 @@
   function updateIndicators(animateSubtitle) {
     const stepNumber = state.currentStep + 1;
     const label = "Шаг " + stepNumber + " / " + steps.length;
-    elements.desktopStep.textContent = label;
     elements.modalStep.textContent = label;
 
     const subtitle = steps[state.currentStep].subtitle;
