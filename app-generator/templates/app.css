@@ -11,6 +11,10 @@
   --app-control-bg: {{COLOR_CONTROL_BG}};
   --font-family: {{FONT_FAMILY}};
   --subtitle-size: {{SUBTITLE_SIZE}};
+  --heading-weight: {{HEADING_WEIGHT}};
+  --body-weight: {{BODY_WEIGHT}};
+  --subtitle-controls-gap: {{SUBTITLE_CONTROLS_GAP_PX}}px;
+  --portrait-aspect-ratio: {{PORTRAIT_ASPECT_RATIO}};
   --right-reserved: {{RIGHT_RESERVED_PX}}px;
   --left-padding: {{LEFT_PADDING_PX}}px;
   --header-top-padding: {{HEADER_TOP_PADDING_PX}}px;
@@ -30,8 +34,10 @@
 html,
 body {
   width: 100%;
-  height: 100%;
-  min-height: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   overflow: hidden;
   background: var(--app-bg);
@@ -40,7 +46,7 @@ body {
 body {
   color: var(--app-text);
   font-family: var(--font-family);
-  font-weight: 400;
+  font-weight: var(--body-weight);
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -87,7 +93,7 @@ input:focus-visible {
   margin: 0;
   overflow-wrap: anywhere;
   font-size: clamp(18px, 2.2vw, 28px);
-  font-weight: 800;
+  font-weight: var(--heading-weight);
   line-height: 1.2;
 }
 
@@ -158,7 +164,7 @@ input:focus-visible {
 .subtitle-mobile {
   position: absolute;
   right: 12px;
-  bottom: calc(var(--touch-target) + 24px);
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
   left: 12px;
   display: block;
 }
@@ -243,12 +249,13 @@ input:focus-visible {
 
 .settings-dialog {
   width: min(100%, 380px);
+  max-height: 90vh;
   max-height: var(--modal-max-height);
   overflow: auto;
   padding: 20px;
   border: 1px solid var(--app-border);
   border-radius: 20px;
-  background: rgba(26, 26, 32, .97);
+  background: var(--app-panel);
   box-shadow: 0 20px 80px rgba(0, 0, 0, .4);
   animation: settings-enter .22s ease both;
   outline: none;
@@ -310,7 +317,7 @@ input:focus-visible {
 .dialog-action {
   width: 100%;
   margin-bottom: 14px;
-  background: rgba(46, 172, 101, .15);
+  background: color-mix(in srgb, var(--app-accent) 15%, transparent);
 }
 
 .dialog-action:disabled {
@@ -420,7 +427,7 @@ kbd {
   width: auto;
   height: 100%;
   max-width: 100%;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: var(--portrait-aspect-ratio);
 }
 
 .app-root.is-portrait .details-panel {
