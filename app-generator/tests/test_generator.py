@@ -96,15 +96,15 @@ class GeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one <head>"):
             validate_html(duplicate_head, self.spec["meta"]["viewport"])
 
-        theme_color_match = re.search(
-            r'<meta(?=[^>]*name="theme-color")[^>]*>', document
-        )
-        self.assertIsNotNone(theme_color_match)
-        assert theme_color_match is not None
-        duplicate_tag = theme_color_match.group(0)
+        theme_color = self.spec["palette"]["background"]
         duplicate_meta = document.replace(
-            duplicate_tag, duplicate_tag + chr(10) + duplicate_tag, 1
+            "</head>",
+            f'<meta name="theme-color" content="{theme_color}" />'
+            + chr(10)
+            + "</head>",
+            1,
         )
+        self.assertEqual(duplicate_meta.count('name="theme-color"'), 2)
         with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
             validate_html(duplicate_meta, self.spec["meta"]["viewport"])
 
