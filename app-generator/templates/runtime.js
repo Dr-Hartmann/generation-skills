@@ -78,6 +78,7 @@
   let animationFrameId = 0;
   let returnFocusTo = null;
   let subtitleRevision = 0;
+  let sceneInitialized = false;
 
   function setCanvasSize(canvas) {
     canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
@@ -95,6 +96,8 @@
     setCanvasSize(elements.canvas);
     setCanvasSize(previousCanvas);
     setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
 
     if (typeof scene.resize === "function") {
       scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
@@ -282,6 +285,7 @@
     elements.backdrop.classList.add("open");
     elements.backdrop.setAttribute("aria-hidden", "false");
     elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
     elements.dialog.focus();
   }
 
@@ -289,6 +293,7 @@
     elements.backdrop.classList.remove("open");
     elements.backdrop.setAttribute("aria-hidden", "true");
     elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
 
     if (returnFocusTo && typeof returnFocusTo.focus === "function") {
       returnFocusTo.focus();
@@ -350,15 +355,41 @@
   }
 
   function handleKeyboard(event) {
-    if (event.isComposing || isEditableTarget(event.target)) return;
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
 
     if (event.key === "Escape") {
-      if (elements.backdrop.classList.contains("open")) {
+      if (modalIsOpen) {
         event.preventDefault();
         closeSettings();
       }
       return;
     }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
+
+    if (isEditableTarget(event.target)) return;
 
     if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
       return;
@@ -423,18 +454,26 @@
   updateIndicators(false);
   resizeCanvas();
 
-  if (typeof scene.init === "function") {
-    scene.init({
-      width: cssWidth,
-      height: cssHeight,
-      steps,
-      setMode,
-      setPlaying,
-      setSpeed,
-      setVideoMode,
-      nextStep,
-      reset
-    });
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
   }
 
   animationFrameId = requestAnimationFrame(animationLoop);
