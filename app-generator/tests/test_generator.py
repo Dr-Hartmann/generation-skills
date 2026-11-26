@@ -72,6 +72,24 @@ class GeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one viewport"):
             validate_html(document, self.spec["meta"]["viewport"])
 
+    def test_rejects_duplicate_document_and_metadata_tags(self) -> None:
+        document = self.build_example()
+        duplicate_head = document.replace("<head>", "<head><head>", 1)
+        with self.assertRaisesRegex(ValueError, "exactly one <head>"):
+            validate_html(duplicate_head, self.spec["meta"]["viewport"])
+
+        duplicate_meta = document.replace(
+            '<meta name="theme-color" content="#0F0F13">',
+            '<meta name="theme-color" content="#0F0F13">\\n<meta name="theme-color" content="#0F0F13">',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
+            validate_html(duplicate_meta, self.spec["meta"]["viewport"])
+
+        duplicate_body = document.replace("</body>", "</body></body>", 1)
+        with self.assertRaisesRegex(ValueError, "exactly one <body>"):
+            validate_html(duplicate_body, self.spec["meta"]["viewport"])
+
     def test_scene_initialization_precedes_first_draw(self) -> None:
         runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
         self.assertIn("let sceneInitialized = false;", runtime)

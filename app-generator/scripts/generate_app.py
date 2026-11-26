@@ -157,6 +157,8 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
             super().__init__(convert_charrefs=True)
             self.ids: list[str] = []
             self.metas: list[dict[str, str | None]] = []
+            self.tag_counts: dict[str, int] = {}
+            self.meta_keys: dict[str, int] = {}
             self.style_count = 0
             self.script_count = 0
             self.external_assets: list[str] = []
@@ -164,13 +166,22 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
 
         def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
             values = dict(attrs)
+            self.tag_counts[tag] = self.tag_counts.get(tag, 0) + 1
             element_id = values.get("id")
             if element_id:
                 self.ids.append(element_id)
             if tag == "meta":
                 self.metas.append(values)
-                if (values.get("charset") or "").lower() == "utf-8":
-                    self.charset_ok = True
+                charset = (values.get("charset") or "").strip().lower()
+                name = (values.get("name") or "").strip().lower()
+                if charset:
+                    key = "charset:" + charset
+                    self.meta_keys[key] = self.meta_keys.get(key, 0) + 1
+                    if charset == "utf-8":
+                        self.charset_ok = True
+                elif name:
+                    key = "name:" + name
+                    self.meta_keys[key] = self.meta_keys.get(key, 0) + 1
             elif tag == "style":
                 self.style_count += 1
             elif tag == "script":
@@ -183,6 +194,20 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
     parser = DocumentCheck()
     parser.feed(source)
     parser.close()
+
+    for tag in ("html", "head", "body", "title"):
+        if parser.tag_counts.get(tag, 0) != 1:
+            raise ValueError(f"Generated HTML must contain exactly one <{tag}> tag.")
+
+    duplicate_meta = sorted(key for key, count in parser.meta_keys.items() if count > 1)
+    if duplicate_meta:
+        raise ValueError("Generated HTML contains duplicate metadata tags: " + ", ".join(duplicate_meta))
+
+    for name in ("viewport", "theme-color", "description", "color-scheme"):
+        if parser.meta_keys.get("name:" + name, 0) != 1:
+            raise ValueError(f"Generated HTML must contain exactly one meta[name={name}] tag.")
+    if parser.meta_keys.get("charset:utf-8", 0) != 1:
+        raise ValueError("Generated HTML must contain exactly one UTF-8 charset meta tag.")
 
     duplicates = sorted({item for item in parser.ids if parser.ids.count(item) > 1})
     if duplicates:
