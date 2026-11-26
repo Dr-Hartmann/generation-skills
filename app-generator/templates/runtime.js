@@ -119,7 +119,8 @@
         deltaMs: state.deltaMs,
         transitionProgress,
         speed: state.speed,
-        videoMode: state.videoMode
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette
       });
     } finally {
       targetContext.restore();
