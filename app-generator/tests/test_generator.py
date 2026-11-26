@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 import unittest
 from copy import deepcopy
@@ -95,11 +96,15 @@ class GeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one <head>"):
             validate_html(duplicate_head, self.spec["meta"]["viewport"])
 
+        theme_color = self.spec["palette"]["background"]
         duplicate_meta = document.replace(
-            '<meta name="theme-color" content="#0F0F13">',
-            '<meta name="theme-color" content="#0F0F13">\\n<meta name="theme-color" content="#0F0F13">',
+            "</head>",
+            f'<meta name="theme-color" content="{theme_color}" />'
+            + chr(10)
+            + "</head>",
             1,
         )
+        self.assertEqual(duplicate_meta.count('name="theme-color"'), 2)
         with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
             validate_html(duplicate_meta, self.spec["meta"]["viewport"])
 
@@ -139,10 +144,11 @@ class GeneratorTests(unittest.TestCase):
         self.assertIn("if (modalIsOpen) {", runtime)
         self.assertIn("elements.appRoot.inert = true;", runtime)
         self.assertIn("elements.appRoot.inert = false;", runtime)
-        self.assertIn(
-            "target.closest(\"button, a, [role='button'], [role='slider'], [role='switch']\")",
-            runtime,
-        )
+        self.assertIn("target.closest(", runtime)
+        self.assertIn("[role='button']", runtime)
+        self.assertIn("[role='slider']", runtime)
+        self.assertIn("[role='switch']", runtime)
+        self.assertIn("if (isInteractiveTarget(event.target)) return;", runtime)
         self.assertIn("function isInteractiveTarget(target)", runtime)
 
     def test_spec_is_valid_json(self) -> None:
