@@ -1,12 +1,12 @@
 ---
 name: short-video-ui-kit
-description: Устаревший идентификатор навыка. Для создания HTML-миниприложений используй app-generator.
+description: Deprecated skill identifier. Use app-generator to create or update HTML mini-apps in this repository.
 ---
 
 # Deprecated: short-video-ui-kit
 
-Этот навык заменён на app-generator. Не используй прежнюю генерацию отдельных CSS/HTML/JS-фрагментов и не копируй компоненты из каталога short-video-ui-components.
+This skill has been replaced by **app-generator**. Do not generate separate HTML, CSS, or JavaScript fragments, and do not copy components from the old component collection.
 
-Для нового или изменяемого HTML-миниприложения используй app-generator/SKILL.md и app-generator/scripts/generate_app.py.
+For every new or updated HTML mini-app, use **app-generator/SKILL.md** and **app-generator/scripts/generate_app.py**.
 
-Единственная нормативная палитра и остальные параметры находятся в app-generator/config/app-spec.json. Не создавай локальную копию палитры или альтернативный UI runtime.
+The canonical palette and all shared parameters are defined in **app-generator/config/app-spec.json**. Do not create a local palette copy or an alternative UI runtime.

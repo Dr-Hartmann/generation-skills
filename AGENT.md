@@ -1,91 +1,92 @@
-# AGENT.md — архитектура и правила работы с репозиторием
+# AGENT.md — Repository Architecture and Agent Instructions
 
-## 1. Назначение проекта
+## 1. Project Purpose
 
-`generation-skills` — набор предметных спецификаций и инструментов для подготовки интерактивных мини-приложений, сопровождающих короткие обучающие и объясняющие видео.
+**generation-skills** is a collection of subject-matter briefs, specifications, and tools for creating interactive HTML mini-apps that accompany short educational and explanatory videos.
 
-Идея проекта: превратить описание темы в компактную последовательность визуальных состояний. Пользователь видит Canvas-визуализацию, соответствующий ей короткий субтитр и может изучать последовательность автоматически или вручную.
+The core idea is to turn a topic into a compact sequence of visual states. A learner sees a Canvas visualization synchronized with a short subtitle and can explore the sequence automatically or step by step.
 
-Типовые предметные области находятся в `Tasks/`: программирование, веб-разработка, базы данных, искусственный интеллект, анализ данных, компьютерные сети, кибербезопасность, мобильная разработка, разработка игр, робототехника, а также отдельные инструкции по безопасности.
+Subject briefs live in **Tasks/**. Current topics include software development, web development, databases, artificial intelligence and machine learning, data science, computer networks, cybersecurity, mobile development, game development, robotics, and safety-related topics.
 
-Результатом работы является **интерактивное HTML-приложение**, а не видеофайл. Репозиторий не занимается монтажом, кодированием или публикацией MP4. HTML-приложение предназначено для самостоятельного запуска в браузере и может служить интерактивным дополнением к вертикальному короткому видео.
+The deliverable is an **interactive HTML application, not a video file**. This repository does not edit footage, encode MP4 files, or publish videos. The generated application runs directly in a browser and can complement a vertical short-form video.
 
-Главная инженерная цель — отделить содержание конкретной темы от общей реализации приложения. Автор или AI-агент определяет, *что* показывать; генератор отвечает за то, *как* это приложение устроено и работает.
+The primary engineering goal is to separate topic-specific content from shared application infrastructure. The author or AI agent decides **what to explain**; the generator determines **how the application is structured and operated**.
 
-## 2. Архитектурные принципы
+## 2. Architectural Principles
 
-1. **Один источник нормативных параметров.** Значения размеров, цветов, временных интервалов, ограничений и режимов хранятся в `app-generator/config/app-spec.json`.
-2. **Одна общая оболочка.** HTML, CSS и JavaScript общего интерфейса создаются из шаблонов `app-generator/templates/`. Тематическая сцена не дублирует эту оболочку.
-3. **Разделение содержания и механики.** `scene.json` содержит заголовок, описание, шаги и субтитры; `scene.js` рисует содержимое Canvas. Общая логика управления принадлежит runtime генератора.
-4. **Один итоговый артефакт.** Результат генерации — один автономный HTML-файл со встроенными CSS и JavaScript.
-5. **Проверяемая генерация.** Входные данные валидируются до сборки, HTML проверяется после сборки, тесты запускаются в CI.
-6. **Сохранение обратной совместимости без второго источника истины.** Архив готовых работ остаётся справочным; устаревшие фрагментные компоненты не используются для новых приложений.
+1. **One canonical parameter source.** Document, layout, color, typography, timing, and validation parameters are defined in **app-generator/config/app-spec.json**.
+2. **One shared application shell.** The HTML document, CSS, controls, and standard JavaScript runtime are produced from **app-generator/templates/**. A topic scene must not reimplement them.
+3. **Separate content from behavior.** **scene.json** contains the title, description, ordered steps, and subtitles. **scene.js** draws the topic-specific Canvas scene. The generator runtime owns playback and application behavior.
+4. **One final artifact.** Generation produces one standalone HTML file with embedded CSS and JavaScript.
+5. **Validated output.** Input data is checked before generation; generated HTML is validated afterward; generator tests are maintained in the repository.
+6. **No competing legacy implementation.** Archived examples are references only. Deprecated fragment-based components must not be used for new applications.
 
-Детерминированность относится к общей структуре, стилям и стандартному runtime. Содержание и отрисовка конкретной темы различаются в зависимости от входных данных и кода сцены.
+The shared document structure, styles, and runtime are deterministic for a given configuration and input. Topic content and scene rendering naturally vary by task.
 
-## 3. Область ответственности компонентов
+## 3. Repository Map and Component Responsibilities
 
-### Корневые документы
+### Root-level agent documentation
 
-| Путь | Назначение |
+| File | Responsibility |
 |---|---|
-| `AGENT.md` | Архитектура, границы проекта, контракты и обязательный порядок работы агентов. |
-| `README.md` | Краткая точка входа и порядок применения спецификаций. |
-| `00_parameter-registry.md` | Индекс ID параметров; указывает на ключи JSON, но не хранит отдельные копии значений. |
-| `01_app-format-spec.md` | Формат итогового HTML и требования к автономности. |
-| `02_Компоновка_и_безопасные_зоны.md` | Требования к сцене в рамках общей адаптивной оболочки. |
-| `03_Визуальная_система.md` | Использование общей темы и палитры внутри Canvas. |
-| `04_Анимация_и_режимы.md` | Граница между runtime генератора и анимацией тематической сцены. |
-| `05_Субтитры.md` | Формат и редакционные требования к субтитрам. |
-| `06_Интерфейс_и_настройки.md` | Русскоязычная ссылка на реализацию общего интерфейса. |
-| `06_ui-controls-settings-spec.md` | Англоязычная краткая ссылка на ту же реализацию. |
-| `07_Архитектура_кода.md` | Контракт кода тематической сцены. |
-| `08_Проверка_и_критерии_приёмки.md` | Проверки генерации и функциональные критерии. |
+| **AGENT.md** | Project architecture, boundaries, contracts, source-of-truth rules, and agent workflow. |
+| **README.md** | Entry point and required order of work. |
+| **00_parameter-registry.md** | Index of parameter IDs and their canonical JSON keys; it stores no duplicate values. |
+| **01_app-format-spec.md** | Output format, metadata, and self-containment requirements. |
+| **02_layout-and-safe-areas.md** | Layout responsibilities and constraints for the topic scene. |
+| **03_visual-system.md** | Use of the shared visual system in Canvas rendering. |
+| **04_animation-and-playback.md** | Runtime playback behavior and the scene animation contract. |
+| **05_subtitles.md** | Subtitle data model, language, length, and synchronization. |
+| **06_interface-controls-and-settings.md** | Shared controls, settings dialog, accessibility, and keyboard behavior. |
+| **07_scene-code-architecture.md** | Technical contract and boundaries for scene.js. |
+| **08_validation-and-acceptance.md** | Generation, validation, browser checks, and acceptance criteria. |
 
-### Предметные задания — `Tasks/`
+### Subject briefs — Tasks/
 
-Файлы в `Tasks/` описывают предметную область, которую требуется раскрыть в интерактиве. Это **контентные исходные требования**, а не место для определения CSS, HTML-структуры, клавиатурных обработчиков или общей логики приложения.
+Files in **Tasks/** define the subject matter to be explained. They are content requirements, not a place to define HTML, CSS, controls, keyboard handlers, or shared application logic.
 
-При работе над темой:
+When creating an application:
 
-- используй соответствующий файл как границы предметной области;
-- отбирай материал, который можно достоверно и понятно представить в короткой последовательности шагов;
-- не пытайся поместить весь исходный обзор в один субтитр или один экран;
-- сохраняй важные определения, причинно-следственные связи и условия безопасности;
-- не добавляй неподтверждённые факты ради визуального эффекта.
+- Use the relevant task brief as the scope boundary when one exists.
+- Select material that can be explained accurately in a short sequence of visual steps.
+- Preserve important definitions, causal relationships, and safety conditions.
+- Do not compress an entire subject brief into one screen or subtitle.
+- Do not invent facts merely to make a scene more dramatic.
+- Follow the output language configured in app-spec.json. The current configuration sets the application language to Russian; the English language of these agent instructions does not change the generated application's language.
 
-### Генератор — `app-generator/`
+### Generator — app-generator/
 
-| Путь | Ответственность |
+| Path | Responsibility |
 |---|---|
-| `config/app-spec.json` | Единственная нормативная конфигурация документа, компоновки, палитры, типографики, анимации и ограничений. |
-| `templates/document.html` | Единый HTML-каркас, метатеги, DOM и точки интеграции сцены/runtime. |
-| `templates/app.css` | Общая визуальная система, адаптивная компоновка, safe areas и интерфейс. |
-| `templates/runtime.js` | Состояние приложения, Canvas lifecycle, AUTO/STEP, переходы, субтитры, настройки, клавиатура и resize. |
-| `scripts/generate_app.py` | Сборка автономного HTML из конфигурации, входных данных и шаблонов. |
-| `scripts/validate_app.py` | Повторная проверка уже собранного HTML. |
-| `examples/` | Эталон минимального входа для проверки контракта. |
-| `tests/` | Регрессионные тесты генератора и шаблонов. |
+| **config/app-spec.json** | Canonical configuration for document metadata, layout, palette, typography, animation, subtitles, and test viewports. |
+| **templates/document.html** | Shared HTML document, metadata, DOM structure, and integration points. |
+| **templates/app.css** | Shared visual system, responsive layout, safe areas, controls, and settings styles. |
+| **templates/runtime.js** | Application state, Canvas lifecycle, AUTO/STEP, transitions, subtitles, settings, keyboard handling, and resizing. |
+| **scripts/generate_app.py** | Builds the standalone HTML from the specification, scene inputs, and templates. |
+| **scripts/validate_app.py** | Validates a generated HTML file. |
+| **examples/** | Minimal reference input for the current scene contract. |
+| **tests/** | Regression tests for the generator and shared templates. |
+| **README.md and SKILL.md** | Generator usage, scene API, and agent-facing instructions. |
 
-### Справочные и устаревшие материалы
+### Archived and deprecated material
 
-- `Done (don't touch)/` — архив HTML-примеров по темам. По умолчанию он **read-only** и служит только историческим справочником. Если пользователь явно поручил обновить архив, разрешено пересобрать его HTML-файлы через `app-generator`, сохранив имена файлов и предметное содержание. Ручная правка итогового HTML и копирование из него общей реализации запрещены.
-- `short-video-ui-kit/` — устаревший путь генерации отдельных CSS/HTML/JS-фрагментов. Он оставлен как указатель на `app-generator`; не восстанавливать прежнюю генерацию фрагментов.
-- Если появятся другие архивы или legacy-компоненты, явно маркируй их статус. Не допускай, чтобы устаревший файл конкурировал с действующей спецификацией.
+- **Done (don't touch)/** contains historical HTML examples. Treat it as read-only unless the user explicitly requests an archive update. When an update is explicitly requested, regenerate each requested file through app-generator, preserve its filename and topic content, and validate the result. Never hand-edit generated HTML or copy shared implementation from the archive.
+- **short-video-ui-kit/** is a deprecated fragment-generation path. It remains as a pointer to app-generator. Do not revive the old workflow or copy its extracted HTML, CSS, or JavaScript fragments into new applications.
+- Clearly label any future archive or legacy component so it cannot be mistaken for a canonical implementation.
 
-## 4. Поток создания приложения
+## 4. Application Creation Flow
 
-```text
-Tasks/<тема>.md
+~~~text
+Tasks/<topic>.md
        |
        v
-Предметный анализ и план содержания
+Subject analysis and content outline
        |
        +-------------------------------+
        |                               |
        v                               v
 scene.json                         scene.js
-(шаги и тексты)                    (рисование Canvas)
+(steps and subtitles)              (Canvas drawing)
        |                               |
        +---------------+---------------+
                        |
@@ -102,157 +103,169 @@ scene.json                         scene.js
              validate_app.py
                        |
                        v
-         Проверка в браузере / приёмка
-```
+           Browser verification
+                       |
+                       v
+                 Delivery
+~~~
 
-На этапе генерации не должно быть ручной сборки общего интерфейса. Если в двух приложениях расходятся метатеги, структура DOM, CSS-контролы или стандартное поведение, исправлять нужно генератор, а не отдельные результаты.
+Do not manually assemble the shared interface during generation. If two generated applications differ in metadata, DOM structure, standard controls, or standard runtime behavior, fix the generator or its canonical configuration—not the individual output files.
 
-## 5. Контракт тематической сцены
+## 5. Topic Scene Contract
 
-### `scene.json`
+### scene.json
 
-Содержит:
+The input must contain:
 
-- `title` — непустой заголовок;
-- `description` — краткое описание для метаданных документа;
-- `steps` — упорядоченный массив шагов;
-- `steps[].subtitle` — ровно один текст субтитра для шага.
+- **title** — a non-empty string of at most 120 characters.
+- **description** — a string of at most 300 characters; it may be empty or omitted.
+- **steps** — an ordered array containing the configured number of step objects.
+- **steps[].subtitle** — one non-empty subtitle string for each step.
 
-Ограничения числа шагов и слов в субтитре задаются в `app-spec.json`. Сейчас генератор проверяет диапазон 6–10 шагов и максимум 12 слов на субтитр; при изменении конфигурации ориентироваться на актуальные значения JSON, а не копировать их в отдельную инструкцию.
+The generator validates the step count and maximum subtitle word count using app-spec.json. The current configuration requires 6–10 steps and allows at most 12 whitespace-separated words per subtitle. These are current configuration values, not values to duplicate in other documents.
 
-Субтитр должен кратко передавать одну мысль и соответствовать состоянию визуализации. Не храни второй массив субтитров в JavaScript.
+A step may also contain topic-specific data needed by scene.js. The runtime passes the complete current step object to the scene as frame.step. Keep subtitle text in scene.json; do not maintain a second subtitle array in JavaScript.
 
-### `scene.js`
+Each subtitle should express one complete idea and match the visual state shown for that step.
 
-Обязательный API:
+### scene.js
 
-```js
+The required public API is:
+
+~~~js
 window.AppScene = {
   draw(ctx, frame) {
-    // Синхронно отрисовать переданный кадр.
+    // Draw the supplied frame synchronously.
   }
 };
-```
+~~~
 
-Runtime передаёт в `frame`:
+The runtime supplies frame with:
 
-- `stepIndex` — индекс текущего шага, начиная с нуля;
-- `step` — объект текущего шага;
-- `width`, `height` — размеры Canvas в CSS-пикселях;
-- `elapsedMs`, `deltaMs` — время анимации;
-- `transitionProgress` — прогресс перехода от 0 до 1;
-- `speed`, `videoMode` — текущие настройки воспроизведения и отображения;
-- `palette` — цветовые токены из `app-spec.json`;
-- `fit` — правило масштабирования визуализации.
+- **stepIndex** — zero-based index of the logical step being drawn.
+- **step** — complete data object for that step, including its subtitle.
+- **width**, **height** — Canvas dimensions in CSS pixels.
+- **elapsedMs** — elapsed animation time, scaled by the selected playback speed.
+- **deltaMs** — time elapsed between runtime frames, before playback-speed scaling.
+- **transitionProgress** — transition progress from 0 to 1.
+- **speed** — selected playback-speed multiplier.
+- **videoMode** — whether the 9:16 portrait-frame mode is enabled.
+- **palette** — canonical color tokens from app-spec.json.
+- **fit** — configured visualization fitting rule.
 
-Допустимые дополнительные методы:
+Optional scene methods:
 
-- `init(api)` — инициализация сцены после подготовки DOM и Canvas;
-- `resize(viewport)` — уведомление об изменении размеров;
-- `reset()` — сброс внутреннего состояния только тематической сцены.
+- **init(api)** — initialize topic-specific scene state after the DOM and Canvas have been prepared and measured.
+- **resize(viewport)** — respond to a visualization size change. The viewport object contains width, height, and pixelRatio.
+- **reset()** — clear or reset topic-specific scene state when the application is reset.
 
-Runtime обязан подготовить Canvas, вызвать `init` и только после успешной инициализации разрешить первый вызов `draw`. При изменении размеров сначала обновляются размеры Canvas, затем вызывается `resize`, затем выполняется отрисовка.
+The runtime calls init before the first draw. It then calls resize with the initial measured viewport before rendering. Subsequent size changes also invoke resize before the next draw.
 
-### Запрещённая ответственность сцены
+The init API exposes the initial width and height, the steps array, and the shared methods setMode, setPlaying, setSpeed, setVideoMode, nextStep, and reset. Use these methods only when topic-specific initialization genuinely needs to invoke shared application controls.
 
-Тематическая сцена не должна:
+### Scene responsibilities and restrictions
 
-- создавать или изменять `html`, `head`, `body`, общие метатеги или общий DOM;
-- создавать собственные Play/Pause, настройки, AUTO/STEP, Reset, субтитры и индикаторы;
-- регистрировать собственную глобальную клавиатурную навигацию для функций приложения;
-- создавать отдельный цикл `requestAnimationFrame`, таймеры шагов или собственный playback state;
-- самостоятельно менять размер Canvas, его CSS-геометрию или safe areas;
-- загружать обязательные локальные ресурсы через `fetch`, XHR или `import`;
-- вставлять данные темы в DOM через `innerHTML`.
+The topic scene is responsible only for topic-specific Canvas rendering and optional topic-specific visual state. It must not:
 
-`draw(ctx, frame)` должна быть синхронной и по возможности детерминированной относительно переданного `frame`: одинаковые входные значения дают одинаковое изображение.
+- Create or modify html, head, body, document metadata, or shared DOM.
+- Create its own Play/Pause, settings, AUTO/STEP, Reset, subtitles, or step indicators.
+- Register global keyboard handlers for application controls.
+- Create its own requestAnimationFrame loop, playback timer, step counter, or playback state machine.
+- Change Canvas dimensions, CSS geometry, or application safe areas.
+- Load required local resources through fetch, XHR, or dynamic import.
+- Inject topic data into the DOM through innerHTML.
 
-## 6. Единственный источник истины
+draw(ctx, frame) must be synchronous. It should be deterministic for the same frame values and should not mutate frame or shared runtime state. Canvas context state should be scoped with save/restore where appropriate.
 
-Приоритет источников:
+## 6. Source of Truth and Conflict Resolution
 
-1. `app-generator/config/app-spec.json` — нормативные значения.
-2. `app-generator/templates/` — общая реализация документа, стилей и runtime.
-3. `app-generator/scripts/` — правила сборки и валидации.
-4. Корневые спецификации `01–08` — требования к содержанию и контрактам.
-5. `Tasks/` — предметный материал для конкретной темы.
-6. `examples/` и архив `Done (don't touch)/` — справочные примеры, не нормативный код.
+Use this authority order:
 
-`00_parameter-registry.md` — навигационный индекс ID, а не второй конфиг.
+1. **app-generator/config/app-spec.json** — canonical parameter values and configuration.
+2. **app-generator/templates/** — canonical shared document, CSS, and runtime implementation.
+3. **app-generator/scripts/** — canonical generation and validation behavior.
+4. **Root specifications 01–08** — documented requirements and scene contracts; keep them synchronized with the implementation.
+5. **Tasks/** — topic-specific content requirements.
+6. **Examples and Done (don't touch)/** — non-normative references only.
 
-Если требуется изменить общее поведение или дизайн:
+**00_parameter-registry.md** is an index of parameter identifiers and JSON keys, not a second configuration file.
 
-1. Определи, какой компонент является источником соответствующего требования.
-2. Измени `app-spec.json`, если меняется нормативный параметр.
-3. Измени шаблон/runtime, если меняется общая реализация.
-4. Синхронизируй соответствующий документ `01–08` и этот файл, если изменился контракт.
-5. Добавь регрессионный тест.
-6. Запусти полный набор тестов и примерную сборку.
+When a shared parameter or behavior must change:
 
-Не исправляй расхождения ручной правкой сгенерированных HTML-файлов.
+1. Identify whether the requirement belongs to configuration, shared implementation, generation/validation, or topic content.
+2. Update app-spec.json when a canonical parameter changes.
+3. Update the relevant template or script when shared implementation changes.
+4. Update affected root specifications and this file when a documented contract changes.
+5. Add or update regression tests for code behavior.
+6. Run the available tests, generate the example, and validate the output.
 
-## 7. Сборка и проверка
+Never resolve a shared implementation conflict by hand-editing a generated HTML file.
 
-Из корня репозитория:
+## 7. Build and Verification
 
-```bash
+Run commands from the repository root.
+
+Generate the example application:
+
+~~~bash
 python app-generator/scripts/generate_app.py \
   --config app-generator/examples/scene.json \
   --scene app-generator/examples/scene.js \
   --output dist/example.html
-```
+~~~
 
-Если выходной файл уже существует, не перезаписывай его без явного `--force`.
+The generator refuses to overwrite an existing output by default. Use **--force** only when replacement is intentional and authorized.
 
-Проверка результата:
+Validate the generated file and run the unit tests:
 
-```bash
+~~~bash
 python app-generator/scripts/validate_app.py dist/example.html
 python -m unittest discover -s app-generator/tests -v
-```
+~~~
 
-GitHub Actions workflow находится в `.github/workflows/app-generator-tests.yml`. Он запускает unit-тесты, сборку демонстрационного приложения и валидацию итогового файла.
+The GitHub Actions workflow is **.github/workflows/app-generator-tests.yml**. It runs generator tests, builds the example, and validates the generated HTML when its configured path filters match. A documentation-only change does not necessarily trigger that workflow.
 
-После программных тестов функционально проверь результат в браузере, в том числе:
+After automated checks, verify the generated file in a browser when browser testing is available:
 
-- мобильную компоновку и пустую правую/нижнюю зарезервированные зоны;
-- десктопную компоновку;
-- режим вертикальной рамки;
-- порядок `init → resize → draw`;
-- AUTO, STEP, переходы, Play/Pause и Reset;
-- сохранение скорости и режима рамки при Reset;
-- работу настроек, фокусировки, Escape и горячих клавиш;
-- отсутствие ошибок в консоли.
+- Mobile layout, including the empty right and bottom reserved areas.
+- Desktop two-column layout.
+- Portrait-frame mode.
+- Scene lifecycle order: init, resize, then draw.
+- AUTO, STEP, transitions, Play/Pause, and Reset.
+- Preservation of the selected speed and portrait mode after Reset.
+- Settings dialog, focus handling, Escape, and keyboard shortcuts.
+- No browser-console errors that interfere with operation.
 
-Контрольные размеры и другие тестовые значения брать из `app-spec.json`.
+Take test dimensions and parameter values from app-spec.json. Do not report a test as passed unless it was actually run.
 
-## 8. Правила изменений для AI-агентов
+## 8. Rules for AI-Agent Changes
 
-Перед изменением кода:
+Before changing the repository:
 
-1. Прочитай этот файл и корневой `README.md`.
-2. Определи, относится ли задача к предметному содержанию, генератору или общей спецификации.
-3. Найди действующий источник истины; не ориентируйся на случайный готовый HTML.
-4. Проверь соседние шаблоны, runtime, тесты и связанные документы.
-5. Предпочитай исправление общей причины локальному обходному решению.
+1. Read this file and the root README.md.
+2. Read app-generator/SKILL.md before creating or modifying an HTML mini-app.
+3. Classify the task as topic content, generator implementation, shared specification, or archive maintenance.
+4. Locate the canonical source before editing; do not infer current behavior from a random archived HTML file.
+5. Inspect related templates, runtime code, tests, and documentation.
 
-После изменения:
+When making changes:
 
-1. Обнови тесты и документацию вместе с реализацией.
-2. Запусти проверки, доступные в текущей среде; не заявляй о запуске тестов, если они не выполнялись.
-3. Не изменяй `Done (don't touch)/`, кроме явно поставленной пользователем задачи на обновление архива; в таком случае пересобирай файлы через `app-generator` и проверяй каждый результат.
-4. Не удаляй legacy-файлы, пока не проверена их роль как совместимого указателя.
-5. Работай в отдельной ветке; не вноси незапрошенные изменения прямо в `main`.
-6. В итоговом сообщении перечисли изменённые компоненты, пройденные проверки и известные ограничения.
+1. Prefer fixing a shared cause over adding a local workaround.
+2. Update implementation, tests, and documentation together when a contract changes.
+3. Run the checks available in the current environment and report exactly which checks ran.
+4. Keep Done (don't touch)/ unchanged unless the user explicitly requests an archive update. If requested, regenerate and validate the affected files through app-generator.
+5. Do not remove legacy files until their role as compatibility pointers has been checked.
+6. Work on a dedicated branch. Do not make unrequested changes directly on main.
+7. In the final report, list the changed components, checks performed, and any known limitations.
 
-## 9. Что не является целью проекта
+## 9. Project Non-Goals
 
-Не превращай репозиторий в:
+Do not turn this repository into:
 
-- универсальный конструктор многостраничных сайтов;
-- полноценный игровой движок или среду разработки игр;
-- видеоредактор или сервис рендеринга MP4;
-- backend-платформу, требующую сервера, базы данных или аккаунтов;
-- библиотеку взаимозаменяемых HTML/CSS-фрагментов, которые агент вручную собирает в итоговый документ.
+- A general-purpose multi-page website builder.
+- A full game engine or game-development environment.
+- A video editor or MP4 rendering service.
+- A backend platform that requires a server, database, or user accounts.
+- A collection of interchangeable HTML/CSS fragments that agents manually assemble.
 
-Новые возможности допустимы, если они поддерживают основную идею: быстро и единообразно создавать автономные интерактивные объяснения по предметным темам, не размножая общую инфраструктуру.
+New capabilities are appropriate when they support the central goal: producing consistent, self-contained interactive explanations for subject topics without duplicating shared infrastructure.

@@ -1,5 +1,7 @@
-# short-video-ui-kit — устаревший путь
+# short-video-ui-kit — Deprecated
 
-Компонентный генератор снят с эксплуатации. Используй ../app-generator/README.md.
+The fragment-based component generator has been retired. Use **../app-generator/README.md** instead.
 
-Новый генератор формирует один автономный HTML-файл и является единственным источником общей разметки, стилей, метатегов, настроек и runtime. Старые извлечённые компоненты не следует копировать в новые приложения.
+The current generator produces one standalone HTML file and is the only canonical source for shared markup, styles, metadata, settings, controls, and runtime behavior.
+
+Do not restore the old workflow or copy extracted components into new applications.
