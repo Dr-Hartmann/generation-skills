@@ -31,7 +31,7 @@
   function showFatalError(message) {
     const panel = document.createElement("div");
     panel.setAttribute("role", "alert");
-    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid #E5484D;border-radius:12px;background:#1A1A20;color:#FFFFFF;text-align:center;font:16px/1.5 system-ui";
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
     panel.textContent = message;
     elements.stage.appendChild(panel);
     console.error("[app-generator]", message);
