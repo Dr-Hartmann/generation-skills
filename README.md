@@ -64,6 +64,12 @@ Practical consequences:
 - Subtitles and controls must remain inside the application's available area.
 - Decorative effects never take priority over layout, readability, or safety requirements.
 
+## Code Quality
+
+The repository uses **pre-commit** for local checks and GitHub Actions enforcement. Ruff checks Python sources; general hooks validate whitespace, YAML/JSON syntax, merge-conflict markers, large files, and accidental private-key commits. When configured, SonarQube analyzes the maintained generator sources and enforces the configured Quality Gate in CI.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, commands, and SonarQube configuration.
+
 ## Terminology
 
 - **Main screen** — the application screen when the settings dialog is closed.
