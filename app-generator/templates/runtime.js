@@ -208,9 +208,8 @@
       to: nextStep,
       elapsedMs: 0
     };
-    state.currentStep = nextStep;
     state.waitElapsedMs = 0;
-    updateIndicators(true);
+    updateControls();
   }
 
   function setMode(mode) {
@@ -266,7 +265,7 @@
   }
 
   function reset() {
-    state.mode = "auto";
+    state.mode = timing.defaultMode;
     state.isPlaying = true;
     state.currentStep = 0;
     state.elapsedMs = 0;
@@ -316,7 +315,7 @@
         state.waitElapsedMs = 0;
 
         if (state.mode === "step") state.isPlaying = false;
-        updateIndicators(false);
+        updateIndicators(true);
       }
       return;
     }
