@@ -119,7 +119,8 @@
         transitionProgress,
         speed: state.speed,
         videoMode: state.videoMode,
-        palette: APP_CONFIG.palette
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
       });
     } finally {
       targetContext.restore();
