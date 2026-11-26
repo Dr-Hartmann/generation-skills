@@ -1,0 +1,38 @@
+name: App generator tests
+
+on:
+  push:
+    branches:
+      - main
+      - fix/**
+    paths:
+      - "app-generator/**"
+      - ".github/workflows/app-generator-tests.yml"
+  pull_request:
+    paths:
+      - "app-generator/**"
+      - ".github/workflows/app-generator-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run generator unit tests
+        run: python -m unittest discover -s app-generator/tests -v
+      - name: Build example app
+        run: >-
+          python app-generator/scripts/generate_app.py
+          --config app-generator/examples/scene.json
+          --scene app-generator/examples/scene.js
+          --output /tmp/generator-example.html
+      - name: Validate example app
+        run: python app-generator/scripts/validate_app.py /tmp/generator-example.html
