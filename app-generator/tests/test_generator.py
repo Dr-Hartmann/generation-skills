@@ -7,7 +7,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from scripts.generate_app import (
+from generate_app import (
     SPEC_PATH,
     TEMPLATE_DIR,
     build_html,
