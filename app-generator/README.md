@@ -23,32 +23,32 @@ The generator embeds scene.js as a classic inline script. Do not use ES module i
 
 Run from the repository root:
 
-~~~bash
+```bash
 python app-generator/scripts/generate_app.py \
   --config app-generator/examples/scene.json \
   --scene app-generator/examples/scene.js \
   --output dist/example.html
-~~~
+```
 
 The generator creates the output directory as needed. It refuses to overwrite an existing file unless **--force** is supplied.
 
 Validate the generated output:
 
-~~~bash
+```bash
 python app-generator/scripts/validate_app.py dist/example.html
-~~~
+```
 
 The result is one HTML file with embedded CSS and JavaScript. It opens directly in a browser; no local server, bundler, or additional local assets are required.
 
 ## Scene API
 
-~~~js
+```js
 window.AppScene = {
   draw(ctx, frame) {
     // Render the current logical step.
-  }
+  },
 };
-~~~
+```
 
 The frame object contains:
 

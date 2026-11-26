@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
 """Validate a generated standalone HTML app."""
-
-from __future__ import annotations
 
 import argparse
 import sys

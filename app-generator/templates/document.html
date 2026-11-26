@@ -1,91 +1,166 @@
 <!doctype html>
 <html lang="{{LANGUAGE}}">
-<head>
-  <meta charset="utf-8">
-  {{VIEWPORT_META}}
-  <meta name="theme-color" content="{{THEME_COLOR}}">
-  <meta name="description" content="{{DESCRIPTION}}">
-  <meta name="color-scheme" content="dark">
-  <title>{{TITLE}}</title>
-  <style>
-{{CSS}}
-  </style>
-</head>
-<body>
-  <div class="app-root" id="appRoot">
-    <header class="app-header">
-      <h1 id="appTitle">{{TITLE}}</h1>
-    </header>
-
-    <main class="workspace">
-      <section class="stage" id="stage" aria-label="Область визуализации">
-        <div class="visual-frame" id="visualFrame">
-          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
-
-          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
-
-          <div class="control-bar" id="controlBar">
-            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
-              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
-            </button>
-            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <aside class="details-panel" id="detailsPanel">
-        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
-      </aside>
-    </main>
-  </div>
-
-  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
-      <header class="dialog-header">
-        <h2 id="settingsTitle">Настройки</h2>
-        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-        </button>
+  <head>
+    <meta charset="utf-8" />
+    {{VIEWPORT_META}}
+    <meta name="theme-color" content="{{THEME_COLOR}}" />
+    <meta name="description" content="{{DESCRIPTION}}" />
+    <meta name="color-scheme" content="dark" />
+    <title>{{TITLE}}</title>
+    <style>
+      {{CSS}}
+    </style>
+  </head>
+  <body>
+    <div class="app-root" id="appRoot">
+      <header class="app-header">
+        <h1 id="appTitle">{{TITLE}}</h1>
       </header>
 
-      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+      <main class="workspace">
+        <section class="stage" id="stage" aria-label="Область визуализации">
+          <div class="visual-frame" id="visualFrame">
+            <canvas
+              id="sceneCanvas"
+              aria-label="Анимированная визуализация"
+            ></canvas>
 
-      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
-        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
-        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
-      </div>
+            <div
+              class="subtitle subtitle-mobile"
+              id="mobileSubtitle"
+              aria-live="polite"
+            ></div>
 
-      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
+            <div class="control-bar" id="controlBar">
+              <button
+                class="icon-button"
+                id="playButton"
+                type="button"
+                aria-label="Пауза"
+              >
+                <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                id="settingsButton"
+                type="button"
+                aria-label="Открыть настройки"
+                aria-haspopup="dialog"
+                aria-controls="settingsDialog"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
 
-      <div class="setting-row">
-        <label for="speedSelect">Скорость</label>
-        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
-      </div>
+        <aside class="details-panel" id="detailsPanel">
+          <div
+            class="subtitle subtitle-desktop"
+            id="desktopSubtitle"
+            aria-live="polite"
+          ></div>
+        </aside>
+      </main>
+    </div>
 
-      <div class="setting-row">
-        <label for="portraitToggle">Вертикальная рамка 9:16</label>
-        <input id="portraitToggle" type="checkbox">
-      </div>
+    <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+      <dialog
+        class="settings-dialog"
+        id="settingsDialog"
+        aria-modal="true"
+        aria-labelledby="settingsTitle"
+        tabindex="-1"
+      >
+        <header class="dialog-header">
+          <h2 id="settingsTitle">Настройки</h2>
+          <button
+            class="dialog-close"
+            id="closeSettingsButton"
+            type="button"
+            aria-label="Закрыть настройки"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="m6 6 12 12M18 6 6 18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
 
-      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
+        <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-      <div class="keyboard-help" aria-label="Горячие клавиши">
-        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
-        <span><kbd>→</kbd> Следующий шаг в STEP</span>
-        <span><kbd>R</kbd> Сброс</span>
-        <span><kbd>S</kbd> AUTO / STEP</span>
-        <span><kbd>V</kbd> Рамка 9:16</span>
-        <span><kbd>Esc</kbd> Закрыть настройки</span>
-      </div>
-    </section>
-  </div>
+        <optgroup
+          class="segmented-control"
+          aria-label="Режим воспроизведения"
+        >
+          <button id="autoModeButton" type="button" aria-pressed="true">
+            AUTO
+          </button>
+          <button id="stepModeButton" type="button" aria-pressed="false">
+            STEP
+          </button>
+        </div>
 
-  <script>
-    const APP_CONFIG = {{APP_CONFIG}};
-    {{SCENE_SCRIPT}}
-    {{RUNTIME_SCRIPT}}
-  </script>
-</body>
+        <button
+          class="dialog-action"
+          id="nextStepButton"
+          type="button"
+          disabled
+        >
+          Следующий шаг →
+        </button>
+
+        <div class="setting-row">
+          <label for="speedSelect">Скорость</label>
+          <select
+            id="speedSelect"
+            aria-label="Скорость воспроизведения"
+          ></select>
+        </div>
+
+        <div class="setting-row">
+          <label for="portraitToggle">Вертикальная рамка 9:16</label>
+          <input id="portraitToggle" type="checkbox" />
+        </div>
+
+        <button
+          class="dialog-action secondary-action"
+          id="resetButton"
+          type="button"
+        >
+          Сбросить
+        </button>
+
+        <div class="keyboard-help" aria-label="Горячие клавиши">
+          <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+          <span><kbd>→</kbd> Следующий шаг в STEP</span>
+          <span><kbd>R</kbd> Сброс</span>
+          <span><kbd>S</kbd> AUTO / STEP</span>
+          <span><kbd>V</kbd> Рамка 9:16</span>
+          <span><kbd>Esc</kbd> Закрыть настройки</span>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const APP_CONFIG = {{APP_CONFIG}};
+      {{SCENE_SCRIPT}}
+      {{RUNTIME_SCRIPT}}
+    </script>
+  </body>
 </html>

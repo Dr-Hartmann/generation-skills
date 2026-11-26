@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import sys
 import unittest
@@ -9,7 +7,14 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from generate_app import SPEC_PATH, TEMPLATE_DIR, build_html, read_json, validate_html, validate_scene_script  # noqa: E402
+from scripts.generate_app import (
+    SPEC_PATH,
+    TEMPLATE_DIR,
+    build_html,
+    read_json,
+    validate_html,
+    validate_scene_script,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "examples"
@@ -66,7 +71,7 @@ class GeneratorTests(unittest.TestCase):
         document = self.build_example()
         document = document.replace(
             '<meta name="viewport" content=',
-            '<meta content=',
+            "<meta content=",
             1,
         )
         with self.assertRaisesRegex(ValueError, "exactly one meta\\[name=viewport\\]"):
@@ -75,10 +80,14 @@ class GeneratorTests(unittest.TestCase):
     def test_all_done_archive_files_pass_the_canonical_validator(self) -> None:
         archive = ROOT.parent / "Done (don't touch)"
         html_files = sorted(archive.glob("*.html"))
-        self.assertEqual(len(html_files), 21, "Update archive coverage when its file set changes.")
+        self.assertEqual(
+            len(html_files), 21, "Update archive coverage when its file set changes."
+        )
         for html_file in html_files:
             with self.subTest(file=html_file.name):
-                validate_html(html_file.read_text(encoding="utf-8"), self.spec["meta"]["viewport"])
+                validate_html(
+                    html_file.read_text(encoding="utf-8"), self.spec["meta"]["viewport"]
+                )
 
     def test_rejects_duplicate_document_and_metadata_tags(self) -> None:
         document = self.build_example()
@@ -101,9 +110,16 @@ class GeneratorTests(unittest.TestCase):
     def test_scene_initialization_precedes_first_draw(self) -> None:
         runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
         self.assertIn("let sceneInitialized = false;", runtime)
-        self.assertIn("if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;", runtime)
-        self.assertLess(runtime.index("scene.init({"), runtime.index("sceneInitialized = true;"))
-        self.assertLess(runtime.index("sceneInitialized = true;"), runtime.index("resizeCanvas();", runtime.index("sceneInitialized = true;")))
+        self.assertIn(
+            "if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;", runtime
+        )
+        self.assertLess(
+            runtime.index("scene.init({"), runtime.index("sceneInitialized = true;")
+        )
+        self.assertLess(
+            runtime.index("sceneInitialized = true;"),
+            runtime.index("resizeCanvas();", runtime.index("sceneInitialized = true;")),
+        )
 
     def test_mobile_modal_backdrop_respects_reserved_safe_areas(self) -> None:
         css = (TEMPLATE_DIR / "app.css").read_text(encoding="utf-8")
@@ -123,7 +139,10 @@ class GeneratorTests(unittest.TestCase):
         self.assertIn("if (modalIsOpen) {", runtime)
         self.assertIn("elements.appRoot.inert = true;", runtime)
         self.assertIn("elements.appRoot.inert = false;", runtime)
-        self.assertIn('target.closest("button, a, [role=\'button\'], [role=\'slider\'], [role=\'switch\']")', runtime)
+        self.assertIn(
+            "target.closest(\"button, a, [role='button'], [role='slider'], [role='switch']\")",
+            runtime,
+        )
         self.assertIn("function isInteractiveTarget(target)", runtime)
 
     def test_spec_is_valid_json(self) -> None:

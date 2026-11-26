@@ -20,18 +20,18 @@ Do not manually create the shared HTML structure, metadata, CSS, controls, setti
 
 ## Root Specifications
 
-| File | Scope |
-|---|---|
-| [AGENT.md](AGENT.md) | Architecture and mandatory agent workflow |
-| [00_parameter-registry.md](00_parameter-registry.md) | Parameter IDs and canonical configuration keys |
-| [01_app-format-spec.md](01_app-format-spec.md) | Output format and standalone-document requirements |
-| [02_layout-and-safe-areas.md](02_layout-and-safe-areas.md) | Responsive layout and reserved areas |
-| [03_visual-system.md](03_visual-system.md) | Shared palette and Canvas visual rules |
-| [04_animation-and-playback.md](04_animation-and-playback.md) | Playback modes and animation contract |
-| [05_subtitles.md](05_subtitles.md) | Subtitle content and synchronization |
+| File                                                                           | Scope                                                       |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| [AGENT.md](AGENT.md)                                                           | Architecture and mandatory agent workflow                   |
+| [00_parameter-registry.md](00_parameter-registry.md)                           | Parameter IDs and canonical configuration keys              |
+| [01_app-format-spec.md](01_app-format-spec.md)                                 | Output format and standalone-document requirements          |
+| [02_layout-and-safe-areas.md](02_layout-and-safe-areas.md)                     | Responsive layout and reserved areas                        |
+| [03_visual-system.md](03_visual-system.md)                                     | Shared palette and Canvas visual rules                      |
+| [04_animation-and-playback.md](04_animation-and-playback.md)                   | Playback modes and animation contract                       |
+| [05_subtitles.md](05_subtitles.md)                                             | Subtitle content and synchronization                        |
 | [06_interface-controls-and-settings.md](06_interface-controls-and-settings.md) | Shared interface, controls, settings, and keyboard behavior |
-| [07_scene-code-architecture.md](07_scene-code-architecture.md) | Topic-specific JavaScript scene API |
-| [08_validation-and-acceptance.md](08_validation-and-acceptance.md) | Validation and acceptance criteria |
+| [07_scene-code-architecture.md](07_scene-code-architecture.md)                 | Topic-specific JavaScript scene API                         |
+| [08_validation-and-acceptance.md](08_validation-and-acceptance.md)             | Validation and acceptance criteria                          |
 
 ## Canonical Configuration and Implementation
 
@@ -76,6 +76,6 @@ Practical consequences:
 
 ## Avoid Divergent Implementations
 
-Do not copy shared markup or styles from **Done (don't touch)/**, the deprecated **short-video-ui-kit/**, or standalone archived HTML files. Use **app-generator/** for every new application.
+Do not copy shared markup or styles from **Done (don't touch)/**, or standalone archived HTML files. Use **app-generator/** for every new application.
 
 When a canonical parameter changes, update app-spec.json and the relevant templates. When implementation behavior changes, update the relevant tests and root documentation. Regenerate and validate the example output after generator changes.

@@ -25,25 +25,34 @@
     nextStep: get("nextStepButton"),
     speed: get("speedSelect"),
     portrait: get("portraitToggle"),
-    reset: get("resetButton")
+    reset: get("resetButton"),
   };
 
   function showFatalError(message) {
     const panel = document.createElement("div");
     panel.setAttribute("role", "alert");
-    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.style.cssText =
+      "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
     panel.textContent = message;
     elements.stage.appendChild(panel);
     console.error("[app-generator]", message);
   }
 
   if (!scene || typeof scene.draw !== "function") {
-    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    showFatalError(
+      "Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().",
+    );
     return;
   }
 
-  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
-    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+  if (
+    !Array.isArray(steps) ||
+    steps.length < timing.minSteps ||
+    steps.length > timing.maxSteps
+  ) {
+    showFatalError(
+      "Некорректная конфигурация шагов. Проверьте файл scene.json.",
+    );
     return;
   }
 
@@ -68,7 +77,7 @@
     elapsedMs: 0,
     waitElapsedMs: 0,
     deltaMs: 0,
-    transition: null
+    transition: null,
   };
 
   let cssWidth = 0;
@@ -123,7 +132,7 @@
         speed: state.speed,
         videoMode: state.videoMode,
         palette: APP_CONFIG.palette,
-        fit: APP_CONFIG.visualizationFit
+        fit: APP_CONFIG.visualizationFit,
       });
     } finally {
       targetContext.restore();
@@ -134,7 +143,10 @@
     if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
 
     if (state.transition) {
-      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      const progress = Math.min(
+        1,
+        state.transition.elapsedMs / timing.transitionMs,
+      );
       drawTo(previousCtx, state.transition.from, progress);
       drawTo(currentCtx, state.transition.to, progress);
 
@@ -191,7 +203,7 @@
 
     elements.playButton.setAttribute(
       "aria-label",
-      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение",
     );
     elements.playIcon.innerHTML = state.isPlaying
       ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
@@ -201,7 +213,7 @@
     elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
     elements.settingsButton.setAttribute(
       "aria-expanded",
-      String(elements.backdrop.classList.contains("open"))
+      String(elements.backdrop.classList.contains("open")),
     );
     elements.portrait.checked = state.videoMode;
     elements.speed.value = String(state.speed);
@@ -213,7 +225,7 @@
     state.transition = {
       from: state.currentStep,
       to: nextStep,
-      elapsedMs: 0
+      elapsedMs: 0,
     };
     state.waitElapsedMs = 0;
     updateControls();
@@ -251,7 +263,8 @@
       state.mode !== "step" ||
       state.transition ||
       state.currentStep >= steps.length - 1
-    ) return;
+    )
+      return;
 
     state.isPlaying = true;
     startTransition(state.currentStep + 1);
@@ -355,7 +368,9 @@
     return (
       (target instanceof HTMLElement && target.isContentEditable) ||
       ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
-      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+      target.closest(
+        "button, a, [role='button'], [role='slider'], [role='switch']",
+      ) !== null
     );
   }
 
@@ -376,17 +391,27 @@
       if (event.key === "Tab") {
         const focusable = Array.from(
           elements.dialog.querySelectorAll(
-            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
-          )
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+          ),
         ).filter((element) => !element.hasAttribute("hidden"));
         const first = focusable[0];
-        const last = focusable[focusable.length - 1];
+        const last = focusable.at(-1);
 
-        if (first && last && event.shiftKey &&
-            (document.activeElement === first || document.activeElement === elements.dialog)) {
+        if (
+          first &&
+          last &&
+          event.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === elements.dialog)
+        ) {
           event.preventDefault();
           last.focus();
-        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+        } else if (
+          first &&
+          last &&
+          !event.shiftKey &&
+          document.activeElement === last
+        ) {
           event.preventDefault();
           first.focus();
         }
@@ -396,7 +421,10 @@
 
     if (isInteractiveTarget(event.target)) return;
 
-    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+    if (
+      !window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)")
+        .matches
+    ) {
       return;
     }
 
@@ -408,7 +436,11 @@
     }
 
     if (event.key === "ArrowRight") {
-      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+      if (
+        state.mode === "step" &&
+        !state.transition &&
+        state.currentStep < steps.length - 1
+      ) {
         event.preventDefault();
         nextStep();
       }
@@ -441,8 +473,12 @@
   elements.autoMode.addEventListener("click", () => setMode("auto"));
   elements.stepMode.addEventListener("click", () => setMode("step"));
   elements.nextStep.addEventListener("click", nextStep);
-  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
-  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.speed.addEventListener("change", (event) =>
+    setSpeed(event.target.value),
+  );
+  elements.portrait.addEventListener("change", (event) =>
+    setVideoMode(event.target.checked),
+  );
   elements.reset.addEventListener("click", reset);
   window.addEventListener("keydown", handleKeyboard);
   window.addEventListener("resize", resizeCanvas);
@@ -470,14 +506,16 @@
         setSpeed,
         setVideoMode,
         nextStep,
-        reset
+        reset,
       });
     }
     sceneInitialized = true;
     resizeCanvas();
   } catch (error) {
     console.error("[app-generator] Scene initialization failed:", error);
-    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    showFatalError(
+      "Не удалось инициализировать визуализацию. Проверьте консоль браузера.",
+    );
     return;
   }
 
@@ -486,7 +524,11 @@
     if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
   }, timing.autoStartDelayMs);
 
-  window.addEventListener("pagehide", () => {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  }, { once: true });
+  window.addEventListener(
+    "pagehide",
+    () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    },
+    { once: true },
+  );
 })();

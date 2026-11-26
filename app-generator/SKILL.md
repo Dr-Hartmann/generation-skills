@@ -26,18 +26,18 @@ Use frame.palette for shared design tokens. Do not create separate output CSS or
 
 Run from the repository root:
 
-~~~bash
+```bash
 python app-generator/scripts/generate_app.py \
   --config <path-to-scene.json> \
   --scene <path-to-scene.js> \
   --output <path-to-output.html>
-~~~
+```
 
 Then validate the result:
 
-~~~bash
+```bash
 python app-generator/scripts/validate_app.py <path-to-output.html>
-~~~
+```
 
 Use **--force** only when an existing output file is intentionally being replaced.
 

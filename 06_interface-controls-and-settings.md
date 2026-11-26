@@ -30,14 +30,14 @@ Do not implement a second focus manager or modal lifecycle inside the topic scen
 
 The current runtime enables the application shortcuts only at desktop viewport widths, using the breakpoint configured in app-spec.json. Shortcuts are ignored while the user is interacting with an editable or interactive element. While the settings dialog is open, application shortcuts are suppressed; Escape closes the dialog and Tab navigation remains available.
 
-| Key | Behavior |
-|---|---|
-| Space | Show or hide the control bar. It does not pause or resume playback. |
+| Key         | Behavior                                                                                  |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| Space       | Show or hide the control bar. It does not pause or resume playback.                       |
 | Right Arrow | Advance one step in STEP mode when no transition is active and another step is available. |
-| R | Reset the sequence. |
-| S | Toggle between AUTO and STEP. |
-| V | Toggle portrait-frame mode. |
-| Escape | Close the settings dialog when it is open. |
+| R           | Reset the sequence.                                                                       |
+| S           | Toggle between AUTO and STEP.                                                             |
+| V           | Toggle portrait-frame mode.                                                               |
+| Escape      | Close the settings dialog when it is open.                                                |
 
 Do not assume these shortcuts are available on mobile layouts. Do not reimplement their behavior in scene.js.
 

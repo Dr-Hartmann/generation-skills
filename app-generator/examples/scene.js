@@ -30,7 +30,13 @@ window.AppScene = {
       const active = index <= stepIndex;
 
       ctx.beginPath();
-      ctx.arc(x, y, Math.max(10, Math.min(width, height) * 0.025), 0, Math.PI * 2);
+      ctx.arc(
+        x,
+        y,
+        Math.max(10, Math.min(width, height) * 0.025),
+        0,
+        Math.PI * 2,
+      );
       ctx.fillStyle = active ? palette.accent : palette.panel;
       ctx.fill();
       ctx.lineWidth = 2;
@@ -39,9 +45,10 @@ window.AppScene = {
     }
 
     ctx.fillStyle = palette.text;
-    ctx.font = "700 " + Math.max(18, Math.min(width, height) * 0.055) + "px system-ui";
+    ctx.font =
+      "700 " + Math.max(18, Math.min(width, height) * 0.055) + "px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("ШАГ " + (stepIndex + 1), centerX, centerY);
-  }
+  },
 };

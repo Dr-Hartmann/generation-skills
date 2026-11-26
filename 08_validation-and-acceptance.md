@@ -6,26 +6,26 @@ Every application must be built through app-generator. Do not submit or validate
 
 Run the generator from the repository root:
 
-~~~bash
+```bash
 python app-generator/scripts/generate_app.py \
   --config <path-to-scene.json> \
   --scene <path-to-scene.js> \
   --output <path-to-application.html>
-~~~
+```
 
 Validate the generated file:
 
-~~~bash
+```bash
 python app-generator/scripts/validate_app.py <path-to-application.html>
-~~~
+```
 
 If generation or validation fails, fix the input data or canonical template first. Do not disable the validator or manually edit the generated HTML.
 
 Run the generator unit tests when the environment supports Python:
 
-~~~bash
+```bash
 python -m unittest discover -s app-generator/tests -v
-~~~
+```
 
 ## Viewport Checks
 

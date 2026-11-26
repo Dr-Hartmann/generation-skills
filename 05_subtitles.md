@@ -4,7 +4,7 @@
 
 Subtitles are stored directly in the scene.json input. Each step must contain exactly one subtitle string.
 
-~~~json
+```json
 {
   "title": "Example topic",
   "description": "A concise description of the topic.",
@@ -13,7 +13,7 @@ Subtitles are stored directly in the scene.json input. Each step must contain ex
     { "subtitle": "Second subtitle." }
   ]
 }
-~~~
+```
 
 Do not create a separate HTML subtitle array, subtitle DOM elements, text segments, or an independent synchronization mechanism.
 

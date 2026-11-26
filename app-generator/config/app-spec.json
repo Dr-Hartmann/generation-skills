@@ -49,7 +49,11 @@
   "animation": {
     "auto_start_delay_ms": 500,
     "target_fps": 60,
-    "speeds": [0.5, 1, 2],
+    "speeds": [
+      0.5,
+      1,
+      2
+    ],
     "default_speed": 1,
     "auto_step_interval_ms": 5000,
     "step_transition_ms": 900,
@@ -63,9 +67,18 @@
     "background_blur_px": 8
   },
   "test_viewports": {
-    "compact_phone": [390, 844],
-    "tablet_breakpoint": [768, 1024],
-    "desktop": [1920, 1080]
+    "compact_phone": [
+      390,
+      844
+    ],
+    "tablet_breakpoint": [
+      768,
+      1024
+    ],
+    "desktop": [
+      1920,
+      1080
+    ]
   },
   "behavior": {
     "default_mode": "auto",

@@ -27,19 +27,19 @@ The shared document structure, styles, and runtime are deterministic for a given
 
 ### Root-level agent documentation
 
-| File | Responsibility |
-|---|---|
-| **AGENT.md** | Project architecture, boundaries, contracts, source-of-truth rules, and agent workflow. |
-| **README.md** | Entry point and required order of work. |
-| **00_parameter-registry.md** | Index of parameter IDs and their canonical JSON keys; it stores no duplicate values. |
-| **01_app-format-spec.md** | Output format, metadata, and self-containment requirements. |
-| **02_layout-and-safe-areas.md** | Layout responsibilities and constraints for the topic scene. |
-| **03_visual-system.md** | Use of the shared visual system in Canvas rendering. |
-| **04_animation-and-playback.md** | Runtime playback behavior and the scene animation contract. |
-| **05_subtitles.md** | Subtitle data model, language, length, and synchronization. |
-| **06_interface-controls-and-settings.md** | Shared controls, settings dialog, accessibility, and keyboard behavior. |
-| **07_scene-code-architecture.md** | Technical contract and boundaries for scene.js. |
-| **08_validation-and-acceptance.md** | Generation, validation, browser checks, and acceptance criteria. |
+| File                                      | Responsibility                                                                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| **AGENT.md**                              | Project architecture, boundaries, contracts, source-of-truth rules, and agent workflow. |
+| **README.md**                             | Entry point and required order of work.                                                 |
+| **00_parameter-registry.md**              | Index of parameter IDs and their canonical JSON keys; it stores no duplicate values.    |
+| **01_app-format-spec.md**                 | Output format, metadata, and self-containment requirements.                             |
+| **02_layout-and-safe-areas.md**           | Layout responsibilities and constraints for the topic scene.                            |
+| **03_visual-system.md**                   | Use of the shared visual system in Canvas rendering.                                    |
+| **04_animation-and-playback.md**          | Runtime playback behavior and the scene animation contract.                             |
+| **05_subtitles.md**                       | Subtitle data model, language, length, and synchronization.                             |
+| **06_interface-controls-and-settings.md** | Shared controls, settings dialog, accessibility, and keyboard behavior.                 |
+| **07_scene-code-architecture.md**         | Technical contract and boundaries for scene.js.                                         |
+| **08_validation-and-acceptance.md**       | Generation, validation, browser checks, and acceptance criteria.                        |
 
 ### Subject briefs — Tasks/
 
@@ -56,27 +56,26 @@ When creating an application:
 
 ### Generator — app-generator/
 
-| Path | Responsibility |
-|---|---|
-| **config/app-spec.json** | Canonical configuration for document metadata, layout, palette, typography, animation, subtitles, and test viewports. |
-| **templates/document.html** | Shared HTML document, metadata, DOM structure, and integration points. |
-| **templates/app.css** | Shared visual system, responsive layout, safe areas, controls, and settings styles. |
-| **templates/runtime.js** | Application state, Canvas lifecycle, AUTO/STEP, transitions, subtitles, settings, keyboard handling, and resizing. |
-| **scripts/generate_app.py** | Builds the standalone HTML from the specification, scene inputs, and templates. |
-| **scripts/validate_app.py** | Validates a generated HTML file. |
-| **examples/** | Minimal reference input for the current scene contract. |
-| **tests/** | Regression tests for the generator and shared templates. |
-| **README.md and SKILL.md** | Generator usage, scene API, and agent-facing instructions. |
+| Path                        | Responsibility                                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **config/app-spec.json**    | Canonical configuration for document metadata, layout, palette, typography, animation, subtitles, and test viewports. |
+| **templates/document.html** | Shared HTML document, metadata, DOM structure, and integration points.                                                |
+| **templates/app.css**       | Shared visual system, responsive layout, safe areas, controls, and settings styles.                                   |
+| **templates/runtime.js**    | Application state, Canvas lifecycle, AUTO/STEP, transitions, subtitles, settings, keyboard handling, and resizing.    |
+| **scripts/generate_app.py** | Builds the standalone HTML from the specification, scene inputs, and templates.                                       |
+| **scripts/validate_app.py** | Validates a generated HTML file.                                                                                      |
+| **examples/**               | Minimal reference input for the current scene contract.                                                               |
+| **tests/**                  | Regression tests for the generator and shared templates.                                                              |
+| **README.md and SKILL.md**  | Generator usage, scene API, and agent-facing instructions.                                                            |
 
 ### Archived and deprecated material
 
 - **Done (don't touch)/** contains historical HTML examples. Treat it as read-only unless the user explicitly requests an archive update. When an update is explicitly requested, regenerate each requested file through app-generator, preserve its filename and topic content, and validate the result. Never hand-edit generated HTML or copy shared implementation from the archive.
-- **short-video-ui-kit/** is a deprecated fragment-generation path. It remains as a pointer to app-generator. Do not revive the old workflow or copy its extracted HTML, CSS, or JavaScript fragments into new applications.
 - Clearly label any future archive or legacy component so it cannot be mistaken for a canonical implementation.
 
 ## 4. Application Creation Flow
 
-~~~text
+```text
 Tasks/<topic>.md
        |
        v
@@ -107,7 +106,7 @@ scene.json                         scene.js
                        |
                        v
                  Delivery
-~~~
+```
 
 Do not manually assemble the shared interface during generation. If two generated applications differ in metadata, DOM structure, standard controls, or standard runtime behavior, fix the generator or its canonical configuration—not the individual output files.
 
@@ -132,13 +131,13 @@ Each subtitle should express one complete idea and match the visual state shown 
 
 The required public API is:
 
-~~~js
+```js
 window.AppScene = {
   draw(ctx, frame) {
     // Draw the supplied frame synchronously.
-  }
+  },
 };
-~~~
+```
 
 The runtime supplies frame with:
 
@@ -207,21 +206,21 @@ Run commands from the repository root.
 
 Generate the example application:
 
-~~~bash
+```bash
 python app-generator/scripts/generate_app.py \
   --config app-generator/examples/scene.json \
   --scene app-generator/examples/scene.js \
   --output dist/example.html
-~~~
+```
 
 The generator refuses to overwrite an existing output by default. Use **--force** only when replacement is intentional and authorized.
 
 Validate the generated file and run the unit tests:
 
-~~~bash
+```bash
 python app-generator/scripts/validate_app.py dist/example.html
 python -m unittest discover -s app-generator/tests -v
-~~~
+```
 
 The GitHub Actions workflow is **.github/workflows/app-generator-tests.yml**. It runs generator tests, builds the example, and validates the generated HTML when its configured path filters match. A documentation-only change does not necessarily trigger that workflow.
 

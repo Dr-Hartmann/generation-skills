@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
 """Build a deterministic, self-contained HTML mini-app."""
-
-from __future__ import annotations
 
 import argparse
 import html
@@ -17,12 +14,27 @@ SPEC_PATH = ROOT / "config" / "app-spec.json"
 TEMPLATE_DIR = ROOT / "templates"
 
 REQUIRED_IDS = {
-    "appRoot", "appTitle", "stage", "visualFrame", "sceneCanvas",
-    "mobileSubtitle", "desktopSubtitle",
-    "modalStepIndicator", "controlBar", "playButton", "playIcon",
-    "settingsButton", "settingsBackdrop", "settingsDialog",
-    "closeSettingsButton", "autoModeButton", "stepModeButton",
-    "nextStepButton", "speedSelect", "portraitToggle", "resetButton",
+    "appRoot",
+    "appTitle",
+    "stage",
+    "visualFrame",
+    "sceneCanvas",
+    "mobileSubtitle",
+    "desktopSubtitle",
+    "modalStepIndicator",
+    "controlBar",
+    "playButton",
+    "playIcon",
+    "settingsButton",
+    "settingsBackdrop",
+    "settingsDialog",
+    "closeSettingsButton",
+    "autoModeButton",
+    "stepModeButton",
+    "nextStepButton",
+    "speedSelect",
+    "portraitToggle",
+    "resetButton",
 }
 
 
@@ -32,7 +44,7 @@ def read_json(path: Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError) as error:
         raise ValueError(f"Cannot read JSON file {path}: {error}") from error
     if not isinstance(value, dict):
-        raise ValueError(f"{path} must contain a JSON object.")
+        raise TypeError(f"{path} must contain a JSON object.")
     return value
 
 
@@ -45,14 +57,14 @@ def validate_scene_data(data: dict[str, Any], spec: dict[str, Any]) -> None:
     if len(title) > 120:
         raise ValueError("scene.json: 'title' must not exceed 120 characters.")
     if not isinstance(description, str):
-        raise ValueError("scene.json: 'description' must be a string.")
+        raise TypeError("scene.json: 'description' must be a string.")
     if len(description) > 300:
         raise ValueError("scene.json: 'description' must not exceed 300 characters.")
 
     steps = data.get("steps")
     subtitle_spec = spec["subtitles"]
     if not isinstance(steps, list):
-        raise ValueError("scene.json: 'steps' must be an array.")
+        raise TypeError("scene.json: 'steps' must be an array.")
     if not subtitle_spec["min_steps"] <= len(steps) <= subtitle_spec["max_steps"]:
         raise ValueError(
             "scene.json: expected "
@@ -62,7 +74,7 @@ def validate_scene_data(data: dict[str, Any], spec: dict[str, Any]) -> None:
 
     for index, step in enumerate(steps, start=1):
         if not isinstance(step, dict):
-            raise ValueError(f"scene.json: step {index} must be an object.")
+            raise TypeError(f"scene.json: step {index} must be an object.")
         subtitle = step.get("subtitle")
         if not isinstance(subtitle, str) or not subtitle.strip():
             raise ValueError(f"scene.json: step {index} needs a non-empty 'subtitle'.")
@@ -78,7 +90,9 @@ def validate_scene_script(source: str, path: Path) -> None:
     if not source.strip():
         raise ValueError(f"{path} is empty.")
     if re.search(r"</\s*script", source, flags=re.IGNORECASE):
-        raise ValueError(f"{path} contains a closing script tag, which would break HTML embedding.")
+        raise ValueError(
+            f"{path} contains a closing script tag, which would break HTML embedding."
+        )
     if re.search(r"^\s*(?:import\s|export\s)", source, flags=re.MULTILINE):
         raise ValueError(f"{path} must be a classic inline script, not an ES module.")
     if not re.search(r"window\s*\.\s*AppScene\s*=", source):
@@ -148,7 +162,9 @@ def render_css(spec: dict[str, Any]) -> str:
 
 def js_json(value: Any) -> str:
     # Escaping '<' prevents user-authored strings from terminating the inline script.
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace(
+        "<", "\\u003c"
+    )
 
 
 def validate_html(source: str, expected_viewport: str | None = None) -> None:
@@ -164,7 +180,9 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
             self.external_assets: list[str] = []
             self.charset_ok = False
 
-        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        def handle_starttag(
+            self, tag: str, attrs: list[tuple[str, str | None]]
+        ) -> None:
             values = dict(attrs)
             self.tag_counts[tag] = self.tag_counts.get(tag, 0) + 1
             element_id = values.get("id")
@@ -201,27 +219,37 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
 
     duplicate_meta = sorted(key for key, count in parser.meta_keys.items() if count > 1)
     if duplicate_meta:
-        raise ValueError("Generated HTML contains duplicate metadata tags: " + ", ".join(duplicate_meta))
+        raise ValueError(
+            "Generated HTML contains duplicate metadata tags: "
+            + ", ".join(duplicate_meta)
+        )
 
     for name in ("viewport", "theme-color", "description", "color-scheme"):
         if parser.meta_keys.get("name:" + name, 0) != 1:
-            raise ValueError(f"Generated HTML must contain exactly one meta[name={name}] tag.")
+            raise ValueError(
+                f"Generated HTML must contain exactly one meta[name={name}] tag."
+            )
     if parser.meta_keys.get("charset:utf-8", 0) != 1:
-        raise ValueError("Generated HTML must contain exactly one UTF-8 charset meta tag.")
+        raise ValueError(
+            "Generated HTML must contain exactly one UTF-8 charset meta tag."
+        )
 
     duplicates = sorted({item for item in parser.ids if parser.ids.count(item) > 1})
     if duplicates:
-        raise ValueError("Generated HTML contains duplicate IDs: " + ", ".join(duplicates))
+        raise ValueError(
+            "Generated HTML contains duplicate IDs: " + ", ".join(duplicates)
+        )
 
     missing = sorted(REQUIRED_IDS.difference(parser.ids))
     if missing:
-        raise ValueError("Generated HTML is missing required elements: " + ", ".join(missing))
+        raise ValueError(
+            "Generated HTML is missing required elements: " + ", ".join(missing)
+        )
 
     if not parser.charset_ok:
         raise ValueError("Generated HTML must declare UTF-8 charset.")
     viewport = [
-        meta for meta in parser.metas
-        if (meta.get("name") or "").lower() == "viewport"
+        meta for meta in parser.metas if (meta.get("name") or "").lower() == "viewport"
     ]
     if len(viewport) != 1:
         raise ValueError("Generated HTML must contain exactly one viewport meta tag.")
@@ -229,7 +257,9 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
         raise ValueError("Generated viewport meta tag differs from app-spec.json.")
 
     if parser.style_count != 1 or parser.script_count != 1:
-        raise ValueError("Generated HTML must contain exactly one inline style and one inline script.")
+        raise ValueError(
+            "Generated HTML must contain exactly one inline style and one inline script."
+        )
     if parser.external_assets:
         raise ValueError(
             "Generated HTML must not reference external files: "
@@ -239,7 +269,9 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
         raise ValueError("Generated HTML contains unresolved template tokens.")
     for required in ("requestAnimationFrame", "ResizeObserver", "window.AppScene"):
         if required not in source:
-            raise ValueError(f"Generated HTML is missing required runtime feature: {required}.")
+            raise ValueError(
+                f"Generated HTML is missing required runtime feature: {required}."
+            )
 
 
 def build_html(
@@ -301,15 +333,34 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Generate one standalone HTML app from scene data and a drawing function."
     )
-    parser.add_argument("--config", type=Path, default=Path("scene.json"), help="Scene metadata and subtitles JSON.")
-    parser.add_argument("--scene", type=Path, default=Path("scene.js"), help="JavaScript file defining window.AppScene.draw().")
-    parser.add_argument("--output", type=Path, default=Path("dist/app.html"), help="Output HTML file.")
-    parser.add_argument("--force", action="store_true", help="Overwrite the output file if it already exists.")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("scene.json"),
+        help="Scene metadata and subtitles JSON.",
+    )
+    parser.add_argument(
+        "--scene",
+        type=Path,
+        default=Path("scene.js"),
+        help="JavaScript file defining window.AppScene.draw().",
+    )
+    parser.add_argument(
+        "--output", type=Path, default=Path("dist/app.html"), help="Output HTML file."
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the output file if it already exists.",
+    )
     args = parser.parse_args()
 
     output = args.output.resolve()
     if output.exists() and not args.force:
-        print(f"Refusing to overwrite {output}. Pass --force to replace it.", file=sys.stderr)
+        print(
+            f"Refusing to overwrite {output}. Pass --force to replace it.",
+            file=sys.stderr,
+        )
         return 2
 
     try:

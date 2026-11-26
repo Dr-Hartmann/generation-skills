@@ -15,13 +15,13 @@ Do not create a second runtime or rewrite the generator's standard features.
 
 Define the following API in scene.js:
 
-~~~js
+```js
 window.AppScene = {
   draw(ctx, frame) {
     // Draw the current frame synchronously.
-  }
+  },
 };
-~~~
+```
 
 The draw function receives the Canvas 2D context and a frame object. The exact frame properties are documented in **app-generator/README.md** and **AGENT.md**.
 
