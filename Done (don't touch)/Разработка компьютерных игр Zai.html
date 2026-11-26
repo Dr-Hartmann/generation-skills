@@ -1,0 +1,1787 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Разработка компьютерных игр</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --glow: #1e7a47;
+        --text: #ffffff;
+        --text2: #a0a0a0;
+        --safe-right: calc(80px + env(safe-area-inset-right));
+        --safe-left: calc(16px + env(safe-area-inset-left));
+        --safe-top: calc(16px + env(safe-area-inset-top));
+        --safe-bottom: calc(25vh + env(safe-area-inset-bottom));
+        --sidebar: clamp(320px, 30vw, 380px);
+        --sub-size: clamp(16px, 4.5vw, 22px);
+        --gap-sub: 24px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100vh;
+      }
+      @supports (height: 100dvh) {
+        html,
+        body {
+          height: 100dvh;
+        }
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+        overflow: hidden;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #app {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding-left: var(--safe-left);
+        padding-right: var(--safe-right);
+      }
+      header {
+        padding-top: var(--safe-top);
+      }
+      header h1 {
+        font-weight: 800;
+        font-size: clamp(18px, 3.5vw, 30px);
+        line-height: 1.2;
+      }
+      header p {
+        color: var(--text2);
+        font-size: clamp(12px, 2vw, 14px);
+        margin-top: 2px;
+      }
+      #main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      #stage {
+        flex: 1;
+        position: relative;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: manipulation;
+      }
+
+      #frameWrap {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      body.video #frameWrap {
+        display: flex;
+      }
+      body.video #canvasHost {
+        display: flex;
+      }
+      #frame {
+        position: relative;
+        aspect-ratio: 9/16;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(46, 172, 101, 0.45);
+        box-shadow:
+          0 0 32px rgba(30, 122, 71, 0.35),
+          inset 0 0 24px rgba(30, 122, 71, 0.15);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      #frameCanvasHost {
+        position: absolute;
+        inset: 0;
+      }
+      #frameAmbient {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(
+            circle at 50% 20%,
+            rgba(46, 172, 101, 0.1),
+            transparent 60%
+          ),
+          radial-gradient(
+            circle at 50% 90%,
+            rgba(30, 122, 71, 0.12),
+            transparent 55%
+          );
+        filter: blur(6px);
+      }
+
+      #subtitles {
+        font-size: var(--sub-size);
+        line-height: 1.35;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.5);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 12px 16px;
+        min-height: 5.2em;
+        display: block;
+      }
+      .subtitle__keyword {
+        color: var(--accent);
+      }
+      .sub-anim {
+        animation: subIn 0.45s ease both;
+      }
+      @keyframes subIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+      body.controls-hidden #controls {
+        visibility: hidden;
+      }
+
+      .btn {
+        min-width: 48px;
+        min-height: 48px;
+        border: 1px solid rgba(46, 172, 101, 0.4);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 20px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          box-shadow 0.15s,
+          transform 0.05s;
+      }
+      .btn svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--text);
+      }
+      .btn:hover {
+        background: #232329;
+        border-color: var(--accent);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        transform: none;
+        border-color: rgba(160, 160, 160, 0.3);
+      }
+      .btn.primary {
+        border-color: var(--accent);
+        box-shadow: 0 0 14px rgba(46, 172, 101, 0.35);
+      }
+
+      #subHomeMobile {
+        margin-top: 14px;
+      }
+      #ctrlHomeMobile {
+        margin-top: var(--gap-sub);
+        padding-bottom: 16px;
+      }
+      #bottomSafe {
+        height: calc(25vh + env(safe-area-inset-bottom));
+        flex: none;
+      }
+
+      #sidebar {
+        display: none;
+      }
+      body:not(.video) #frameWrap {
+        display: none;
+      }
+      body.video #subHomeMobile,
+      body.video #ctrlHomeMobile {
+        display: none;
+      }
+
+      @media (max-width: 767px) {
+        #sidebar {
+          display: none !important;
+        }
+      }
+      @media (min-width: 768px) {
+        #app {
+          display: grid;
+          grid-template-columns: 1fr var(--sidebar);
+          grid-template-rows: auto 1fr;
+          column-gap: 20px;
+          padding-right: 12px;
+        }
+        header {
+          grid-column: 1;
+          grid-row: 1;
+        }
+        #main {
+          display: contents;
+        }
+        #flowCol {
+          display: flex;
+          flex-direction: column;
+          grid-column: 1;
+          grid-row: 2;
+          min-height: 0;
+          min-width: 0;
+        }
+        #sidebar {
+          display: flex;
+          flex-direction: column;
+          width: auto;
+          grid-column: 2;
+          grid-row: 1/3;
+          background: var(--panel);
+          border: 1px solid rgba(46, 172, 101, 0.25);
+          border-radius: 16px;
+          padding: 18px;
+          margin: 12px 0 16px 0;
+          min-height: 0;
+          overflow: hidden;
+        }
+        #subHomeDesktop {
+          margin-bottom: 16px;
+        }
+        #ctrlHomeDesktop {
+          margin-top: auto;
+        }
+        #bottomSafe {
+          display: none;
+        }
+        #subHomeMobile,
+        #ctrlHomeMobile {
+          display: none;
+        }
+        body.video #subHomeMobile,
+        body.video #ctrlHomeMobile {
+          display: none;
+        }
+        body.video #subHomeDesktop,
+        body.video #ctrlHomeDesktop {
+          display: none;
+        }
+      }
+      #flowCol {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      #modalOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        padding: 16px;
+      }
+      #modalOverlay.open {
+        display: flex;
+      }
+      #settings {
+        background: var(--panel);
+        border: 1px solid rgba(46, 172, 101, 0.35);
+        border-radius: 16px;
+        width: min(420px, 92vw);
+        max-height: 90dvh;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: scale(0.95);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        box-shadow: 0 0 40px rgba(30, 122, 71, 0.3);
+      }
+      #modalOverlay.open #settings {
+        opacity: 1;
+        transform: scale(1);
+      }
+      #settingsHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px 10px;
+      }
+      #settingsHeader h2 {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      #settingsBody {
+        padding: 0 18px 18px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .setRow {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .setRow > label,
+      .setRow > .setLabel {
+        color: var(--text2);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      #stepIndicator {
+        font-size: 15px;
+        color: var(--text);
+        font-weight: 700;
+      }
+      .seg {
+        display: flex;
+        gap: 8px;
+      }
+      .seg .btn {
+        flex: 1;
+        font-size: 15px;
+        min-height: 44px;
+      }
+      .btn.on {
+        background: var(--accent);
+        color: #0f0f13;
+        border-color: var(--accent);
+        box-shadow: 0 0 12px rgba(46, 172, 101, 0.4);
+      }
+      .switchRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .switchRow span {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .switch {
+        width: 52px;
+        height: 30px;
+        border-radius: 15px;
+        background: #33333b;
+        border: 1px solid rgba(160, 160, 160, 0.3);
+        position: relative;
+        cursor: pointer;
+        flex: none;
+        transition: background 0.2s;
+      }
+      .switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--text2);
+        transition:
+          left 0.2s,
+          background 0.2s;
+      }
+      .switch.on {
+        background: var(--glow);
+        border-color: var(--accent);
+      }
+      .switch.on::after {
+        left: 25px;
+        background: var(--accent);
+      }
+      #hotkeys {
+        font-size: 13px;
+        color: var(--text2);
+        line-height: 1.7;
+      }
+      #hotkeys b {
+        color: var(--text);
+        font-weight: 700;
+      }
+      kbd {
+        background: #232329;
+        border: 1px solid rgba(160, 160, 160, 0.35);
+        border-radius: 5px;
+        padding: 1px 6px;
+        font-family: inherit;
+        font-size: 12px;
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Разработка компьютерных игр</h1>
+        <p>От идеи до релиза: механика, движок, графика, команда</p>
+      </header>
+      <div id="main">
+        <div id="flowCol">
+          <div id="stage">
+            <div id="canvasHost" style="position: absolute; inset: 0"></div>
+            <div id="frameWrap">
+              <div id="frame">
+                <div id="frameAmbient"></div>
+                <div id="frameCanvasHost"></div>
+                <div
+                  style="
+                    position: relative;
+                    z-index: 2;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    padding: 14px 14px 16px;
+                  "
+                >
+                  <div id="subInFrame"></div>
+                  <div id="ctrlInFrame"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="subHomeMobile"><div id="subtitles"></div></div>
+          <div id="ctrlHomeMobile">
+            <div id="controls">
+              <button
+                class="btn primary"
+                id="playBtn"
+                aria-label="Пауза"
+              ></button>
+              <button class="btn primary" id="gearBtn" aria-label="Настройки">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.2 7.2 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.24-1.13.55-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.65 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.07 7.07 0 0 0 0 1.88L2.77 14.5a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.61.22l2.39-.96c.49.4 1.04.7 1.62.94l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54c.58-.24 1.13-.55 1.62-.94l2.39.96c.21.1.48.01.61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.56ZM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <aside id="sidebar">
+          <div id="subHomeDesktop"></div>
+          <div id="ctrlHomeDesktop"></div>
+        </aside>
+        <div id="bottomSafe"></div>
+      </div>
+    </div>
+
+    <div id="modalOverlay">
+      <div id="settings" role="dialog" aria-modal="true" aria-label="Настройки">
+        <div id="settingsHeader">
+          <h2>Настройки</h2>
+          <button class="btn" id="closeBtn" aria-label="Закрыть настройки">
+            ✕
+          </button>
+        </div>
+        <div id="settingsBody">
+          <div class="setRow">
+            <span class="setLabel">Прогресс</span>
+            <div id="stepIndicator">Шаг 1 / 8</div>
+          </div>
+          <div class="setRow">
+            <span class="setLabel">Режим</span>
+            <div class="seg">
+              <button class="btn" id="modeAuto">AUTO</button>
+              <button class="btn" id="modeStep">STEP</button>
+            </div>
+          </div>
+          <div class="setRow">
+            <span class="setLabel">Ручной переход</span>
+            <button class="btn" id="nextBtn">Следующий шаг ▶</button>
+          </div>
+          <div class="setRow">
+            <span class="setLabel">Скорость</span>
+            <div class="seg">
+              <button class="btn spd" data-spd="0.5">0.5×</button>
+              <button class="btn spd" data-spd="1">1×</button>
+              <button class="btn spd" data-spd="2">2×</button>
+            </div>
+          </div>
+          <div class="setRow">
+            <div class="switchRow">
+              <span>Вертикальная рамка 9:16</span>
+              <div
+                class="switch"
+                id="frameSwitch"
+                role="switch"
+                aria-checked="false"
+                tabindex="0"
+                aria-label="Режим вертикальной рамки"
+              ></div>
+            </div>
+          </div>
+          <div class="setRow">
+            <button class="btn" id="resetBtn">Reset</button>
+          </div>
+          <div class="setRow">
+            <span class="setLabel">Горячие клавиши</span>
+            <div id="hotkeys">
+              <kbd>Space</kbd> — скрыть / показать контролы<br />
+              <kbd>→</kbd> — следующий шаг (в STEP)<br />
+              <kbd>S</kbd> — переключить AUTO / STEP<br />
+              <kbd>V</kbd> — вертикальная рамка<br />
+              <kbd>R</kbd> — сброс<br />
+              <kbd>Esc</kbd> — закрыть настройки
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var STEPS = 8;
+        var STEP_DUR = 5200;
+        var TRANS_DUR = 900;
+        var AUTO_DELAY = 500;
+
+        var PLAY_SVG =
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+        var PAUSE_SVG =
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+
+        var SUBTITLES = [
+          {
+            step: 1,
+            segments: [
+              { text: "Игра начинается с " },
+              { text: "идеи", emphasis: true },
+              { text: ": жанр, сеттинг и будущее ядро проекта" },
+            ],
+          },
+          {
+            step: 2,
+            segments: [
+              { text: "Механика задаёт " },
+              { text: "правила", emphasis: true },
+              {
+                text: ": движение, прыжки, прогресс и взаимодействие объектов",
+              },
+            ],
+          },
+          {
+            step: 3,
+            segments: [
+              { text: "Движок объединяет рендер, физику, звук и ввод в " },
+              { text: "единую систему", emphasis: true },
+            ],
+          },
+          {
+            step: 4,
+            segments: [
+              { text: "Трёхмерная графика: " },
+              { text: "модели, текстуры", emphasis: true },
+              { text: " и освещение игровых сцен" },
+            ],
+          },
+          {
+            step: 5,
+            segments: [
+              { text: "Физика делает движение " },
+              { text: "реалистичным", emphasis: true },
+              { text: ", а анимация оживляет персонажей" },
+            ],
+          },
+          {
+            step: 6,
+            segments: [
+              { text: "Звук и интерфейс помогают игроку " },
+              { text: "чувствовать и понимать", emphasis: true },
+              { text: " игру" },
+            ],
+          },
+          {
+            step: 7,
+            segments: [
+              { text: "Над игрой трудятся " },
+              {
+                text: "программисты, геймдизайнеры, художники",
+                emphasis: true,
+              },
+              { text: " и технические специалисты" },
+            ],
+          },
+          {
+            step: 8,
+            segments: [
+              { text: "От прототипа до релиза: " },
+              { text: "тестирование, доработка и выпуск", emphasis: true },
+            ],
+          },
+        ];
+
+        var state = {
+          mode: "AUTO",
+          isPlaying: false,
+          currentStep: 1,
+          speed: 1,
+          videoMode: false,
+          elapsed: 0,
+          trans: null,
+          animTime: 0,
+          controlsVisible: true,
+        };
+
+        var els = {};
+        var canvas, ctx;
+        var cssW = 300,
+          cssH = 150,
+          dpr = 1;
+        var resizeObserver = null;
+        var particles = [];
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        function init() {
+          els.stage = $("stage");
+          els.canvasHost = $("canvasHost");
+          els.frameCanvasHost = $("frameCanvasHost");
+          els.frameWrap = $("frameWrap");
+          els.subtitles = $("subtitles");
+          els.subHomeMobile = $("subHomeMobile");
+          els.subHomeDesktop = $("subHomeDesktop");
+          els.subInFrame = $("subInFrame");
+          els.ctrlHomeMobile = $("ctrlHomeMobile");
+          els.ctrlHomeDesktop = $("ctrlHomeDesktop");
+          els.ctrlInFrame = $("ctrlInFrame");
+          els.controls = $("controls");
+          els.playBtn = $("playBtn");
+          els.gearBtn = $("gearBtn");
+          els.overlay = $("modalOverlay");
+          els.settings = $("settings");
+          els.closeBtn = $("closeBtn");
+          els.stepIndicator = $("stepIndicator");
+          els.modeAuto = $("modeAuto");
+          els.modeStep = $("modeStep");
+          els.nextBtn = $("nextBtn");
+          els.spdBtns = Array.prototype.slice.call(
+            document.querySelectorAll(".spd"),
+          );
+          els.frameSwitch = $("frameSwitch");
+          els.resetBtn = $("resetBtn");
+
+          if (!els.stage || !els.subtitles || !els.playBtn || !els.gearBtn) {
+            console.error("Интерактив: не найдены обязательные элементы DOM");
+            return;
+          }
+
+          canvas = document.createElement("canvas");
+          canvas.id = "canvas";
+          ctx = canvas.getContext("2d");
+          if (!ctx) {
+            console.error("Интерактив: canvas 2D недоступен");
+            return;
+          }
+          els.canvasHost.appendChild(canvas);
+
+          bindEvents();
+          placeFlowElements();
+          resize();
+
+          state.isPlaying = true;
+          renderControls();
+          updateSubtitles(state.currentStep);
+
+          setTimeout(function () {
+            if (state.mode === "AUTO" && state.isPlaying) {
+              startAuto();
+            }
+          }, AUTO_DELAY);
+        }
+
+        function isMobileLayout() {
+          return window.matchMedia("(max-width: 767px)").matches;
+        }
+
+        function placeFlowElements() {
+          var inFrame = state.videoMode;
+          var subHome = inFrame
+            ? els.subInFrame
+            : isMobileLayout()
+              ? els.subHomeMobile
+              : els.subHomeDesktop;
+          var ctrlHome = inFrame
+            ? els.ctrlInFrame
+            : isMobileLayout()
+              ? els.ctrlHomeMobile
+              : els.ctrlHomeDesktop;
+          if (els.subtitles.parentElement !== subHome) {
+            subHome.appendChild(els.subtitles);
+          }
+          if (els.controls.parentElement !== ctrlHome) {
+            ctrlHome.appendChild(els.controls);
+          }
+          if (
+            canvas &&
+            canvas.parentElement !==
+              (inFrame ? els.frameCanvasHost : els.canvasHost)
+          ) {
+            (inFrame ? els.frameCanvasHost : els.canvasHost).appendChild(
+              canvas,
+            );
+            resize();
+          }
+        }
+
+        function bindEvents() {
+          els.playBtn.addEventListener("click", togglePlay);
+          els.gearBtn.addEventListener("click", function () {
+            if (els.overlay.classList.contains("open")) {
+              closeSettings();
+            } else {
+              openSettings();
+            }
+          });
+          els.closeBtn.addEventListener("click", closeSettings);
+          els.overlay.addEventListener("click", function (e) {
+            if (e.target === els.overlay) {
+              closeSettings();
+            }
+          });
+          els.settings.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+          els.modeAuto.addEventListener("click", function () {
+            setMode("AUTO");
+          });
+          els.modeStep.addEventListener("click", function () {
+            setMode("STEP");
+          });
+          els.nextBtn.addEventListener("click", onStep);
+          els.spdBtns.forEach(function (b) {
+            b.addEventListener("click", function () {
+              setSpeed(parseFloat(b.dataset.spd));
+            });
+          });
+          els.frameSwitch.addEventListener("click", toggleVideoMode);
+          els.frameSwitch.addEventListener("keydown", function (e) {
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault();
+              toggleVideoMode();
+            }
+          });
+          els.resetBtn.addEventListener("click", reset);
+          document.addEventListener("keydown", handleInput);
+          window.addEventListener("resize", resize);
+          if (typeof ResizeObserver !== "undefined") {
+            resizeObserver = new ResizeObserver(function () {
+              resize();
+            });
+            resizeObserver.observe(els.stage);
+          }
+          var mq = window.matchMedia("(min-width: 768px)");
+          var mqHandler = function () {
+            if (!state.videoMode) {
+              placeFlowElements();
+              resize();
+            }
+          };
+          if (mq.addEventListener) {
+            mq.addEventListener("change", mqHandler);
+          } else if (mq.addListener) {
+            mq.addListener(mqHandler);
+          }
+        }
+
+        function startAuto() {
+          state.mode = "AUTO";
+          state.isPlaying = true;
+          if (state.trans) {
+            state.trans.progress = Math.max(state.trans.progress, 0.001);
+          }
+          renderControls();
+        }
+
+        function setMode(m) {
+          if (state.mode === m) return;
+          state.mode = m;
+          if (m === "STEP") {
+            if (state.trans) {
+              state.trans.progress = Math.min(1, state.trans.progress);
+            } else {
+              state.isPlaying = false;
+            }
+          } else {
+            state.isPlaying = true;
+          }
+          renderControls();
+        }
+
+        function togglePlay() {
+          if (state.trans) {
+            state.isPlaying = !state.isPlaying;
+          } else if (state.mode === "AUTO") {
+            state.isPlaying = !state.isPlaying;
+          } else {
+            state.isPlaying = false;
+          }
+          renderControls();
+        }
+
+        function setSpeed(s) {
+          state.speed = s;
+          renderControls();
+        }
+
+        function nextStepAllowed() {
+          return (
+            state.mode === "STEP" && !state.trans && state.currentStep < STEPS
+          );
+        }
+
+        function onStep() {
+          if (!nextStepAllowed()) return;
+          beginTransition(state.currentStep, state.currentStep + 1);
+          state.isPlaying = true;
+          renderControls();
+        }
+
+        function beginTransition(from, to) {
+          state.trans = { from: from, to: to, progress: 0 };
+          state.currentStep = to;
+          state.elapsed = 0;
+          updateSubtitles(to);
+          renderControls();
+        }
+
+        function reset() {
+          state.mode = "AUTO";
+          state.currentStep = 1;
+          state.elapsed = 0;
+          state.trans = null;
+          state.isPlaying = true;
+          updateSubtitles(1);
+          renderControls();
+        }
+
+        function toggleVideoMode() {
+          state.videoMode = !state.videoMode;
+          document.body.classList.toggle("video", state.videoMode);
+          placeFlowElements();
+          renderControls();
+        }
+
+        function openSettings() {
+          els.overlay.classList.add("open");
+          renderControls();
+        }
+
+        function closeSettings() {
+          els.overlay.classList.remove("open");
+        }
+
+        function handleInput(e) {
+          var tag = ((e.target && e.target.tagName) || "").toLowerCase();
+          if (
+            tag === "input" ||
+            tag === "textarea" ||
+            (e.target && e.target.isContentEditable)
+          )
+            return;
+          switch (e.key) {
+            case " ":
+            case "Spacebar":
+              e.preventDefault();
+              state.controlsVisible = !state.controlsVisible;
+              document.body.classList.toggle(
+                "controls-hidden",
+                !state.controlsVisible,
+              );
+              break;
+            case "ArrowRight":
+              if (state.mode === "STEP") {
+                e.preventDefault();
+                onStep();
+              }
+              break;
+            case "r":
+            case "R":
+            case "к":
+            case "К":
+              reset();
+              break;
+            case "s":
+            case "S":
+            case "ы":
+            case "Ы":
+              setMode(state.mode === "AUTO" ? "STEP" : "AUTO");
+              break;
+            case "v":
+            case "V":
+            case "м":
+            case "М":
+              toggleVideoMode();
+              break;
+            case "Escape":
+              closeSettings();
+              break;
+          }
+        }
+
+        function updateSubtitles(step) {
+          var data = SUBTITLES[step - 1];
+          if (!data) return;
+          var box = els.subtitles;
+          box.textContent = "";
+          data.segments.forEach(function (seg) {
+            if (seg.emphasis) {
+              var sp = document.createElement("span");
+              sp.className = "subtitle__keyword";
+              sp.appendChild(document.createTextNode(seg.text));
+              box.appendChild(sp);
+            } else {
+              box.appendChild(document.createTextNode(seg.text));
+            }
+          });
+          box.classList.remove("sub-anim");
+          void box.offsetWidth;
+          box.classList.add("sub-anim");
+        }
+
+        function renderControls() {
+          els.playBtn.innerHTML = state.isPlaying ? PAUSE_SVG : PLAY_SVG;
+          els.playBtn.setAttribute(
+            "aria-label",
+            state.isPlaying ? "Пауза" : "Воспроизведение",
+          );
+          els.stepIndicator.textContent =
+            "Шаг " + state.currentStep + " / " + STEPS;
+          els.modeAuto.classList.toggle("on", state.mode === "AUTO");
+          els.modeStep.classList.toggle("on", state.mode === "STEP");
+          els.spdBtns.forEach(function (b) {
+            b.classList.toggle("on", parseFloat(b.dataset.spd) === state.speed);
+          });
+          els.frameSwitch.classList.toggle("on", state.videoMode);
+          els.frameSwitch.setAttribute(
+            "aria-checked",
+            state.videoMode ? "true" : "false",
+          );
+          els.nextBtn.disabled = !nextStepAllowed();
+        }
+
+        function resize() {
+          var host = canvas.parentElement;
+          if (!host) return;
+          var r = host.getBoundingClientRect();
+          cssW = Math.max(1, Math.round(r.width));
+          cssH = Math.max(1, Math.round(r.height));
+          dpr = Math.min(window.devicePixelRatio || 1, 3);
+          canvas.width = Math.round(cssW * dpr);
+          canvas.height = Math.round(cssH * dpr);
+          canvas.style.width = cssW + "px";
+          canvas.style.height = cssH + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function update(dt) {
+          var d = Math.min(dt, 100) * state.speed;
+          if (state.isPlaying) {
+            state.animTime += d;
+            if (state.trans) {
+              state.trans.progress += d / TRANS_DUR;
+              if (state.trans.progress >= 1) {
+                state.trans = null;
+                if (state.mode === "STEP") {
+                  state.isPlaying = false;
+                  renderControls();
+                } else {
+                  state.elapsed = 0;
+                }
+              }
+            } else if (state.mode === "AUTO") {
+              state.elapsed += d;
+              if (state.elapsed >= STEP_DUR) {
+                var nxt = state.currentStep < STEPS ? state.currentStep + 1 : 1;
+                beginTransition(state.currentStep, nxt);
+              }
+            }
+          }
+        }
+
+        function ease(t) {
+          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, cssW, cssH);
+          drawBackground();
+          if (state.trans) {
+            var p = ease(Math.min(1, state.trans.progress));
+            drawScene(state.trans.from, 1 - p, (1 - p) * 24);
+            drawScene(state.trans.to, p, -p * 24);
+          } else {
+            drawScene(state.currentStep, 1, 0);
+          }
+        }
+
+        function drawBackground() {
+          ctx.fillStyle = "#0F0F13";
+          ctx.fillRect(0, 0, cssW, cssH);
+          var s = Math.min(cssW, cssH);
+          ctx.save();
+          ctx.strokeStyle = "rgba(46,172,101,0.06)";
+          ctx.lineWidth = 1;
+          var g = Math.max(36, s / 10);
+          for (var x = (state.animTime / 60) % g; x < cssW; x += g) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, cssH);
+            ctx.stroke();
+          }
+          for (var y = (state.animTime / 90) % g; y < cssH; y += g) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(cssW, y);
+            ctx.stroke();
+          }
+          ctx.restore();
+          var np = 26;
+          while (particles.length < np) {
+            particles.push({
+              x: Math.random(),
+              y: Math.random(),
+              v: 0.004 + Math.random() * 0.01,
+              r: 1 + Math.random() * 2,
+              ph: Math.random() * Math.PI * 2,
+            });
+          }
+          ctx.save();
+          for (var i = 0; i < np; i++) {
+            var pt = particles[i];
+            var py =
+              (((pt.y - (state.animTime / 1000) * pt.v * 12) % 1) + 1) % 1;
+            var px =
+              (pt.x + Math.sin(state.animTime / 900 + pt.ph) * 0.015 + 1) % 1;
+            var a = 0.1 + 0.1 * Math.sin(state.animTime / 500 + pt.ph);
+            ctx.fillStyle = "rgba(46,172,101," + a.toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(px * cssW, py * cssH, pt.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        function sceneLabel(txt, x, y, size, alpha, color) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = color || "#FFFFFF";
+          ctx.font = "700 " + size + "px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(txt, x, y);
+          ctx.restore();
+        }
+
+        function glowCircle(x, y, r, alpha) {
+          ctx.save();
+          var gr = ctx.createRadialGradient(x, y, r * 0.3, x, y, r * 2.4);
+          gr.addColorStop(0, "rgba(46,172,101," + 0.45 * alpha + ")");
+          gr.addColorStop(1, "rgba(30,122,71,0)");
+          ctx.fillStyle = gr;
+          ctx.beginPath();
+          ctx.arc(x, y, r * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(46,172,101," + 0.9 * alpha + ")";
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function drawScene(step, alpha, dy) {
+          if (alpha <= 0.01) return;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.translate(0, dy);
+          var t = state.animTime / 1000;
+          var s = Math.min(cssW, cssH * 0.72);
+          var cx = cssW / 2,
+            cy = cssH * 0.45;
+          switch (step) {
+            case 1:
+              sceneIdea(t, s, cx, cy);
+              break;
+            case 2:
+              sceneMechanics(t, s, cx, cy);
+              break;
+            case 3:
+              sceneEngine(t, s, cx, cy);
+              break;
+            case 4:
+              sceneGraphics(t, s, cx, cy);
+              break;
+            case 5:
+              scenePhysics(t, s, cx, cy);
+              break;
+            case 6:
+              sceneSoundUI(t, s, cx, cy);
+              break;
+            case 7:
+              sceneTeam(t, s, cx, cy);
+              break;
+            case 8:
+              sceneRelease(t, s, cx, cy);
+              break;
+          }
+          ctx.restore();
+        }
+
+        function sceneIdea(t, s, cx, cy) {
+          var pulse = 1 + 0.06 * Math.sin(t * 2);
+          var R = s * 0.13 * pulse;
+          glowCircle(cx, cy - s * 0.05, R, 1);
+          ctx.fillStyle = "#2EAC65";
+          ctx.beginPath();
+          ctx.arc(cx, cy - s * 0.05, R, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#0F0F13";
+          ctx.font = "800 " + R * 0.9 + "px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("?", cx, cy - s * 0.05 + R * 0.05);
+          ctx.strokeStyle = "rgba(255,255,255,0.5)";
+          ctx.lineWidth = Math.max(2, s * 0.008);
+          for (var i = 0; i < 8; i++) {
+            var a = t * 0.5 + (i * Math.PI) / 4;
+            var r1 = R * 1.35,
+              r2 = R * (1.55 + 0.12 * Math.sin(t * 3 + i));
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(a) * r1, cy - s * 0.05 + Math.sin(a) * r1);
+            ctx.lineTo(cx + Math.cos(a) * r2, cy - s * 0.05 + Math.sin(a) * r2);
+            ctx.stroke();
+          }
+          var dw = s * 0.36,
+            dh = s * 0.22;
+          var dx = cx - dw / 2,
+            dyy = cy + s * 0.22;
+          ctx.fillStyle = "rgba(26,26,32,0.9)";
+          ctx.strokeStyle = "rgba(46,172,101,0.6)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(dx, dyy, dw, dh, 10);
+          } else {
+            ctx.rect(dx, dyy, dw, dh);
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.lineWidth = Math.max(1.5, s * 0.006);
+          for (var l = 0; l < 4; l++) {
+            var ly = dyy + dh * 0.22 + l * dh * 0.2;
+            var lw = dw * (l === 3 ? 0.45 : 0.7);
+            ctx.beginPath();
+            ctx.moveTo(dx + dw * 0.12, ly);
+            ctx.lineTo(
+              dx + dw * 0.12 + lw * (0.7 + 0.3 * Math.sin(t * 2 + l)),
+              ly,
+            );
+            ctx.stroke();
+          }
+          sceneLabel(
+            "Идея и сюжет",
+            cx,
+            dyy + dh + s * 0.08,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        function sceneMechanics(t, s, cx, cy) {
+          var groundY = cy + s * 0.22;
+          ctx.strokeStyle = "rgba(46,172,101,0.8)";
+          ctx.lineWidth = Math.max(3, s * 0.012);
+          ctx.beginPath();
+          ctx.moveTo(cx - s * 0.38, groundY);
+          ctx.lineTo(cx + s * 0.38, groundY);
+          ctx.stroke();
+          var boxW = s * 0.09;
+          ctx.fillStyle = "#2EAC65";
+          ctx.fillRect(cx + s * 0.22, groundY - boxW, boxW, boxW);
+          var period = 1.6;
+          var ph = (t % period) / period;
+          var jx = cx - s * 0.3 + ph * s * 0.5;
+          var jump = Math.sin(ph * Math.PI);
+          var jy = groundY - boxW - jump * s * 0.18;
+          ctx.save();
+          ctx.shadowColor = "#1E7A47";
+          ctx.shadowBlur = s * 0.05;
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(jx - boxW / 2, jy - boxW, boxW, boxW, 6);
+          } else {
+            ctx.rect(jx - boxW / 2, jy - boxW, boxW, boxW);
+          }
+          ctx.fill();
+          ctx.restore();
+          ctx.fillStyle = "#0F0F13";
+          ctx.font = "800 " + boxW * 0.55 + "px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("►", jx, jy - boxW / 2 + 1);
+          ctx.fillStyle = "rgba(255,255,255,0.25)";
+          for (var i = 0; i < 6; i++) {
+            var tp = (t * 0.7 + i / 6) % 1;
+            var hx = cx - s * 0.3 + tp * s * 0.5;
+            var hy = groundY - boxW - Math.sin(tp * Math.PI) * s * 0.18;
+            ctx.beginPath();
+            ctx.arc(hx, hy - boxW / 2, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          sceneLabel(
+            "Правила: бег, прыжки, цель",
+            cx,
+            groundY + s * 0.1,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+          var gearY = cy - s * 0.22;
+          ctx.save();
+          ctx.translate(cx - s * 0.16, gearY);
+          ctx.rotate(t * 0.8);
+          drawGear(s * 0.06, 8, "rgba(255,255,255,0.55)");
+          ctx.restore();
+          ctx.save();
+          ctx.translate(cx + s * 0.16, gearY);
+          ctx.rotate(-t * 1.1);
+          drawGear(s * 0.045, 7, "rgba(46,172,101,0.8)");
+          ctx.restore();
+        }
+
+        function drawGear(r, teeth, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = Math.max(2, r * 0.28);
+          for (var i = 0; i < teeth; i++) {
+            var a = (i * Math.PI * 2) / teeth;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            ctx.lineTo(Math.cos(a) * r * 1.4, Math.sin(a) * r * 1.4);
+            ctx.stroke();
+          }
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        function sceneEngine(t, s, cx, cy) {
+          var R = s * 0.11;
+          var pulse = 1 + 0.05 * Math.sin(t * 2.4);
+          glowCircle(cx, cy, R * 1.1 * pulse, 1);
+          ctx.strokeStyle = "#2EAC65";
+          ctx.fillStyle = "rgba(46,172,101,0.15)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (var i = 0; i < 6; i++) {
+            var a = Math.PI / 6 + (i * Math.PI) / 3;
+            var x = cx + Math.cos(a) * R * pulse,
+              y = cy + Math.sin(a) * R * pulse;
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          sceneLabel("ЯДРО", cx, cy, Math.max(13, s * 0.045), 1, "#FFFFFF");
+          var mods = [
+            ["Рендер", 0],
+            ["Физика", 1],
+            ["Звук", 2],
+            ["Ввод", 3],
+          ];
+          var orbitR = s * 0.28;
+          mods.forEach(function (m, idx) {
+            var a = t * 0.45 + (idx * Math.PI) / 2;
+            var mx = cx + Math.cos(a) * orbitR;
+            var my = cy + Math.sin(a) * orbitR * 0.62;
+            ctx.strokeStyle = "rgba(46,172,101,0.35)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(mx, my);
+            ctx.stroke();
+            for (var k = 0; k < 3; k++) {
+              var fp = (t * 0.8 + k / 3 + idx * 0.13) % 1;
+              var fx = cx + (mx - cx) * fp;
+              var fy = cy + (my - cy) * fp;
+              ctx.fillStyle = "rgba(46,172,101," + (0.8 * (1 - fp) + 0.2) + ")";
+              ctx.beginPath();
+              ctx.arc(fx, fy, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.fillStyle = "#1A1A20";
+            ctx.strokeStyle = "#2EAC65";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(
+                mx - s * 0.09,
+                my - s * 0.035,
+                s * 0.18,
+                s * 0.07,
+                8,
+              );
+            } else {
+              ctx.rect(mx - s * 0.09, my - s * 0.035, s * 0.18, s * 0.07);
+            }
+            ctx.fill();
+            ctx.stroke();
+            sceneLabel(m[0], mx, my, Math.max(12, s * 0.04), 1);
+          });
+          sceneLabel(
+            "Игровой движок",
+            cx,
+            cy + orbitR * 0.62 + s * 0.12,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        function sceneGraphics(t, s, cx, cy) {
+          var R = s * 0.18;
+          var ax = t * 0.9,
+            ay = t * 0.5;
+          var pts = [
+            [-1, -1, -1],
+            [1, -1, -1],
+            [1, 1, -1],
+            [-1, 1, -1],
+            [-1, -1, 1],
+            [1, -1, 1],
+            [1, 1, 1],
+            [-1, 1, 1],
+          ].map(function (p) {
+            var x = p[0],
+              y = p[1],
+              z = p[2];
+            var x1 = x * Math.cos(ax) - z * Math.sin(ax);
+            var z1 = x * Math.sin(ax) + z * Math.cos(ax);
+            var y1 = y * Math.cos(ay) - z1 * Math.sin(ay);
+            var z2 = y * Math.sin(ay) + z1 * Math.cos(ay);
+            var d = 3.2 / (3.2 + z2);
+            return [cx + x1 * R * d, cy + y1 * R * d];
+          });
+          var edges = [
+            [0, 1],
+            [1, 2],
+            [2, 3],
+            [3, 0],
+            [4, 5],
+            [5, 6],
+            [6, 7],
+            [7, 4],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+          ];
+          var faces = [
+            [0, 1, 2, 3],
+            [4, 5, 6, 7],
+            [0, 1, 5, 4],
+            [2, 3, 7, 6],
+            [1, 2, 6, 5],
+            [0, 3, 7, 4],
+          ];
+          faces.forEach(function (f, i) {
+            ctx.fillStyle = "rgba(46,172,101," + (0.05 + 0.06 * (i % 3)) + ")";
+            ctx.beginPath();
+            f.forEach(function (v, j) {
+              if (j === 0) {
+                ctx.moveTo(pts[v][0], pts[v][1]);
+              } else {
+                ctx.lineTo(pts[v][0], pts[v][1]);
+              }
+            });
+            ctx.closePath();
+            ctx.fill();
+          });
+          ctx.strokeStyle = "rgba(46,172,101,0.9)";
+          ctx.lineWidth = 2;
+          edges.forEach(function (e) {
+            ctx.beginPath();
+            ctx.moveTo(pts[e[0]][0], pts[e[0]][1]);
+            ctx.lineTo(pts[e[1]][0], pts[e[1]][1]);
+            ctx.stroke();
+          });
+          pts.forEach(function (p) {
+            glowCircle(p[0], p[1], Math.max(3, s * 0.012), 0.8);
+          });
+          sceneLabel(
+            "3D: каркас, полигоны, свет",
+            cx,
+            cy + R * 1.5 + s * 0.08,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        function scenePhysics(t, s, cx, cy) {
+          var floorY = cy + s * 0.24;
+          ctx.strokeStyle = "rgba(46,172,101,0.8)";
+          ctx.lineWidth = Math.max(3, s * 0.012);
+          ctx.beginPath();
+          ctx.moveTo(cx - s * 0.4, floorY);
+          ctx.lineTo(cx + s * 0.4, floorY);
+          ctx.stroke();
+          var bx = cx - s * 0.1 + Math.sin(t * 2.2) * s * 0.16;
+          var hgt = Math.abs(Math.sin(t * 4.4));
+          var by = floorY - s * 0.05 - hgt * s * 0.22;
+          var r = s * 0.05;
+          ctx.save();
+          ctx.shadowColor = "#1E7A47";
+          ctx.shadowBlur = s * 0.06;
+          ctx.fillStyle = "#2EAC65";
+          ctx.beginPath();
+          ctx.arc(bx, by, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          for (var i = 1; i <= 8; i++) {
+            var pt = t - i * 0.06;
+            var hx = cx - s * 0.1 + Math.sin(pt * 2.2) * s * 0.16;
+            var hy =
+              floorY - s * 0.05 - Math.abs(Math.sin(pt * 4.4)) * s * 0.22;
+            ctx.fillStyle = "rgba(46,172,101," + (0.4 - i * 0.045) + ")";
+            ctx.beginPath();
+            ctx.arc(hx, hy, Math.max(2, s * 0.012), 0, Math.PI * 2);
+            ctx.fill();
+          }
+          var wx = cx + s * 0.24,
+            base = floorY;
+          ctx.strokeStyle = "rgba(255,255,255,0.85)";
+          ctx.lineWidth = Math.max(2.5, s * 0.009);
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(wx, base - s * 0.16);
+          ctx.lineTo(wx, base - s * 0.05);
+          ctx.moveTo(wx, base - s * 0.16);
+          ctx.lineTo(wx - s * 0.035, base - s * 0.1);
+          ctx.moveTo(wx, base - s * 0.16);
+          ctx.lineTo(wx + s * 0.035, base - s * 0.1);
+          ctx.moveTo(wx, base - s * 0.05);
+          var sw = Math.sin(t * 6) * s * 0.03;
+          ctx.lineTo(wx - s * 0.03 + sw, base);
+          ctx.moveTo(wx, base - s * 0.05);
+          ctx.lineTo(wx + s * 0.03 - sw, base);
+          ctx.stroke();
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.arc(wx, base - s * 0.19, s * 0.025, 0, Math.PI * 2);
+          ctx.fill();
+          sceneLabel(
+            "Гравитация · столкновения · скелет",
+            cx,
+            floorY + s * 0.09,
+            Math.max(13, s * 0.043),
+            0.85,
+          );
+        }
+
+        function sceneSoundUI(t, s, cx, cy) {
+          var n = 9,
+            bw = s * 0.035,
+            gap = s * 0.02;
+          var totalW = n * bw + (n - 1) * gap;
+          var x0 = cx - totalW / 2;
+          var baseY = cy + s * 0.12;
+          for (var i = 0; i < n; i++) {
+            var v = (Math.sin(t * 5 + i * 0.9) * 0.5 + 0.5) * 0.75 + 0.15;
+            var bh = s * 0.2 * v;
+            ctx.fillStyle = i % 3 === 1 ? "#2EAC65" : "rgba(46,172,101,0.45)";
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(x0 + i * (bw + gap), baseY - bh, bw, bh, 4);
+            } else {
+              ctx.rect(x0 + i * (bw + gap), baseY - bh, bw, bh);
+            }
+            ctx.fill();
+          }
+          var hudX = cx - s * 0.3,
+            hudY = cy - s * 0.26,
+            hudW = s * 0.6,
+            hudH = s * 0.09;
+          ctx.strokeStyle = "rgba(46,172,101,0.9)";
+          ctx.lineWidth = 2.5;
+          var cl = s * 0.03;
+          ctx.beginPath();
+          ctx.moveTo(hudX, hudY + cl);
+          ctx.lineTo(hudX, hudY);
+          ctx.lineTo(hudX + cl, hudY);
+          ctx.moveTo(hudX + hudW - cl, hudY);
+          ctx.lineTo(hudX + hudW, hudY);
+          ctx.lineTo(hudX + hudW, hudY + cl);
+          ctx.moveTo(hudX + hudW, hudY + hudH - cl);
+          ctx.lineTo(hudX + hudW, hudY + hudH);
+          ctx.lineTo(hudX + hudW - cl, hudY + hudH);
+          ctx.moveTo(hudX + cl, hudY + hudH);
+          ctx.lineTo(hudX, hudY + hudH);
+          ctx.lineTo(hudX, hudY + hudH - cl);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(46,172,101,0.35)";
+          ctx.fillRect(
+            hudX + cl,
+            hudY + hudH * 0.35,
+            hudW - 2 * cl,
+            hudH * 0.3,
+          );
+          ctx.fillStyle = "#2EAC65";
+          ctx.fillRect(
+            hudX + cl,
+            hudY + hudH * 0.35,
+            (hudW - 2 * cl) * (0.55 + 0.25 * Math.sin(t * 1.4)),
+            hudH * 0.3,
+          );
+          sceneLabel(
+            "Звук и интерфейс",
+            cx,
+            baseY + s * 0.12,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        function sceneTeam(t, s, cx, cy) {
+          var roles = [
+            ["Код", "#2EAC65"],
+            ["Дизайн", "#FFFFFF"],
+            ["Арт", "#2EAC65"],
+            ["Тех", "#FFFFFF"],
+          ];
+          var R = s * 0.24;
+          ctx.strokeStyle = "rgba(46,172,101,0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 6]);
+          ctx.beginPath();
+          ctx.arc(cx, cy - s * 0.04, R, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          roles.forEach(function (ro, i) {
+            var a = t * 0.35 + (i * Math.PI) / 2 - Math.PI / 2;
+            var x = cx + Math.cos(a) * R;
+            var y = cy - s * 0.04 + Math.sin(a) * R * 0.75;
+            ctx.strokeStyle = "rgba(46,172,101,0.3)";
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - s * 0.04);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.fillStyle = "#1A1A20";
+            ctx.strokeStyle = ro[1];
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(x, y, s * 0.075, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            sceneLabel(ro[0], x, y, Math.max(12, s * 0.042), 1, ro[1]);
+          });
+          ctx.save();
+          ctx.shadowColor = "#1E7A47";
+          ctx.shadowBlur = s * 0.08;
+          ctx.fillStyle = "#1A1A20";
+          ctx.strokeStyle = "#2EAC65";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(
+              cx - s * 0.11,
+              cy - s * 0.04 - s * 0.045,
+              s * 0.22,
+              s * 0.09,
+              10,
+            );
+          } else {
+            ctx.rect(
+              cx - s * 0.11,
+              cy - s * 0.04 - s * 0.045,
+              s * 0.22,
+              s * 0.09,
+            );
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+          ctx.fillStyle = "#2EAC65";
+          ctx.beginPath();
+          ctx.arc(cx - s * 0.05, cy - s * 0.04, s * 0.016, 0, Math.PI * 2);
+          ctx.arc(cx + s * 0.05, cy - s * 0.04, s * 0.016, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#2EAC65";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(cx + s * 0.02, cy - s * 0.04 + s * 0.02);
+          ctx.lineTo(cx + s * 0.07, cy - s * 0.04 + s * 0.035);
+          ctx.stroke();
+          sceneLabel(
+            "Команда проекта",
+            cx,
+            cy + R * 0.75 + s * 0.12,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        function sceneRelease(t, s, cx, cy) {
+          var stages = ["Идея", "Прототип", "Разработка", "Тест", "Релиз"];
+          var y = cy - s * 0.1;
+          var x0 = cx - s * 0.36,
+            x1 = cx + s * 0.36;
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.stroke();
+          var prog = (t * 0.18) % 1;
+          stages.forEach(function (st, i) {
+            var px = x0 + (x1 - x0) * (i / (stages.length - 1));
+            var active = i / (stages.length - 1) <= prog;
+            if (i === 4 || active) {
+              glowCircle(px, y, Math.max(4, s * 0.016), i === 4 ? 1 : 0.7);
+            } else {
+              ctx.fillStyle = "#1A1A20";
+              ctx.strokeStyle = "rgba(255,255,255,0.5)";
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.arc(px, y, Math.max(5, s * 0.018), 0, Math.PI * 2);
+              ctx.fill();
+              ctx.stroke();
+            }
+            sceneLabel(
+              st,
+              px,
+              y + s * 0.075,
+              Math.max(10, s * 0.032),
+              active ? 1 : 0.5,
+              active ? "#FFFFFF" : "#A0A0A0",
+            );
+          });
+          var rr = s * 0.05;
+          var ry = cy + s * 0.28 - ((t * 0.25) % 1) * s * 0.34;
+          var rx = cx;
+          ctx.save();
+          ctx.translate(rx, ry);
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.moveTo(0, -rr * 1.6);
+          ctx.quadraticCurveTo(rr * 0.85, -rr * 0.4, rr * 0.7, rr);
+          ctx.lineTo(-rr * 0.7, rr);
+          ctx.quadraticCurveTo(-rr * 0.85, -rr * 0.4, 0, -rr * 1.6);
+          ctx.fill();
+          ctx.fillStyle = "#2EAC65";
+          ctx.beginPath();
+          ctx.arc(0, -rr * 0.35, rr * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#1E7A47";
+          ctx.lineWidth = rr * 0.3;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(-rr * 0.5, rr * 0.6);
+          ctx.lineTo(-rr * 0.75, rr * 1.4);
+          ctx.moveTo(rr * 0.5, rr * 0.6);
+          ctx.lineTo(rr * 0.75, rr * 1.4);
+          ctx.stroke();
+          var fp = (t * 2) % 1;
+          ctx.fillStyle = "rgba(46,172,101," + 0.7 * (1 - fp) + ")";
+          ctx.beginPath();
+          ctx.moveTo(0, rr * 1.2);
+          ctx.lineTo(-rr * 0.3, rr * (1.4 + fp * 1.6));
+          ctx.lineTo(rr * 0.3, rr * (1.4 + fp * 1.6));
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+          sceneLabel(
+            "Выпуск игры",
+            cx,
+            cy + s * 0.36,
+            Math.max(14, s * 0.05),
+            0.9,
+          );
+        }
+
+        var lastTime = null;
+        function loop(ts) {
+          if (lastTime === null) {
+            lastTime = ts;
+          }
+          var dt = ts - lastTime;
+          lastTime = ts;
+          update(dt);
+          draw();
+          requestAnimationFrame(loop);
+        }
+
+        try {
+          init();
+          requestAnimationFrame(loop);
+        } catch (err) {
+          console.error("Интерактив: ошибка инициализации", err);
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Generate reusable mini-app UI components from the bundled templates."""
 
-from __future__ import annotations
-
 import argparse
 import json
 import shutil
@@ -18,7 +16,7 @@ def load_palette() -> dict:
     with PALETTE_PATH.open("r", encoding="utf-8") as file:
         palette = json.load(file)
     if not isinstance(palette.get("css_variables"), dict):
-        raise ValueError("palette.json must contain an object named 'css_variables'.")
+        raise TypeError("palette.json must contain an object named 'css_variables'.")
     return palette
 
 
@@ -34,7 +32,9 @@ def generate(components: list[str], output: Path) -> list[Path]:
     written: list[Path] = []
 
     # Background and modal styles depend on the shared CSS custom properties.
-    if ("background" in components or "modal" in components) and "theme" not in components:
+    if (
+        "background" in components or "modal" in components
+    ) and "theme" not in components:
         components = ["theme", *components]
 
     if "theme" in components:
@@ -89,10 +89,14 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    components = ["theme", "background", "modal"] if "all" in args.components else list(dict.fromkeys(args.components))
+    components = (
+        ["theme", "background", "modal"]
+        if "all" in args.components
+        else list(dict.fromkeys(args.components))
+    )
     try:
         written = generate(components, args.output.resolve())
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+    except (OSError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
 
