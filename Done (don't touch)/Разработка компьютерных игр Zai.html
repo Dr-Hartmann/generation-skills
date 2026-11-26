@@ -1,1164 +1,1801 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0F0F13">
-  <meta name="description" content="Основные этапы разработки игр: геймдизайн, прототипирование, движок, программирование, контент, тестирование и релиз.">
-  <meta name="color-scheme" content="dark">
-  <title>Разработка компьютерных игр</title>
-  <style>
-:root {
-  --app-bg: #0F0F13;
-  --app-panel: #1A1A20;
-  --app-accent: #2EAC65;
-  --app-accent-dark: #1E7A47;
-  --app-text: #FFFFFF;
-  --app-muted: #A0A0A0;
-  --app-subtitle-bg: #00000080;
-  --app-modal-scrim: rgba(0, 0, 0, .62);
-  --app-border: rgba(255, 255, 255, .12);
-  --app-control-bg: rgba(255, 255, 255, .07);
-  --app-danger: #E5484D;
-  --app-accent-soft: rgba(46, 172, 101, .15);
-  --app-accent-glow: rgba(46, 172, 101, .055);
-  --app-control-hover: rgba(255, 255, 255, .13);
-  --app-dialog-shadow: rgba(0, 0, 0, .4);
-  --app-keyboard-bg: rgba(255, 255, 255, .06);
-  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --subtitle-size: clamp(16px, 4.5vw, 22px);
-  --heading-weight: 800;
-  --body-weight: 400;
-  --subtitle-controls-gap: 24px;
-  --portrait-aspect-ratio: 9 / 16;
-  --right-reserved: 80px;
-  --left-padding: 16px;
-  --header-top-padding: 16px;
-  --bottom-reserved: 25vh;
-  --sidebar-width: clamp(320px, 30vw, 380px);
-  --touch-target: 48px;
-  --modal-max-height: 90dvh;
-  --subtitle-blur: 8px;
-  --settings-scale: 0.95;
-  --subtitle-duration: 300ms;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
-  margin: 0;
-  overflow: hidden;
-  background: var(--app-bg);
-}
-
-body {
-  color: var(--app-text);
-  font-family: var(--font-family);
-  font-weight: var(--body-weight);
-  overscroll-behavior: none;
-  -webkit-font-smoothing: antialiased;
-}
-
-button,
-select,
-input {
-  font: inherit;
-}
-
-button {
-  color: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:focus-visible,
-select:focus-visible,
-input:focus-visible {
-  outline: 2px solid var(--app-text);
-  outline-offset: 3px;
-}
-
-.app-root {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 12px;
-  padding:
-    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
-    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
-    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
-    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
-  background: var(--app-bg);
-}
-
-.app-header {
-  min-width: 0;
-}
-
-.app-header h1 {
-  max-width: 100%;
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: clamp(18px, 2.2vw, 28px);
-  font-weight: var(--heading-weight);
-  line-height: 1.2;
-}
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-  min-height: 0;
-}
-
-.stage {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  place-items: stretch;
-}
-
-.visual-frame {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid var(--app-border);
-  border-radius: 18px;
-  background:
-    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
-    var(--app-bg);
-}
-
-#sceneCanvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.subtitle {
-  z-index: 2;
-  max-width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-  color: var(--app-text);
-  background: var(--app-subtitle-bg);
-  -webkit-backdrop-filter: blur(var(--subtitle-blur));
-  backdrop-filter: blur(var(--subtitle-blur));
-  font-size: var(--subtitle-size);
-  font-weight: 700;
-  line-height: 1.35;
-  text-wrap: pretty;
-  overflow-wrap: anywhere;
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity var(--subtitle-duration) ease,
-    transform var(--subtitle-duration) ease;
-}
-
-.subtitle.updating {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.subtitle-mobile {
-  position: absolute;
-  right: 12px;
-  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
-  left: 12px;
-  display: block;
-}
-
-.subtitle-desktop {
-  display: none;
-}
-
-.control-bar {
-  position: absolute;
-  z-index: 3;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  transition: opacity .2s ease, visibility .2s ease;
-}
-
-.app-root.controls-hidden .control-bar {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.icon-button {
-  display: grid;
-  flex: 0 0 var(--touch-target);
-  width: var(--touch-target);
-  height: var(--touch-target);
-  padding: 12px;
-  place-items: center;
-  border: 1px solid var(--app-border);
-  border-radius: 14px;
-  background: var(--app-control-bg);
-  transition: background .18s ease, border-color .18s ease;
-}
-
-.icon-button:hover {
-  background: var(--app-control-hover);
-}
-
-.icon-button svg,
-.dialog-close svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.details-panel {
-  display: none;
-}
-
-.step-indicator {
-  color: var(--app-muted);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: .04em;
-}
-
-.modal-backdrop {
-  position: fixed;
-  z-index: 20;
-  inset: 0;
-  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding:
-    max(16px, env(safe-area-inset-top, 0px))
-    16px
-    max(16px, env(safe-area-inset-bottom, 0px))
-    max(16px, env(safe-area-inset-left, 0px));
-  background: var(--app-modal-scrim);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-
-.modal-backdrop.open {
-  display: flex;
-}
-
-.settings-dialog {
-  width: min(100%, 380px);
-  max-height: 90vh;
-  max-height: var(--modal-max-height);
-  overflow: auto;
-  padding: 20px;
-  border: 1px solid var(--app-border);
-  border-radius: 20px;
-  background: var(--app-panel);
-  box-shadow: 0 20px 80px var(--app-dialog-shadow);
-  animation: settings-enter .22s ease both;
-  outline: none;
-}
-
-@keyframes settings-enter {
-  from { opacity: 0; transform: scale(var(--settings-scale)); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.dialog-header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.dialog-close {
-  display: grid;
-  flex: 0 0 var(--touch-target);
-  width: var(--touch-target);
-  height: var(--touch-target);
-  padding: 14px;
-  place-items: center;
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-  background: var(--app-control-bg);
-}
-
-.segmented-control {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 16px 0 10px;
-}
-
-.segmented-control button,
-.dialog-action {
-  min-height: var(--touch-target);
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-  color: var(--app-text);
-  background: var(--app-control-bg);
-  font-weight: 800;
-}
-
-.segmented-control button[aria-pressed="true"] {
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
-}
-
-.dialog-action {
-  width: 100%;
-  margin-bottom: 14px;
-  background: var(--app-accent-soft);
-}
-
-.dialog-action:disabled {
-  opacity: .35;
-  cursor: not-allowed;
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: var(--touch-target);
-  margin: 8px 0;
-  color: var(--app-muted);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.setting-row select {
-  min-width: 100px;
-  min-height: var(--touch-target);
-  padding: 0 12px;
-  border: 1px solid var(--app-border);
-  border-radius: 10px;
-  color: var(--app-text);
-  background: var(--app-panel);
-}
-
-.setting-row input[type="checkbox"] {
-  width: 24px;
-  height: 24px;
-  accent-color: var(--app-accent);
-}
-
-.secondary-action {
-  margin-top: 12px;
-  background: var(--app-control-bg);
-}
-
-.keyboard-help {
-  display: grid;
-  gap: 8px;
-  margin-top: 8px;
-  color: var(--app-muted);
-  font-size: 12px;
-}
-
-.keyboard-help span {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-kbd {
-  min-width: 42px;
-  padding: 3px 6px;
-  border: 1px solid var(--app-border);
-  border-radius: 6px;
-  color: var(--app-text);
-  background: var(--app-keyboard-bg);
-  font: inherit;
-  font-weight: 800;
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .app-root {
-    padding: 20px;
-  }
-
-  .workspace {
-    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
-    gap: 20px;
-  }
-
-  .details-panel {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 20px;
-    padding: 16px 4px;
-  }
-
-  .subtitle-mobile {
-    display: none;
-  }
-
-  .subtitle-desktop {
-    display: block;
-  }
-
-  .modal-backdrop {
-    right: 0;
-    padding: 20px;
-  }
-}
-
-.app-root.is-portrait .workspace {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.app-root.is-portrait .stage {
-  place-items: center;
-}
-
-.app-root.is-portrait .visual-frame {
-  width: auto;
-  height: 100%;
-  max-width: 100%;
-  aspect-ratio: var(--portrait-aspect-ratio);
-}
-
-.app-root.is-portrait .details-panel {
-  display: none;
-}
-
-.app-root.is-portrait .subtitle-mobile {
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .app-root.is-portrait .visual-frame {
-    max-height: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-  </style>
-</head>
-<body>
-  <div class="app-root" id="appRoot">
-    <header class="app-header">
-      <h1 id="appTitle">Разработка компьютерных игр</h1>
-    </header>
-
-    <main class="workspace">
-      <section class="stage" id="stage" aria-label="Область визуализации">
-        <div class="visual-frame" id="visualFrame">
-          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
-
-          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
-
-          <div class="control-bar" id="controlBar">
-            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
-              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
-            </button>
-            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <aside class="details-panel" id="detailsPanel">
-        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
-      </aside>
-    </main>
-  </div>
-
-  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
-      <header class="dialog-header">
-        <h2 id="settingsTitle">Настройки</h2>
-        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-        </button>
-      </header>
-
-      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
-
-      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
-        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
-        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
-      </div>
-
-      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
-
-      <div class="setting-row">
-        <label for="speedSelect">Скорость</label>
-        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
-      </div>
-
-      <div class="setting-row">
-        <label for="portraitToggle">Вертикальная рамка 9:16</label>
-        <input id="portraitToggle" type="checkbox">
-      </div>
-
-      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
-
-      <div class="keyboard-help" aria-label="Горячие клавиши">
-        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
-        <span><kbd>→</kbd> Следующий шаг в STEP</span>
-        <span><kbd>R</kbd> Сброс</span>
-        <span><kbd>S</kbd> AUTO / STEP</span>
-        <span><kbd>V</kbd> Рамка 9:16</span>
-        <span><kbd>Esc</kbd> Закрыть настройки</span>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const APP_CONFIG = {"steps":[{"heading":"Концепция","subtitle":"Концепция определяет жанр, аудиторию и игровой опыт.","detail":"Жанр • аудитория • цель","icon":"game","nodes":["Жанр","Аудитория","Цель"]},{"heading":"Геймдизайн","subtitle":"Геймдизайн связывает правила, цели, уровни и прогрессию.","detail":"Правила • уровни • баланс","icon":"game","nodes":["Правила","Уровни","Баланс"]},{"heading":"Прототип","subtitle":"Прототип проверяет основную игровую механику до производства.","detail":"Игровой цикл • проверка • итерация","icon":"game","nodes":["Прототип","Механика","Тест"]},{"heading":"Движок","subtitle":"Движок объединяет сцены, ресурсы, физику и обработку ввода.","detail":"Сцены • компоненты • ресурсы","icon":"game","nodes":["Сцена","Физика","Ресурсы"]},{"heading":"Логика","subtitle":"Код управляет состояниями, взаимодействиями и поведением персонажей.","detail":"Состояния • ввод • NPC","icon":"code","nodes":["Состояния","Ввод","NPC"]},{"heading":"Контент","subtitle":"Графика, анимация и звук формируют атмосферу игрового мира.","detail":"Модели • движение • звук","icon":"game","nodes":["Модели","Анимация","Звук"]},{"heading":"Тестирование","subtitle":"Тестирование выявляет ошибки, дисбаланс и проблемы производительности.","detail":"Ошибки • баланс • FPS","icon":"shield","nodes":["Ошибки","Баланс","FPS"]},{"heading":"Релиз","subtitle":"Релиз сопровождается поддержкой, обновлениями и развитием проекта.","detail":"Публикация • поддержка • развитие","icon":"game","nodes":["Релиз","Поддержка","Update"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
-    (() => {
-  "use strict";
-  function roundedRect(ctx,x,y,w,h,r) {
-    const radius=Math.min(r,w/2,h/2);
-    ctx.beginPath();ctx.moveTo(x+radius,y);
-    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
-    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
-  }
-  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
-    const words=String(text||"").split(/\s+/),lines=[];let line="";
-    for(const word of words){const test=line?line+" "+word:word;
-      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
-    if(line)lines.push(line);
-    const visible=lines.slice(0,maxLines);
-    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
-      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
-      visible[visible.length-1]=last+"…";}
-    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
-  }
-  function glyph(ctx,type,x,y,size,accent,soft) {
-    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
-    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
-    if(type==="database"){
-      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
-      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
-    }else if(type==="network"){
-      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
-      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
-      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
-    }else if(type==="shield"||type==="check"){
-      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
-    }else if(type==="lock"){
-      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
-      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
-    }else if(type==="web"){
-      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
-      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
-      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
-    }else if(type==="code"){
-      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
-    }else if(type==="phone"){
-      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
-    }else if(type==="train"||type==="rail"){
-      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
-      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
-    }else if(type==="game"){
-      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
-    }else if(type==="robot"){
-      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
-      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
-      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
-    }else if(type==="drone"){
-      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
-      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
-    }else if(type==="mail"){
-      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
-    }else if(type==="eye"){
-      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
-      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
-    }else{
-      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
-      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
-    }
-    ctx.restore();
-  }
-  function chip(ctx,x,y,w,h,label,palette){
-    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
-    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
-    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
-    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
-    ctx.fillText(value,x+w/2,y+h/2);
-  }
-  function draw(ctx,frame){
-    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
-    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
-    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
-    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
-    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
-    ctx.save();
-    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
-    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
-    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
-    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
-    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
-    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-    ctx.globalAlpha=1;
-    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
-    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
-    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
-    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
-    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
-    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
-    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
-    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
-    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
-    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
-    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
-    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
-    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
-    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
-    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
-    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
-    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
-    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
-    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
-    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
-    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
-    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
-    ctx.restore();
-  }
-  window.AppScene={draw};
-})();
-    (() => {
-  "use strict";
-
-  const scene = window.AppScene;
-  const steps = APP_CONFIG.steps;
-  const timing = APP_CONFIG.timing;
-
-  const get = (id) => document.getElementById(id);
-  const elements = {
-    appRoot: get("appRoot"),
-    stage: get("stage"),
-    visualFrame: get("visualFrame"),
-    canvas: get("sceneCanvas"),
-    mobileSubtitle: get("mobileSubtitle"),
-    desktopSubtitle: get("desktopSubtitle"),
-    modalStep: get("modalStepIndicator"),
-    playButton: get("playButton"),
-    playIcon: get("playIcon"),
-    settingsButton: get("settingsButton"),
-    backdrop: get("settingsBackdrop"),
-    dialog: get("settingsDialog"),
-    closeSettings: get("closeSettingsButton"),
-    autoMode: get("autoModeButton"),
-    stepMode: get("stepModeButton"),
-    nextStep: get("nextStepButton"),
-    speed: get("speedSelect"),
-    portrait: get("portraitToggle"),
-    reset: get("resetButton")
-  };
-
-  function showFatalError(message) {
-    const panel = document.createElement("div");
-    panel.setAttribute("role", "alert");
-    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
-    panel.textContent = message;
-    elements.stage.appendChild(panel);
-    console.error("[app-generator]", message);
-  }
-
-  if (!scene || typeof scene.draw !== "function") {
-    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
-    return;
-  }
-
-  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
-    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
-    return;
-  }
-
-  const ctx = elements.canvas.getContext("2d");
-  const previousCanvas = document.createElement("canvas");
-  const currentCanvas = document.createElement("canvas");
-  const previousCtx = previousCanvas.getContext("2d");
-  const currentCtx = currentCanvas.getContext("2d");
-
-  if (!ctx || !previousCtx || !currentCtx) {
-    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
-    return;
-  }
-
-  const state = {
-    mode: timing.defaultMode,
-    isPlaying: false,
-    currentStep: 0,
-    speed: timing.defaultSpeed,
-    videoMode: timing.defaultVideoMode,
-    controlsHidden: false,
-    elapsedMs: 0,
-    waitElapsedMs: 0,
-    deltaMs: 0,
-    transition: null
-  };
-
-  let cssWidth = 0;
-  let cssHeight = 0;
-  let pixelRatio = 1;
-  let lastTimestamp = 0;
-  let animationFrameId = 0;
-  let returnFocusTo = null;
-  let subtitleRevision = 0;
-  let sceneInitialized = false;
-
-  function setCanvasSize(canvas) {
-    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
-    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
-  }
-
-  function resizeCanvas() {
-    const rect = elements.visualFrame.getBoundingClientRect();
-    cssWidth = rect.width;
-    cssHeight = rect.height;
-    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-
-    if (cssWidth <= 0 || cssHeight <= 0) return;
-
-    setCanvasSize(elements.canvas);
-    setCanvasSize(previousCanvas);
-    setCanvasSize(currentCanvas);
-
-    if (!sceneInitialized) return;
-
-    if (typeof scene.resize === "function") {
-      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
-    }
-
-    drawFrame();
-  }
-
-  function drawTo(targetContext, stepIndex, transitionProgress) {
-    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    targetContext.clearRect(0, 0, cssWidth, cssHeight);
-    targetContext.save();
-
-    try {
-      scene.draw(targetContext, {
-        stepIndex,
-        step: steps[stepIndex],
-        width: cssWidth,
-        height: cssHeight,
-        elapsedMs: state.elapsedMs,
-        deltaMs: state.deltaMs,
-        transitionProgress,
-        speed: state.speed,
-        videoMode: state.videoMode,
-        palette: APP_CONFIG.palette,
-        fit: APP_CONFIG.visualizationFit
-      });
-    } finally {
-      targetContext.restore();
-    }
-  }
-
-  function drawFrame() {
-    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
-
-    if (state.transition) {
-      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
-      drawTo(previousCtx, state.transition.from, progress);
-      drawTo(currentCtx, state.transition.to, progress);
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-      ctx.globalAlpha = 1 - progress;
-      ctx.drawImage(previousCanvas, 0, 0);
-      ctx.globalAlpha = progress;
-      ctx.drawImage(currentCanvas, 0, 0);
-      ctx.globalAlpha = 1;
-      return;
-    }
-
-    drawTo(ctx, state.currentStep, 1);
-  }
-
-  function updateIndicators(animateSubtitle) {
-    const stepNumber = state.currentStep + 1;
-    const label = "Шаг " + stepNumber + " / " + steps.length;
-    elements.modalStep.textContent = label;
-
-    const subtitle = steps[state.currentStep].subtitle;
-    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
-    const revision = ++subtitleRevision;
-
-    for (const target of targets) {
-      if (animateSubtitle) target.classList.add("updating");
-      target.textContent = subtitle;
-    }
-
-    if (animateSubtitle) {
-      requestAnimationFrame(() => {
-        if (revision !== subtitleRevision) return;
-        requestAnimationFrame(() => {
-          if (revision !== subtitleRevision) return;
-          for (const target of targets) target.classList.remove("updating");
-        });
-      });
-    } else {
-      for (const target of targets) target.classList.remove("updating");
-    }
-
-    updateControls();
-  }
-
-  function updateControls() {
-    const isAuto = state.mode === "auto";
-    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
-    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
-    elements.nextStep.disabled =
-      isAuto ||
-      Boolean(state.transition) ||
-      state.currentStep >= steps.length - 1;
-
-    elements.playButton.setAttribute(
-      "aria-label",
-      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
-    );
-    elements.playIcon.innerHTML = state.isPlaying
-      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
-      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
-
-    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
-    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
-    elements.settingsButton.setAttribute(
-      "aria-expanded",
-      String(elements.backdrop.classList.contains("open"))
-    );
-    elements.portrait.checked = state.videoMode;
-    elements.speed.value = String(state.speed);
-  }
-
-  function startTransition(nextStep) {
-    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
-
-    state.transition = {
-      from: state.currentStep,
-      to: nextStep,
-      elapsedMs: 0
-    };
-    state.waitElapsedMs = 0;
-    updateControls();
-  }
-
-  function setMode(mode) {
-    if (mode !== "auto" && mode !== "step") return;
-    if (state.mode === mode) return;
-
-    if (mode === "step") {
-      if (state.transition) {
-        state.currentStep = state.transition.to;
-        state.transition = null;
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0F0F13" />
+    <meta
+      name="description"
+      content="Основные этапы разработки игр: геймдизайн, прототипирование, движок, программирование, контент, тестирование и релиз."
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>Разработка компьютерных игр</title>
+    <style>
+      :root {
+        --app-bg: #0f0f13;
+        --app-panel: #1a1a20;
+        --app-accent: #2eac65;
+        --app-accent-dark: #1e7a47;
+        --app-text: #ffffff;
+        --app-muted: #a0a0a0;
+        --app-subtitle-bg: #00000080;
+        --app-modal-scrim: rgba(0, 0, 0, 0.62);
+        --app-border: rgba(255, 255, 255, 0.12);
+        --app-control-bg: rgba(255, 255, 255, 0.07);
+        --app-danger: #e5484d;
+        --app-accent-soft: rgba(46, 172, 101, 0.15);
+        --app-accent-glow: rgba(46, 172, 101, 0.055);
+        --app-control-hover: rgba(255, 255, 255, 0.13);
+        --app-dialog-shadow: rgba(0, 0, 0, 0.4);
+        --app-keyboard-bg: rgba(255, 255, 255, 0.06);
+        --font-family:
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --subtitle-size: clamp(16px, 4.5vw, 22px);
+        --heading-weight: 800;
+        --body-weight: 400;
+        --subtitle-controls-gap: 24px;
+        --portrait-aspect-ratio: 9 / 16;
+        --right-reserved: 80px;
+        --left-padding: 16px;
+        --header-top-padding: 16px;
+        --bottom-reserved: 25vh;
+        --sidebar-width: clamp(320px, 30vw, 380px);
+        --touch-target: 48px;
+        --modal-max-height: 90dvh;
+        --subtitle-blur: 8px;
+        --settings-scale: 0.95;
+        --subtitle-duration: 300ms;
       }
-      state.mode = "step";
-      state.isPlaying = false;
-      state.waitElapsedMs = 0;
-    } else {
-      state.mode = "auto";
-      state.isPlaying = true;
-      state.waitElapsedMs = 0;
-    }
 
-    updateIndicators(false);
-    drawFrame();
-  }
-
-  function setPlaying(playing) {
-    state.isPlaying = Boolean(playing);
-    updateControls();
-  }
-
-  function nextStep() {
-    if (
-      state.mode !== "step" ||
-      state.transition ||
-      state.currentStep >= steps.length - 1
-    ) return;
-
-    state.isPlaying = true;
-    startTransition(state.currentStep + 1);
-    updateControls();
-  }
-
-  function setSpeed(value) {
-    const parsed = Number(value);
-    if (!timing.speeds.includes(parsed)) return;
-    state.speed = parsed;
-    updateControls();
-  }
-
-  function setVideoMode(enabled) {
-    state.videoMode = Boolean(enabled);
-    updateControls();
-    requestAnimationFrame(resizeCanvas);
-  }
-
-  function reset() {
-    state.mode = timing.defaultMode;
-    state.isPlaying = true;
-    state.currentStep = 0;
-    state.elapsedMs = 0;
-    state.waitElapsedMs = 0;
-    state.transition = null;
-
-    if (typeof scene.reset === "function") scene.reset();
-    updateIndicators(true);
-    drawFrame();
-  }
-
-  function openSettings() {
-    returnFocusTo = document.activeElement;
-    elements.backdrop.classList.add("open");
-    elements.backdrop.setAttribute("aria-hidden", "false");
-    elements.settingsButton.setAttribute("aria-expanded", "true");
-    elements.appRoot.inert = true;
-    elements.dialog.focus();
-  }
-
-  function closeSettings() {
-    elements.backdrop.classList.remove("open");
-    elements.backdrop.setAttribute("aria-hidden", "true");
-    elements.settingsButton.setAttribute("aria-expanded", "false");
-    elements.appRoot.inert = false;
-
-    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
-      returnFocusTo.focus();
-    }
-  }
-
-  function toggleSettings() {
-    if (elements.backdrop.classList.contains("open")) closeSettings();
-    else openSettings();
-  }
-
-  function update(dt) {
-    if (!state.isPlaying) return;
-
-    const scaledDelta = dt * state.speed;
-    state.elapsedMs += scaledDelta;
-
-    if (state.transition) {
-      state.transition.elapsedMs += scaledDelta;
-
-      if (state.transition.elapsedMs >= timing.transitionMs) {
-        state.currentStep = state.transition.to;
-        state.transition = null;
-        state.waitElapsedMs = 0;
-
-        if (state.mode === "step") state.isPlaying = false;
-        updateIndicators(true);
+      * {
+        box-sizing: border-box;
       }
-      return;
-    }
 
-    if (state.mode === "auto") {
-      state.waitElapsedMs += scaledDelta;
-
-      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
-        startTransition((state.currentStep + 1) % steps.length);
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        margin: 0;
+        overflow: hidden;
+        background: var(--app-bg);
       }
-    }
-  }
 
-  function animationLoop(timestamp) {
-    const dt = lastTimestamp
-      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
-      : 0;
-    lastTimestamp = timestamp;
-    state.deltaMs = dt;
-
-    update(dt);
-    drawFrame();
-    animationFrameId = requestAnimationFrame(animationLoop);
-  }
-
-  function isInteractiveTarget(target) {
-    if (!(target instanceof Element)) return false;
-    return (
-      (target instanceof HTMLElement && target.isContentEditable) ||
-      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
-      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
-    );
-  }
-
-  function handleKeyboard(event) {
-    if (event.isComposing) return;
-
-    const modalIsOpen = elements.backdrop.classList.contains("open");
-
-    if (event.key === "Escape") {
-      if (modalIsOpen) {
-        event.preventDefault();
-        closeSettings();
+      body {
+        color: var(--app-text);
+        font-family: var(--font-family);
+        font-weight: var(--body-weight);
+        overscroll-behavior: none;
+        -webkit-font-smoothing: antialiased;
       }
-      return;
-    }
 
-    if (modalIsOpen) {
-      if (event.key === "Tab") {
-        const focusable = Array.from(
-          elements.dialog.querySelectorAll(
-            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
-          )
-        ).filter((element) => !element.hasAttribute("hidden"));
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
+      button,
+      select,
+      input {
+        font: inherit;
+      }
 
-        if (first && last && event.shiftKey &&
-            (document.activeElement === first || document.activeElement === elements.dialog)) {
-          event.preventDefault();
-          last.focus();
-        } else if (first && last && !event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
+      button {
+        color: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--app-text);
+        outline-offset: 3px;
+      }
+
+      .app-root {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 12px;
+        padding: calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+          calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+          calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+          calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+        background: var(--app-bg);
+      }
+
+      .app-header {
+        min-width: 0;
+      }
+
+      .app-header h1 {
+        max-width: 100%;
+        margin: 0;
+        overflow-wrap: anywhere;
+        font-size: clamp(18px, 2.2vw, 28px);
+        font-weight: var(--heading-weight);
+        line-height: 1.2;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .stage {
+        position: relative;
+        display: grid;
+        min-width: 0;
+        min-height: 0;
+        place-items: stretch;
+      }
+
+      .visual-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid var(--app-border);
+        border-radius: 18px;
+        background:
+          radial-gradient(
+            ellipse at 50% 45%,
+            var(--app-accent-glow),
+            transparent 65%
+          ),
+          var(--app-bg);
+      }
+
+      #sceneCanvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .subtitle {
+        z-index: 2;
+        max-width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        color: var(--app-text);
+        background: var(--app-subtitle-bg);
+        -webkit-backdrop-filter: blur(var(--subtitle-blur));
+        backdrop-filter: blur(var(--subtitle-blur));
+        font-size: var(--subtitle-size);
+        font-weight: 700;
+        line-height: 1.35;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+          opacity var(--subtitle-duration) ease,
+          transform var(--subtitle-duration) ease;
+      }
+
+      .subtitle.updating {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      .subtitle-mobile {
+        position: absolute;
+        right: 12px;
+        bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+        left: 12px;
+        display: block;
+      }
+
+      .subtitle-desktop {
+        display: none;
+      }
+
+      .control-bar {
+        position: absolute;
+        z-index: 3;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        transition:
+          opacity 0.2s ease,
+          visibility 0.2s ease;
+      }
+
+      .app-root.controls-hidden .control-bar {
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .icon-button {
+        display: grid;
+        flex: 0 0 var(--touch-target);
+        width: var(--touch-target);
+        height: var(--touch-target);
+        padding: 12px;
+        place-items: center;
+        border: 1px solid var(--app-border);
+        border-radius: 14px;
+        background: var(--app-control-bg);
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease;
+      }
+
+      .icon-button:hover {
+        background: var(--app-control-hover);
+      }
+
+      .icon-button svg,
+      .dialog-close svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .details-panel {
+        display: none;
+      }
+
+      .step-indicator {
+        color: var(--app-muted);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        z-index: 20;
+        inset: 0;
+        right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+          max(16px, env(safe-area-inset-bottom, 0px))
+          max(16px, env(safe-area-inset-left, 0px));
+        background: var(--app-modal-scrim);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .settings-dialog {
+        width: min(100%, 380px);
+        max-height: 90vh;
+        max-height: var(--modal-max-height);
+        overflow: auto;
+        padding: 20px;
+        border: 1px solid var(--app-border);
+        border-radius: 20px;
+        background: var(--app-panel);
+        box-shadow: 0 20px 80px var(--app-dialog-shadow);
+        animation: settings-enter 0.22s ease both;
+        outline: none;
+      }
+
+      @keyframes settings-enter {
+        from {
+          opacity: 0;
+          transform: scale(var(--settings-scale));
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
         }
       }
-      return;
-    }
 
-    if (isInteractiveTarget(event.target)) return;
-
-    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
-      return;
-    }
-
-    if (event.code === "Space") {
-      event.preventDefault();
-      state.controlsHidden = !state.controlsHidden;
-      updateControls();
-      return;
-    }
-
-    if (event.key === "ArrowRight") {
-      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
-        event.preventDefault();
-        nextStep();
+      .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
       }
-      return;
-    }
 
-    const key = event.key.toLowerCase();
-    if (key === "r") reset();
-    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
-    else if (key === "v") setVideoMode(!state.videoMode);
-  }
+      .dialog-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+      }
 
-  function populateSpeedOptions() {
-    for (const value of timing.speeds) {
-      const option = document.createElement("option");
-      option.value = String(value);
-      option.textContent = value + "×";
-      elements.speed.appendChild(option);
-    }
-  }
+      .dialog-close {
+        display: grid;
+        flex: 0 0 var(--touch-target);
+        width: var(--touch-target);
+        height: var(--touch-target);
+        padding: 14px;
+        place-items: center;
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        background: var(--app-control-bg);
+      }
 
-  elements.playButton.addEventListener("click", () => {
-    setPlaying(!state.isPlaying);
-  });
-  elements.settingsButton.addEventListener("click", toggleSettings);
-  elements.closeSettings.addEventListener("click", closeSettings);
-  elements.backdrop.addEventListener("click", (event) => {
-    if (event.target === elements.backdrop) closeSettings();
-  });
-  elements.autoMode.addEventListener("click", () => setMode("auto"));
-  elements.stepMode.addEventListener("click", () => setMode("step"));
-  elements.nextStep.addEventListener("click", nextStep);
-  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
-  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
-  elements.reset.addEventListener("click", reset);
-  window.addEventListener("keydown", handleKeyboard);
-  window.addEventListener("resize", resizeCanvas);
-  document.addEventListener("visibilitychange", () => {
-    lastTimestamp = 0;
-  });
+      .segmented-control {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 16px 0 10px;
+      }
 
-  if ("ResizeObserver" in window) {
-    const observer = new ResizeObserver(resizeCanvas);
-    observer.observe(elements.visualFrame);
-  }
+      .segmented-control button,
+      .dialog-action {
+        min-height: var(--touch-target);
+        border: 1px solid var(--app-border);
+        border-radius: 12px;
+        color: var(--app-text);
+        background: var(--app-control-bg);
+        font-weight: 800;
+      }
 
-  populateSpeedOptions();
-  updateIndicators(false);
-  resizeCanvas();
+      .segmented-control button[aria-pressed="true"] {
+        border-color: transparent;
+        background: linear-gradient(
+          135deg,
+          var(--app-accent),
+          var(--app-accent-dark)
+        );
+      }
 
-  try {
-    if (typeof scene.init === "function") {
-      scene.init({
-        width: cssWidth,
-        height: cssHeight,
-        steps,
-        setMode,
-        setPlaying,
-        setSpeed,
-        setVideoMode,
-        nextStep,
-        reset
-      });
-    }
-    sceneInitialized = true;
-    resizeCanvas();
-  } catch (error) {
-    console.error("[app-generator] Scene initialization failed:", error);
-    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
-    return;
-  }
+      .dialog-action {
+        width: 100%;
+        margin-bottom: 14px;
+        background: var(--app-accent-soft);
+      }
 
-  animationFrameId = requestAnimationFrame(animationLoop);
-  window.setTimeout(() => {
-    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
-  }, timing.autoStartDelayMs);
+      .dialog-action:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
 
-  window.addEventListener("pagehide", () => {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  }, { once: true });
-})();
-  </script>
-</body>
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: var(--touch-target);
+        margin: 8px 0;
+        color: var(--app-muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .setting-row select {
+        min-width: 100px;
+        min-height: var(--touch-target);
+        padding: 0 12px;
+        border: 1px solid var(--app-border);
+        border-radius: 10px;
+        color: var(--app-text);
+        background: var(--app-panel);
+      }
+
+      .setting-row input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        accent-color: var(--app-accent);
+      }
+
+      .secondary-action {
+        margin-top: 12px;
+        background: var(--app-control-bg);
+      }
+
+      .keyboard-help {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+        color: var(--app-muted);
+        font-size: 12px;
+      }
+
+      .keyboard-help span {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      kbd {
+        min-width: 42px;
+        padding: 3px 6px;
+        border: 1px solid var(--app-border);
+        border-radius: 6px;
+        color: var(--app-text);
+        background: var(--app-keyboard-bg);
+        font: inherit;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      @media (min-width: 768px) {
+        .app-root {
+          padding: 20px;
+        }
+
+        .workspace {
+          grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+          gap: 20px;
+        }
+
+        .details-panel {
+          display: flex;
+          min-width: 0;
+          flex-direction: column;
+          gap: 20px;
+          padding: 16px 4px;
+        }
+
+        .subtitle-mobile {
+          display: none;
+        }
+
+        .subtitle-desktop {
+          display: block;
+        }
+
+        .modal-backdrop {
+          right: 0;
+          padding: 20px;
+        }
+      }
+
+      .app-root.is-portrait .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .app-root.is-portrait .stage {
+        place-items: center;
+      }
+
+      .app-root.is-portrait .visual-frame {
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+        aspect-ratio: var(--portrait-aspect-ratio);
+      }
+
+      .app-root.is-portrait .details-panel {
+        display: none;
+      }
+
+      .app-root.is-portrait .subtitle-mobile {
+        display: block;
+      }
+
+      @media (max-width: 768px) {
+        .app-root.is-portrait .visual-frame {
+          max-height: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-root" id="appRoot">
+      <header class="app-header">
+        <h1 id="appTitle">Разработка компьютерных игр</h1>
+      </header>
+
+      <main class="workspace">
+        <section class="stage" id="stage" aria-label="Область визуализации">
+          <div class="visual-frame" id="visualFrame">
+            <canvas
+              id="sceneCanvas"
+              aria-label="Анимированная визуализация"
+            ></canvas>
+
+            <div
+              class="subtitle subtitle-mobile"
+              id="mobileSubtitle"
+              aria-live="polite"
+            ></div>
+
+            <div class="control-bar" id="controlBar">
+              <button
+                class="icon-button"
+                id="playButton"
+                type="button"
+                aria-label="Пауза"
+              >
+                <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                id="settingsButton"
+                type="button"
+                aria-label="Открыть настройки"
+                aria-haspopup="dialog"
+                aria-controls="settingsDialog"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="details-panel" id="detailsPanel">
+          <div
+            class="subtitle subtitle-desktop"
+            id="desktopSubtitle"
+            aria-live="polite"
+          ></div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+      <section
+        class="settings-dialog"
+        id="settingsDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settingsTitle"
+        tabindex="-1"
+      >
+        <header class="dialog-header">
+          <h2 id="settingsTitle">Настройки</h2>
+          <button
+            class="dialog-close"
+            id="closeSettingsButton"
+            type="button"
+            aria-label="Закрыть настройки"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="m6 6 12 12M18 6 6 18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+
+        <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+        <div
+          class="segmented-control"
+          role="group"
+          aria-label="Режим воспроизведения"
+        >
+          <button id="autoModeButton" type="button" aria-pressed="true">
+            AUTO
+          </button>
+          <button id="stepModeButton" type="button" aria-pressed="false">
+            STEP
+          </button>
+        </div>
+
+        <button
+          class="dialog-action"
+          id="nextStepButton"
+          type="button"
+          disabled
+        >
+          Следующий шаг →
+        </button>
+
+        <div class="setting-row">
+          <label for="speedSelect">Скорость</label>
+          <select
+            id="speedSelect"
+            aria-label="Скорость воспроизведения"
+          ></select>
+        </div>
+
+        <div class="setting-row">
+          <label for="portraitToggle">Вертикальная рамка 9:16</label>
+          <input id="portraitToggle" type="checkbox" />
+        </div>
+
+        <button
+          class="dialog-action secondary-action"
+          id="resetButton"
+          type="button"
+        >
+          Сбросить
+        </button>
+
+        <div class="keyboard-help" aria-label="Горячие клавиши">
+          <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+          <span><kbd>→</kbd> Следующий шаг в STEP</span>
+          <span><kbd>R</kbd> Сброс</span>
+          <span><kbd>S</kbd> AUTO / STEP</span>
+          <span><kbd>V</kbd> Рамка 9:16</span>
+          <span><kbd>Esc</kbd> Закрыть настройки</span>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const APP_CONFIG = {
+        steps: [
+          {
+            heading: "Концепция",
+            subtitle: "Концепция определяет жанр, аудиторию и игровой опыт.",
+            detail: "Жанр • аудитория • цель",
+            icon: "game",
+            nodes: ["Жанр", "Аудитория", "Цель"],
+          },
+          {
+            heading: "Геймдизайн",
+            subtitle:
+              "Геймдизайн связывает правила, цели, уровни и прогрессию.",
+            detail: "Правила • уровни • баланс",
+            icon: "game",
+            nodes: ["Правила", "Уровни", "Баланс"],
+          },
+          {
+            heading: "Прототип",
+            subtitle:
+              "Прототип проверяет основную игровую механику до производства.",
+            detail: "Игровой цикл • проверка • итерация",
+            icon: "game",
+            nodes: ["Прототип", "Механика", "Тест"],
+          },
+          {
+            heading: "Движок",
+            subtitle:
+              "Движок объединяет сцены, ресурсы, физику и обработку ввода.",
+            detail: "Сцены • компоненты • ресурсы",
+            icon: "game",
+            nodes: ["Сцена", "Физика", "Ресурсы"],
+          },
+          {
+            heading: "Логика",
+            subtitle:
+              "Код управляет состояниями, взаимодействиями и поведением персонажей.",
+            detail: "Состояния • ввод • NPC",
+            icon: "code",
+            nodes: ["Состояния", "Ввод", "NPC"],
+          },
+          {
+            heading: "Контент",
+            subtitle:
+              "Графика, анимация и звук формируют атмосферу игрового мира.",
+            detail: "Модели • движение • звук",
+            icon: "game",
+            nodes: ["Модели", "Анимация", "Звук"],
+          },
+          {
+            heading: "Тестирование",
+            subtitle:
+              "Тестирование выявляет ошибки, дисбаланс и проблемы производительности.",
+            detail: "Ошибки • баланс • FPS",
+            icon: "shield",
+            nodes: ["Ошибки", "Баланс", "FPS"],
+          },
+          {
+            heading: "Релиз",
+            subtitle:
+              "Релиз сопровождается поддержкой, обновлениями и развитием проекта.",
+            detail: "Публикация • поддержка • развитие",
+            icon: "game",
+            nodes: ["Релиз", "Поддержка", "Update"],
+          },
+        ],
+        palette: {
+          background: "#0F0F13",
+          panel: "#1A1A20",
+          accent: "#2EAC65",
+          accent_dark: "#1E7A47",
+          text: "#FFFFFF",
+          muted_text: "#A0A0A0",
+          subtitle_background: "#00000080",
+          modal_scrim: "rgba(0, 0, 0, .62)",
+          border: "rgba(255, 255, 255, .12)",
+          control_background: "rgba(255, 255, 255, .07)",
+          control_hover: "rgba(255, 255, 255, .13)",
+          keyboard_background: "rgba(255, 255, 255, .06)",
+          danger: "#E5484D",
+          accent_soft: "rgba(46, 172, 101, .15)",
+          accent_glow: "rgba(46, 172, 101, .055)",
+          dialog_shadow: "rgba(0, 0, 0, .4)",
+        },
+        breakpointPx: 768,
+        visualizationFit: "contain",
+        timing: {
+          autoStartDelayMs: 500,
+          transitionMs: 900,
+          autoStepIntervalMs: 5000,
+          speeds: [0.5, 1, 2],
+          defaultSpeed: 1,
+          defaultMode: "auto",
+          defaultVideoMode: false,
+          targetFps: 60,
+          minSteps: 6,
+          maxSteps: 10,
+        },
+      };
+      (() => {
+        "use strict";
+        function roundedRect(ctx, x, y, w, h, r) {
+          const radius = Math.min(r, w / 2, h / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + radius, y);
+          ctx.arcTo(x + w, y, x + w, y + h, radius);
+          ctx.arcTo(x + w, y + h, x, y + h, radius);
+          ctx.arcTo(x, y + h, x, y, radius);
+          ctx.arcTo(x, y, x + w, y, radius);
+          ctx.closePath();
+        }
+        function wrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+          const words = String(text || "").split(/\s+/),
+            lines = [];
+          let line = "";
+          for (const word of words) {
+            const test = line ? line + " " + word : word;
+            if (line && ctx.measureText(test).width > maxWidth) {
+              lines.push(line);
+              line = word;
+            } else line = test;
+          }
+          if (line) lines.push(line);
+          const visible = lines.slice(0, maxLines);
+          if (lines.length > maxLines && visible.length) {
+            let last = visible[visible.length - 1];
+            while (last.length && ctx.measureText(last + "…").width > maxWidth)
+              last = last.slice(0, -1);
+            visible[visible.length - 1] = last + "…";
+          }
+          visible.forEach((v, i) => ctx.fillText(v, x, y + i * lineHeight));
+        }
+        function glyph(ctx, type, x, y, size, accent, soft) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.scale(size / 64, size / 64);
+          ctx.lineWidth = 3.2;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.strokeStyle = accent;
+          ctx.fillStyle = soft;
+          if (type === "database") {
+            ctx.beginPath();
+            ctx.ellipse(0, -20, 22, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-22, -20);
+            ctx.lineTo(-22, 20);
+            ctx.ellipse(0, 20, 22, 9, 0, Math.PI, 0, true);
+            ctx.lineTo(22, -20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(0, -1, 22, 9, 0, 0, Math.PI);
+            ctx.stroke();
+          } else if (type === "network") {
+            const pts = [
+              [0, -22],
+              [-22, 17],
+              [22, 17],
+            ];
+            ctx.beginPath();
+            ctx.moveTo(0, -22);
+            ctx.lineTo(-22, 17);
+            ctx.lineTo(22, 17);
+            ctx.closePath();
+            ctx.stroke();
+            for (const p of pts) {
+              ctx.beginPath();
+              ctx.arc(p[0], p[1], 7, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.arc(0, 5, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else if (type === "shield" || type === "check") {
+            ctx.beginPath();
+            ctx.moveTo(0, -27);
+            ctx.lineTo(23, -18);
+            ctx.lineTo(20, 5);
+            ctx.quadraticCurveTo(16, 21, 0, 28);
+            ctx.quadraticCurveTo(-16, 21, -20, 5);
+            ctx.lineTo(-23, -18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-10, 0);
+            ctx.lineTo(-2, 9);
+            ctx.lineTo(13, -9);
+            ctx.stroke();
+          } else if (type === "lock") {
+            roundedRect(ctx, -20, -2, 40, 29, 7);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, -4, 13, Math.PI, 0);
+            ctx.lineTo(13, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 11, 3, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.moveTo(0, 14);
+            ctx.lineTo(0, 20);
+            ctx.stroke();
+          } else if (type === "web") {
+            roundedRect(ctx, -27, -21, 54, 43, 6);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-27, -9);
+            ctx.lineTo(27, -9);
+            ctx.stroke();
+            for (const px of [-19, -10, -1]) {
+              ctx.beginPath();
+              ctx.arc(px, -15, 1.8, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.moveTo(-13, 1);
+            ctx.lineTo(-19, 7);
+            ctx.lineTo(-13, 13);
+            ctx.moveTo(13, 1);
+            ctx.lineTo(19, 7);
+            ctx.lineTo(13, 13);
+            ctx.moveTo(5, 0);
+            ctx.lineTo(-3, 14);
+            ctx.stroke();
+          } else if (type === "code") {
+            ctx.beginPath();
+            ctx.moveTo(-9, -22);
+            ctx.lineTo(-25, 0);
+            ctx.lineTo(-9, 22);
+            ctx.moveTo(9, -22);
+            ctx.lineTo(25, 0);
+            ctx.lineTo(9, 22);
+            ctx.moveTo(5, -26);
+            ctx.lineTo(-5, 26);
+            ctx.stroke();
+          } else if (type === "phone") {
+            roundedRect(ctx, -17, -29, 34, 58, 7);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-8, -20);
+            ctx.lineTo(8, -20);
+            ctx.moveTo(-5, 21);
+            ctx.lineTo(5, 21);
+            ctx.stroke();
+          } else if (type === "train" || type === "rail") {
+            ctx.beginPath();
+            ctx.moveTo(-23, 13);
+            ctx.lineTo(-17, -17);
+            ctx.lineTo(17, -17);
+            ctx.lineTo(23, 13);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-16, -7);
+            ctx.lineTo(16, -7);
+            ctx.moveTo(-11, -17);
+            ctx.lineTo(-11, -7);
+            ctx.moveTo(11, -17);
+            ctx.lineTo(11, -7);
+            ctx.moveTo(-26, 22);
+            ctx.lineTo(26, 22);
+            ctx.moveTo(-22, 28);
+            ctx.lineTo(22, 28);
+            ctx.stroke();
+            for (const px of [-13, 13]) {
+              ctx.beginPath();
+              ctx.arc(px, 14, 3, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          } else if (type === "game") {
+            ctx.beginPath();
+            ctx.moveTo(-25, -9);
+            ctx.quadraticCurveTo(-33, 7, -25, 19);
+            ctx.quadraticCurveTo(-18, 26, -8, 13);
+            ctx.lineTo(8, 13);
+            ctx.quadraticCurveTo(18, 26, 25, 19);
+            ctx.quadraticCurveTo(33, 7, 25, -9);
+            ctx.quadraticCurveTo(18, -19, 8, -12);
+            ctx.lineTo(-8, -12);
+            ctx.quadraticCurveTo(-18, -19, -25, -9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-17, 0);
+            ctx.lineTo(-7, 0);
+            ctx.moveTo(-12, -5);
+            ctx.lineTo(-12, 5);
+            ctx.stroke();
+            for (const p of [
+              [14, -4],
+              [21, 3],
+            ]) {
+              ctx.beginPath();
+              ctx.arc(p[0], p[1], 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          } else if (type === "robot") {
+            ctx.beginPath();
+            ctx.moveTo(0, -28);
+            ctx.lineTo(0, -20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, -31, 3, 0, Math.PI * 2);
+            ctx.fill();
+            roundedRect(ctx, -25, -20, 50, 39, 9);
+            ctx.fill();
+            ctx.stroke();
+            for (const px of [-11, 11]) {
+              ctx.beginPath();
+              ctx.arc(px, -5, 4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.moveTo(-10, 8);
+            ctx.lineTo(10, 8);
+            ctx.moveTo(-16, 19);
+            ctx.lineTo(-20, 27);
+            ctx.moveTo(16, 19);
+            ctx.lineTo(20, 27);
+            ctx.stroke();
+          } else if (type === "drone") {
+            ctx.beginPath();
+            ctx.moveTo(-12, 0);
+            ctx.lineTo(-26, -13);
+            ctx.moveTo(12, 0);
+            ctx.lineTo(26, -13);
+            ctx.moveTo(-12, 0);
+            ctx.lineTo(-26, 13);
+            ctx.moveTo(12, 0);
+            ctx.lineTo(26, 13);
+            ctx.stroke();
+            roundedRect(ctx, -12, -7, 24, 14, 5);
+            ctx.fill();
+            ctx.stroke();
+            for (const p of [
+              [-27, -15],
+              [27, -15],
+              [-27, 15],
+              [27, 15],
+            ]) {
+              ctx.beginPath();
+              ctx.arc(p[0], p[1], 7, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          } else if (type === "mail") {
+            roundedRect(ctx, -27, -19, 54, 39, 6);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-25, -16);
+            ctx.lineTo(0, 3);
+            ctx.lineTo(25, -16);
+            ctx.stroke();
+          } else if (type === "eye") {
+            ctx.beginPath();
+            ctx.moveTo(-28, 0);
+            ctx.quadraticCurveTo(0, -28, 28, 0);
+            ctx.quadraticCurveTo(0, 28, -28, 0);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 0, 9, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(-24, 18);
+            ctx.lineTo(-24, -10);
+            ctx.lineTo(0, -25);
+            ctx.lineTo(24, -10);
+            ctx.lineTo(24, 18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-12, 2);
+            ctx.lineTo(12, 2);
+            ctx.moveTo(-12, 10);
+            ctx.lineTo(12, 10);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        function chip(ctx, x, y, w, h, label, palette) {
+          roundedRect(ctx, x, y, w, h, Math.min(10, h / 2));
+          ctx.fillStyle = "rgba(255,255,255,.045)";
+          ctx.fill();
+          ctx.strokeStyle = palette.border || "rgba(255,255,255,.12)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = palette.muted_text || "#A0A0A0";
+          ctx.font =
+            "700 " +
+            Math.max(8, Math.min(11, h * 0.34)) +
+            "px system-ui,sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          let value = String(label || "");
+          while (value.length > 3 && ctx.measureText(value).width > w - 10)
+            value = value.slice(0, -2) + "…";
+          ctx.fillText(value, x + w / 2, y + h / 2);
+        }
+        function draw(ctx, frame) {
+          const w = Math.max(1, frame.width),
+            h = Math.max(1, frame.height),
+            step = frame.step || {},
+            p = frame.palette || {};
+          const accent = p.accent || "#2EAC65",
+            text = p.text || "#FFFFFF",
+            muted = p.muted_text || "#A0A0A0",
+            panel = p.panel || "#1A1A20",
+            soft = p.accent_soft || "rgba(46,172,101,.15)";
+          const narrow = w < 540 || h > w * 1.14,
+            pad = Math.max(9, Math.min(28, Math.min(w, h) * 0.055));
+          const phase = Math.max(
+            0,
+            Math.min(
+              1,
+              frame.transitionProgress == null ? 1 : frame.transitionProgress,
+            ),
+          );
+          const pulse = 0.5 + 0.5 * Math.sin((frame.elapsedMs || 0) / 650),
+            index = Number.isInteger(frame.stepIndex) ? frame.stepIndex : 0,
+            total = 8;
+          ctx.save();
+          const glow = ctx.createRadialGradient(
+            w * 0.5,
+            h * 0.42,
+            0,
+            w * 0.5,
+            h * 0.42,
+            Math.max(w, h) * 0.72,
+          );
+          glow.addColorStop(0, p.accent_glow || "rgba(46,172,101,.055)");
+          glow.addColorStop(1, "rgba(15,15,19,0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 0.12;
+          ctx.strokeStyle = muted;
+          ctx.lineWidth = 1;
+          const grid = Math.max(24, Math.min(42, Math.min(w, h) * 0.16));
+          for (let x = grid / 2; x < w; x += grid) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+            ctx.stroke();
+          }
+          for (let y = grid / 2; y < h; y += grid) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+          const badgeY = pad + 9;
+          roundedRect(
+            ctx,
+            pad,
+            badgeY - 11,
+            Math.min(w - pad * 2, 164),
+            22,
+            11,
+          );
+          ctx.fillStyle = soft;
+          ctx.fill();
+          ctx.strokeStyle = "rgba(46,172,101,.30)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = accent;
+          ctx.font = "800 8px system-ui,sans-serif";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ", pad + 9, badgeY);
+          ctx.textAlign = "right";
+          ctx.fillStyle = muted;
+          ctx.font =
+            "700 " +
+            Math.max(9, Math.min(12, Math.min(w, h) * 0.028)) +
+            "px system-ui,sans-serif";
+          ctx.fillText(
+            String(index + 1).padStart(2, "0") +
+              " / " +
+              String(total).padStart(2, "0"),
+            w - pad,
+            badgeY,
+          );
+          const ix = narrow ? w * 0.5 : w * 0.285,
+            iy = narrow ? h * 0.335 : h * 0.49;
+          const size = Math.max(
+              28,
+              Math.min(
+                narrow ? Math.min(w, h) * 0.28 : h * 0.36,
+                narrow ? 74 : 118,
+              ),
+            ),
+            ring = size * 0.78;
+          const halo = ctx.createRadialGradient(ix, iy, 2, ix, iy, size * 1.48);
+          halo.addColorStop(
+            0,
+            "rgba(46,172,101," + (0.16 + pulse * 0.055) + ")",
+          );
+          halo.addColorStop(1, "rgba(46,172,101,0)");
+          ctx.fillStyle = halo;
+          ctx.beginPath();
+          ctx.arc(ix, iy, size * 1.48, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(ix, iy, ring, 0, Math.PI * 2);
+          ctx.fillStyle = panel;
+          ctx.globalAlpha = 0.72;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = "rgba(46,172,101,.42)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(
+            ix,
+            iy,
+            ring * 1.22,
+            -Math.PI / 2,
+            -Math.PI / 2 + Math.PI * 2 * phase,
+          );
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 2.6;
+          ctx.stroke();
+          for (let i = 0; i < 3; i++) {
+            const a =
+              -Math.PI / 2 +
+              (i * Math.PI * 2) / 3 +
+              (frame.elapsedMs || 0) / 9000;
+            ctx.beginPath();
+            ctx.arc(
+              ix + Math.cos(a) * ring * 1.36,
+              iy + Math.sin(a) * ring * 1.36,
+              2.4 + pulse * 1.2,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fillStyle = accent;
+            ctx.fill();
+          }
+          glyph(ctx, step.icon || "network", ix, iy, size, accent, soft);
+          const hs = Math.max(
+            14,
+            Math.min(
+              narrow ? 22 : 34,
+              Math.min(w, h) * (narrow ? 0.09 : 0.075),
+            ),
+          );
+          const tx = narrow ? w / 2 : w * 0.53,
+            ty = narrow ? h * 0.575 : h * 0.39,
+            mw = narrow ? w - pad * 2 : w * 0.42;
+          ctx.textAlign = narrow ? "center" : "left";
+          ctx.textBaseline = "alphabetic";
+          ctx.fillStyle = text;
+          ctx.font = "800 " + hs + "px system-ui,sans-serif";
+          wrappedText(ctx, step.heading || "Этап", tx, ty, mw, hs * 1.12, 2);
+          ctx.fillStyle = muted;
+          ctx.font =
+            "500 " +
+            Math.max(9, Math.min(narrow ? 12 : 15, Math.min(w, h) * 0.04)) +
+            "px system-ui,sans-serif";
+          wrappedText(
+            ctx,
+            step.detail || "",
+            tx,
+            ty + hs * 1.55,
+            mw,
+            Math.max(12, hs * 0.78),
+            2,
+          );
+          const items = Array.isArray(step.nodes) ? step.nodes.slice(0, 3) : [],
+            gap = 6,
+            cy = narrow ? h * 0.775 : h * 0.72,
+            ch = Math.max(22, Math.min(32, h * 0.075));
+          const aw = narrow ? w - pad * 2 : w * 0.43,
+            cw = Math.max(38, (aw - gap * 2) / 3),
+            sx = narrow ? pad : tx;
+          items.forEach((item, i) =>
+            chip(ctx, sx + i * (cw + gap), cy, cw, ch, item, p),
+          );
+          const py = h - Math.max(12, pad * 0.72),
+            pw = Math.max(30, w - pad * 2);
+          ctx.strokeStyle = "rgba(255,255,255,.14)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(pad, py);
+          ctx.lineTo(pad + pw, py);
+          ctx.stroke();
+          for (let i = 0; i < total; i++) {
+            const x = pad + (pw * i) / (total - 1);
+            ctx.beginPath();
+            ctx.arc(x, py, i === index ? 4.3 : 2.7, 0, Math.PI * 2);
+            ctx.fillStyle = i <= index ? accent : "rgba(255,255,255,.24)";
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+        window.AppScene = { draw };
+      })();
+      (() => {
+        "use strict";
+
+        const scene = window.AppScene;
+        const steps = APP_CONFIG.steps;
+        const timing = APP_CONFIG.timing;
+
+        const get = (id) => document.getElementById(id);
+        const elements = {
+          appRoot: get("appRoot"),
+          stage: get("stage"),
+          visualFrame: get("visualFrame"),
+          canvas: get("sceneCanvas"),
+          mobileSubtitle: get("mobileSubtitle"),
+          desktopSubtitle: get("desktopSubtitle"),
+          modalStep: get("modalStepIndicator"),
+          playButton: get("playButton"),
+          playIcon: get("playIcon"),
+          settingsButton: get("settingsButton"),
+          backdrop: get("settingsBackdrop"),
+          dialog: get("settingsDialog"),
+          closeSettings: get("closeSettingsButton"),
+          autoMode: get("autoModeButton"),
+          stepMode: get("stepModeButton"),
+          nextStep: get("nextStepButton"),
+          speed: get("speedSelect"),
+          portrait: get("portraitToggle"),
+          reset: get("resetButton"),
+        };
+
+        function showFatalError(message) {
+          const panel = document.createElement("div");
+          panel.setAttribute("role", "alert");
+          panel.style.cssText =
+            "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+          panel.textContent = message;
+          elements.stage.appendChild(panel);
+          console.error("[app-generator]", message);
+        }
+
+        if (!scene || typeof scene.draw !== "function") {
+          showFatalError(
+            "Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().",
+          );
+          return;
+        }
+
+        if (
+          !Array.isArray(steps) ||
+          steps.length < timing.minSteps ||
+          steps.length > timing.maxSteps
+        ) {
+          showFatalError(
+            "Некорректная конфигурация шагов. Проверьте файл scene.json.",
+          );
+          return;
+        }
+
+        const ctx = elements.canvas.getContext("2d");
+        const previousCanvas = document.createElement("canvas");
+        const currentCanvas = document.createElement("canvas");
+        const previousCtx = previousCanvas.getContext("2d");
+        const currentCtx = currentCanvas.getContext("2d");
+
+        if (!ctx || !previousCtx || !currentCtx) {
+          showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+          return;
+        }
+
+        const state = {
+          mode: timing.defaultMode,
+          isPlaying: false,
+          currentStep: 0,
+          speed: timing.defaultSpeed,
+          videoMode: timing.defaultVideoMode,
+          controlsHidden: false,
+          elapsedMs: 0,
+          waitElapsedMs: 0,
+          deltaMs: 0,
+          transition: null,
+        };
+
+        let cssWidth = 0;
+        let cssHeight = 0;
+        let pixelRatio = 1;
+        let lastTimestamp = 0;
+        let animationFrameId = 0;
+        let returnFocusTo = null;
+        let subtitleRevision = 0;
+        let sceneInitialized = false;
+
+        function setCanvasSize(canvas) {
+          canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+          canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+        }
+
+        function resizeCanvas() {
+          const rect = elements.visualFrame.getBoundingClientRect();
+          cssWidth = rect.width;
+          cssHeight = rect.height;
+          pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+          if (cssWidth <= 0 || cssHeight <= 0) return;
+
+          setCanvasSize(elements.canvas);
+          setCanvasSize(previousCanvas);
+          setCanvasSize(currentCanvas);
+
+          if (!sceneInitialized) return;
+
+          if (typeof scene.resize === "function") {
+            scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+          }
+
+          drawFrame();
+        }
+
+        function drawTo(targetContext, stepIndex, transitionProgress) {
+          targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+          targetContext.clearRect(0, 0, cssWidth, cssHeight);
+          targetContext.save();
+
+          try {
+            scene.draw(targetContext, {
+              stepIndex,
+              step: steps[stepIndex],
+              width: cssWidth,
+              height: cssHeight,
+              elapsedMs: state.elapsedMs,
+              deltaMs: state.deltaMs,
+              transitionProgress,
+              speed: state.speed,
+              videoMode: state.videoMode,
+              palette: APP_CONFIG.palette,
+              fit: APP_CONFIG.visualizationFit,
+            });
+          } finally {
+            targetContext.restore();
+          }
+        }
+
+        function drawFrame() {
+          if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+          if (state.transition) {
+            const progress = Math.min(
+              1,
+              state.transition.elapsedMs / timing.transitionMs,
+            );
+            drawTo(previousCtx, state.transition.from, progress);
+            drawTo(currentCtx, state.transition.to, progress);
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+            ctx.globalAlpha = 1 - progress;
+            ctx.drawImage(previousCanvas, 0, 0);
+            ctx.globalAlpha = progress;
+            ctx.drawImage(currentCanvas, 0, 0);
+            ctx.globalAlpha = 1;
+            return;
+          }
+
+          drawTo(ctx, state.currentStep, 1);
+        }
+
+        function updateIndicators(animateSubtitle) {
+          const stepNumber = state.currentStep + 1;
+          const label = "Шаг " + stepNumber + " / " + steps.length;
+          elements.modalStep.textContent = label;
+
+          const subtitle = steps[state.currentStep].subtitle;
+          const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+          const revision = ++subtitleRevision;
+
+          for (const target of targets) {
+            if (animateSubtitle) target.classList.add("updating");
+            target.textContent = subtitle;
+          }
+
+          if (animateSubtitle) {
+            requestAnimationFrame(() => {
+              if (revision !== subtitleRevision) return;
+              requestAnimationFrame(() => {
+                if (revision !== subtitleRevision) return;
+                for (const target of targets)
+                  target.classList.remove("updating");
+              });
+            });
+          } else {
+            for (const target of targets) target.classList.remove("updating");
+          }
+
+          updateControls();
+        }
+
+        function updateControls() {
+          const isAuto = state.mode === "auto";
+          elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+          elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+          elements.nextStep.disabled =
+            isAuto ||
+            Boolean(state.transition) ||
+            state.currentStep >= steps.length - 1;
+
+          elements.playButton.setAttribute(
+            "aria-label",
+            state.isPlaying ? "Пауза" : "Продолжить воспроизведение",
+          );
+          elements.playIcon.innerHTML = state.isPlaying
+            ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+            : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+          elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+          elements.appRoot.classList.toggle(
+            "controls-hidden",
+            state.controlsHidden,
+          );
+          elements.settingsButton.setAttribute(
+            "aria-expanded",
+            String(elements.backdrop.classList.contains("open")),
+          );
+          elements.portrait.checked = state.videoMode;
+          elements.speed.value = String(state.speed);
+        }
+
+        function startTransition(nextStep) {
+          if (state.transition || nextStep < 0 || nextStep >= steps.length)
+            return;
+
+          state.transition = {
+            from: state.currentStep,
+            to: nextStep,
+            elapsedMs: 0,
+          };
+          state.waitElapsedMs = 0;
+          updateControls();
+        }
+
+        function setMode(mode) {
+          if (mode !== "auto" && mode !== "step") return;
+          if (state.mode === mode) return;
+
+          if (mode === "step") {
+            if (state.transition) {
+              state.currentStep = state.transition.to;
+              state.transition = null;
+            }
+            state.mode = "step";
+            state.isPlaying = false;
+            state.waitElapsedMs = 0;
+          } else {
+            state.mode = "auto";
+            state.isPlaying = true;
+            state.waitElapsedMs = 0;
+          }
+
+          updateIndicators(false);
+          drawFrame();
+        }
+
+        function setPlaying(playing) {
+          state.isPlaying = Boolean(playing);
+          updateControls();
+        }
+
+        function nextStep() {
+          if (
+            state.mode !== "step" ||
+            state.transition ||
+            state.currentStep >= steps.length - 1
+          )
+            return;
+
+          state.isPlaying = true;
+          startTransition(state.currentStep + 1);
+          updateControls();
+        }
+
+        function setSpeed(value) {
+          const parsed = Number(value);
+          if (!timing.speeds.includes(parsed)) return;
+          state.speed = parsed;
+          updateControls();
+        }
+
+        function setVideoMode(enabled) {
+          state.videoMode = Boolean(enabled);
+          updateControls();
+          requestAnimationFrame(resizeCanvas);
+        }
+
+        function reset() {
+          state.mode = timing.defaultMode;
+          state.isPlaying = true;
+          state.currentStep = 0;
+          state.elapsedMs = 0;
+          state.waitElapsedMs = 0;
+          state.transition = null;
+
+          if (typeof scene.reset === "function") scene.reset();
+          updateIndicators(true);
+          drawFrame();
+        }
+
+        function openSettings() {
+          returnFocusTo = document.activeElement;
+          elements.backdrop.classList.add("open");
+          elements.backdrop.setAttribute("aria-hidden", "false");
+          elements.settingsButton.setAttribute("aria-expanded", "true");
+          elements.appRoot.inert = true;
+          elements.dialog.focus();
+        }
+
+        function closeSettings() {
+          elements.backdrop.classList.remove("open");
+          elements.backdrop.setAttribute("aria-hidden", "true");
+          elements.settingsButton.setAttribute("aria-expanded", "false");
+          elements.appRoot.inert = false;
+
+          if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+            returnFocusTo.focus();
+          }
+        }
+
+        function toggleSettings() {
+          if (elements.backdrop.classList.contains("open")) closeSettings();
+          else openSettings();
+        }
+
+        function update(dt) {
+          if (!state.isPlaying) return;
+
+          const scaledDelta = dt * state.speed;
+          state.elapsedMs += scaledDelta;
+
+          if (state.transition) {
+            state.transition.elapsedMs += scaledDelta;
+
+            if (state.transition.elapsedMs >= timing.transitionMs) {
+              state.currentStep = state.transition.to;
+              state.transition = null;
+              state.waitElapsedMs = 0;
+
+              if (state.mode === "step") state.isPlaying = false;
+              updateIndicators(true);
+            }
+            return;
+          }
+
+          if (state.mode === "auto") {
+            state.waitElapsedMs += scaledDelta;
+
+            if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+              startTransition((state.currentStep + 1) % steps.length);
+            }
+          }
+        }
+
+        function animationLoop(timestamp) {
+          const dt = lastTimestamp
+            ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+            : 0;
+          lastTimestamp = timestamp;
+          state.deltaMs = dt;
+
+          update(dt);
+          drawFrame();
+          animationFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        function isInteractiveTarget(target) {
+          if (!(target instanceof Element)) return false;
+          return (
+            (target instanceof HTMLElement && target.isContentEditable) ||
+            ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+            target.closest(
+              "button, a, [role='button'], [role='slider'], [role='switch']",
+            ) !== null
+          );
+        }
+
+        function handleKeyboard(event) {
+          if (event.isComposing) return;
+
+          const modalIsOpen = elements.backdrop.classList.contains("open");
+
+          if (event.key === "Escape") {
+            if (modalIsOpen) {
+              event.preventDefault();
+              closeSettings();
+            }
+            return;
+          }
+
+          if (modalIsOpen) {
+            if (event.key === "Tab") {
+              const focusable = Array.from(
+                elements.dialog.querySelectorAll(
+                  'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+                ),
+              ).filter((element) => !element.hasAttribute("hidden"));
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+
+              if (
+                first &&
+                last &&
+                event.shiftKey &&
+                (document.activeElement === first ||
+                  document.activeElement === elements.dialog)
+              ) {
+                event.preventDefault();
+                last.focus();
+              } else if (
+                first &&
+                last &&
+                !event.shiftKey &&
+                document.activeElement === last
+              ) {
+                event.preventDefault();
+                first.focus();
+              }
+            }
+            return;
+          }
+
+          if (isInteractiveTarget(event.target)) return;
+
+          if (
+            !window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)")
+              .matches
+          ) {
+            return;
+          }
+
+          if (event.code === "Space") {
+            event.preventDefault();
+            state.controlsHidden = !state.controlsHidden;
+            updateControls();
+            return;
+          }
+
+          if (event.key === "ArrowRight") {
+            if (
+              state.mode === "step" &&
+              !state.transition &&
+              state.currentStep < steps.length - 1
+            ) {
+              event.preventDefault();
+              nextStep();
+            }
+            return;
+          }
+
+          const key = event.key.toLowerCase();
+          if (key === "r") reset();
+          else if (key === "s")
+            setMode(state.mode === "auto" ? "step" : "auto");
+          else if (key === "v") setVideoMode(!state.videoMode);
+        }
+
+        function populateSpeedOptions() {
+          for (const value of timing.speeds) {
+            const option = document.createElement("option");
+            option.value = String(value);
+            option.textContent = value + "×";
+            elements.speed.appendChild(option);
+          }
+        }
+
+        elements.playButton.addEventListener("click", () => {
+          setPlaying(!state.isPlaying);
+        });
+        elements.settingsButton.addEventListener("click", toggleSettings);
+        elements.closeSettings.addEventListener("click", closeSettings);
+        elements.backdrop.addEventListener("click", (event) => {
+          if (event.target === elements.backdrop) closeSettings();
+        });
+        elements.autoMode.addEventListener("click", () => setMode("auto"));
+        elements.stepMode.addEventListener("click", () => setMode("step"));
+        elements.nextStep.addEventListener("click", nextStep);
+        elements.speed.addEventListener("change", (event) =>
+          setSpeed(event.target.value),
+        );
+        elements.portrait.addEventListener("change", (event) =>
+          setVideoMode(event.target.checked),
+        );
+        elements.reset.addEventListener("click", reset);
+        window.addEventListener("keydown", handleKeyboard);
+        window.addEventListener("resize", resizeCanvas);
+        document.addEventListener("visibilitychange", () => {
+          lastTimestamp = 0;
+        });
+
+        if ("ResizeObserver" in window) {
+          const observer = new ResizeObserver(resizeCanvas);
+          observer.observe(elements.visualFrame);
+        }
+
+        populateSpeedOptions();
+        updateIndicators(false);
+        resizeCanvas();
+
+        try {
+          if (typeof scene.init === "function") {
+            scene.init({
+              width: cssWidth,
+              height: cssHeight,
+              steps,
+              setMode,
+              setPlaying,
+              setSpeed,
+              setVideoMode,
+              nextStep,
+              reset,
+            });
+          }
+          sceneInitialized = true;
+          resizeCanvas();
+        } catch (error) {
+          console.error("[app-generator] Scene initialization failed:", error);
+          showFatalError(
+            "Не удалось инициализировать визуализацию. Проверьте консоль браузера.",
+          );
+          return;
+        }
+
+        animationFrameId = requestAnimationFrame(animationLoop);
+        window.setTimeout(() => {
+          if (!state.isPlaying && state.mode === timing.defaultMode)
+            setPlaying(true);
+        }, timing.autoStartDelayMs);
+
+        window.addEventListener(
+          "pagehide",
+          () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+          },
+          { once: true },
+        );
+      })();
+    </script>
+  </body>
 </html>
