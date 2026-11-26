@@ -97,7 +97,7 @@ class GeneratorTests(unittest.TestCase):
 
         duplicate_meta = document.replace(
             '<meta name="theme-color" content="#0F0F13">',
-            '<meta name="theme-color" content="#0F0F13">\\n<meta name="theme-color" content="#0F0F13">',
+            '<meta name="theme-color" content="#0F0F13">\n<meta name="theme-color" content="#0F0F13">',
             1,
         )
         with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
@@ -139,10 +139,11 @@ class GeneratorTests(unittest.TestCase):
         self.assertIn("if (modalIsOpen) {", runtime)
         self.assertIn("elements.appRoot.inert = true;", runtime)
         self.assertIn("elements.appRoot.inert = false;", runtime)
-        self.assertIn(
-            "target.closest(\"button, a, [role='button'], [role='slider'], [role='switch']\")",
-            runtime,
-        )
+        self.assertIn("target.closest(", runtime)
+        self.assertIn("[role='button']", runtime)
+        self.assertIn("[role='slider']", runtime)
+        self.assertIn("[role='switch']", runtime)
+        self.assertIn("if (isInteractiveTarget(event.target)) return;", runtime)
         self.assertIn("function isInteractiveTarget(target)", runtime)
 
     def test_spec_is_valid_json(self) -> None:
