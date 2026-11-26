@@ -7,6 +7,13 @@ on:
       - fix/**
     paths:
       - "app-generator/**"
+      - ".pre-commit-config.yaml"
+      - "ruff.toml"
+      - "sonar-project.properties"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - ".github/workflows/pre-commit.yml"
+      - ".github/workflows/sonarqube.yml"
       - ".github/workflows/app-generator-tests.yml"
   pull_request:
     paths:
