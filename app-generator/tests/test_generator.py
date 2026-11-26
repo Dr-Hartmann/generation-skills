@@ -69,7 +69,7 @@ class GeneratorTests(unittest.TestCase):
             '<meta content=',
             1,
         )
-        with self.assertRaisesRegex(ValueError, "exactly one viewport"):
+        with self.assertRaisesRegex(ValueError, "exactly one meta\\[name=viewport\\]"):
             validate_html(document, self.spec["meta"]["viewport"])
 
     def test_all_done_archive_files_pass_the_canonical_validator(self) -> None:
@@ -94,7 +94,7 @@ class GeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
             validate_html(duplicate_meta, self.spec["meta"]["viewport"])
 
-        duplicate_body = document.replace("</body>", "</body></body>", 1)
+        duplicate_body = document.replace("<body>", "<body><body>", 1)
         with self.assertRaisesRegex(ValueError, "exactly one <body>"):
             validate_html(duplicate_body, self.spec["meta"]["viewport"])
 
