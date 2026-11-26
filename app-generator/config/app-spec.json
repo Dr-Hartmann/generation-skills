@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "language": "ru",
+  "meta": {
+    "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
+  },
+  "layout": {
+    "breakpoint_px": 768,
+    "root_height_fallback": "100vh",
+    "root_height_dynamic": "100dvh",
+    "page_overflow": "hidden",
+    "right_reserved_px": 80,
+    "left_padding_px": 16,
+    "header_top_padding_px": 16,
+    "bottom_reserved_vh": 25,
+    "desktop_sidebar_width": "clamp(320px, 30vw, 380px)",
+    "portrait_aspect_ratio": "9 / 16",
+    "subtitle_to_controls_gap_px": 24,
+    "visualization_fit": "contain"
+  },
+  "controls": {
+    "min_touch_target_px": 48,
+    "settings_max_height_dvh": 90
+  },
+  "palette": {
+    "background": "#0F0F13",
+    "panel": "#1A1A20",
+    "accent": "#2EAC65",
+    "accent_dark": "#1E7A47",
+    "text": "#FFFFFF",
+    "muted_text": "#A0A0A0",
+    "subtitle_background": "#00000080",
+    "modal_scrim": "rgba(0, 0, 0, .62)",
+    "border": "rgba(255, 255, 255, .12)",
+    "control_background": "rgba(255, 255, 255, .07)",
+    "control_hover": "rgba(255, 255, 255, .13)",
+    "keyboard_background": "rgba(255, 255, 255, .06)",
+    "danger": "#E5484D",
+    "accent_soft": "rgba(46, 172, 101, .15)",
+    "accent_glow": "rgba(46, 172, 101, .055)",
+    "dialog_shadow": "rgba(0, 0, 0, .4)"
+  },
+  "typography": {
+    "font_family": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "heading_weight": 800,
+    "body_weight": 400,
+    "subtitle_size": "clamp(16px, 4.5vw, 22px)"
+  },
+  "animation": {
+    "auto_start_delay_ms": 500,
+    "target_fps": 60,
+    "speeds": [0.5, 1, 2],
+    "default_speed": 1,
+    "auto_step_interval_ms": 5000,
+    "step_transition_ms": 900,
+    "subtitle_transition_ms": 300,
+    "settings_entry_scale": 0.95
+  },
+  "subtitles": {
+    "min_steps": 6,
+    "max_steps": 10,
+    "max_words": 12,
+    "background_blur_px": 8
+  },
+  "test_viewports": {
+    "compact_phone": [390, 844],
+    "tablet_breakpoint": [768, 1024],
+    "desktop": [1920, 1080]
+  },
+  "behavior": {
+    "default_mode": "auto",
+    "default_video_mode": false
+  }
+}

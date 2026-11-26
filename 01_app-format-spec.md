@@ -2,39 +2,37 @@
 
 ## Required Output
 
-Create a single standalone HTML file. It must contain:
+Create one standalone HTML file using app-generator. Do not assemble the shared document manually.
 
-- HTML markup;
-- Custom styles inside `<style>`;
-- JavaScript logic inside `<script>`.
+The generator creates the document structure, metadata, styles, controls, settings dialog, keyboard handling, Canvas setup, and playback runtime. The agent supplies only:
 
-Do not create separate CSS and JS files. Do not require a bundler, npm, a local server, or pre-compilation.
+- scene.json: title, description, steps, and subtitles;
+- scene.js: the scene drawing API.
 
-## Including Libraries
+## Document Metadata
 
-External libraries may be included via CDN if they are genuinely needed for the task. The viewport parameter is defined in registry `FMT-02`, and CDN inclusion rules are in `FMT-03`.
+The generator emits the complete viewport element from meta.viewport in app-generator/config/app-spec.json. It must be a meta element with name="viewport" and the exact configured content value.
 
-Place external classic scripts in `<head>` with `defer`. Do not add `defer` to an embedded inline script: place it before the closing `</body>` tag or run it after the DOM is ready.
+Do not create a second viewport meta element or write an incomplete meta element with only a content attribute.
 
-Do not include a library just for a simple effect that can be achieved using standard browser features.
-
-## Running from a File
-
-The application must run when opening the HTML file directly in a browser. Therefore:
-
-- Do not require a local server;
-- Do not load required local data via `fetch`, XHR, or dynamic import;
-- Do not rely on server-side APIs;
-- Do not use build paths that only exist in a development environment.
-
-If a library is included via CDN, network access is required to load it. Do not claim offline functionality unless the external dependency is embedded directly into the HTML.
+The generator also emits UTF-8 charset, theme-color, description, color-scheme, and the document title. Do not duplicate or override these tags in scene.js.
 
 ## Self-Containment
 
-All data required to demonstrate interactivity must be defined inside the HTML. The only exception is optional external libraries loaded from a CDN.
+The generated application must open directly from a local HTML file.
 
-The application must gracefully handle the absence of an optional library: either fall back to a native implementation or log a clear error to the console without leaving the interface in an infinite loading state.
+- Do not require a local server, bundler, npm, or pre-compilation.
+- Do not load required local data via fetch, XHR, or dynamic import.
+- Do not rely on server-side APIs.
+- Keep all scene data and rendering logic inside the generated document.
+- Do not reference external CSS or JavaScript files.
+
+The current generator intentionally emits no external dependencies. If a task appears to require one, first reconsider whether a native browser API is sufficient. Do not bypass the generator by adding external files manually.
+
+## Scene Contract
+
+The scene is defined by window.AppScene.draw(ctx, frame). Use only the API documented in app-generator/README.md. Do not implement a second DOM, control system, settings dialog, keyboard handler, resize loop, or requestAnimationFrame loop.
 
 ## Final Delivery
 
-In response to a request to create an application, deliver the finished HTML file. Do not add explanatory text, launch instructions, or comments to the HTML itself. An explanation in a chat message does not replace the HTML file.
+Deliver the generated HTML file. Do not hand-edit generated HTML after validation; update scene inputs or canonical templates and regenerate.
