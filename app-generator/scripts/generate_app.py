@@ -129,6 +129,9 @@ def css_variables(spec: dict[str, Any]) -> dict[str, str]:
         "SETTINGS_ENTRY_SCALE": str(animation["settings_entry_scale"]),
         "SUBTITLE_TRANSITION_MS": str(animation["subtitle_transition_ms"]),
         "BREAKPOINT_PX": str(layout["breakpoint_px"]),
+        "ROOT_HEIGHT_FALLBACK": layout["root_height_fallback"],
+        "ROOT_HEIGHT_DYNAMIC": layout["root_height_dynamic"],
+        "PAGE_OVERFLOW": layout["page_overflow"],
     }
 
 
@@ -230,6 +233,7 @@ def build_html(
         "steps": data["steps"],
         "palette": spec["palette"],
         "breakpointPx": spec["layout"]["breakpoint_px"],
+        "visualizationFit": spec["layout"]["visualization_fit"],
         "timing": {
             "autoStartDelayMs": timing["auto_start_delay_ms"],
             "transitionMs": timing["step_transition_ms"],
