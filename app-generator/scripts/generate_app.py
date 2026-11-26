@@ -106,6 +106,12 @@ def css_variables(spec: dict[str, Any]) -> dict[str, str]:
         "COLOR_MODAL_SCRIM": palette["modal_scrim"],
         "COLOR_BORDER": palette["border"],
         "COLOR_CONTROL_BG": palette["control_background"],
+        "COLOR_DANGER": palette["danger"],
+        "COLOR_ACCENT_SOFT": palette["accent_soft"],
+        "COLOR_ACCENT_GLOW": palette["accent_glow"],
+        "COLOR_CONTROL_HOVER": palette["control_hover"],
+        "COLOR_DIALOG_SHADOW": palette["dialog_shadow"],
+        "COLOR_KEYBOARD_BG": palette["keyboard_background"],
         "FONT_FAMILY": typography["font_family"],
         "SUBTITLE_SIZE": typography["subtitle_size"],
         "HEADING_WEIGHT": str(typography["heading_weight"]),
@@ -203,7 +209,7 @@ def validate_html(source: str, expected_viewport: str | None = None) -> None:
         )
     if re.search(r"\{\{[A-Z0-9_]+\}\}", source):
         raise ValueError("Generated HTML contains unresolved template tokens.")
-    for required in ("requestAnimationFrame", "ResizeObserver", "window.AppScene", "meta name=\\"viewport\\""):
+    for required in ("requestAnimationFrame", "ResizeObserver", "window.AppScene"):
         if required not in source:
             raise ValueError(f"Generated HTML is missing required runtime feature: {required}.")
 
