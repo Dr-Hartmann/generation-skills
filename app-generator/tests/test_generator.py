@@ -9,7 +9,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from generate_app import SPEC_PATH, build_html, read_json, validate_html, validate_scene_script  # noqa: E402
+from generate_app import SPEC_PATH, TEMPLATE_DIR, build_html, read_json, validate_html, validate_scene_script  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "examples"
@@ -71,6 +71,28 @@ class GeneratorTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "exactly one viewport"):
             validate_html(document, self.spec["meta"]["viewport"])
+
+    def test_scene_initialization_precedes_first_draw(self) -> None:
+        runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
+        self.assertIn("let sceneInitialized = false;", runtime)
+        self.assertIn("if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;", runtime)
+        self.assertLess(runtime.index("scene.init({"), runtime.index("sceneInitialized = true;"))
+        self.assertLess(runtime.index("sceneInitialized = true;"), runtime.index("resizeCanvas();", runtime.index("sceneInitialized = true;")))
+
+    def test_mobile_modal_backdrop_respects_reserved_right_zone(self) -> None:
+        css = (TEMPLATE_DIR / "app.css").read_text(encoding="utf-8")
+        self.assertIn(
+            "right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));",
+            css,
+        )
+        self.assertIn("@media (min-width: {{BREAKPOINT_PX}}px)", css)
+        self.assertIn("  .modal-backdrop {\n    right: 0;", css)
+
+    def test_keyboard_shortcuts_do_not_leak_from_modal(self) -> None:
+        runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
+        self.assertIn("if (modalIsOpen) {", runtime)
+        self.assertIn("elements.appRoot.inert = true;", runtime)
+        self.assertIn("elements.appRoot.inert = false;", runtime)
 
     def test_spec_is_valid_json(self) -> None:
         parsed = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
