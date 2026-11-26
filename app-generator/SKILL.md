@@ -1,51 +1,51 @@
 ---
 name: app-generator
-description: Генерирует единый автономный HTML-файл для интерактивных миниприложений с Canvas, пошаговой анимацией и настройками. Используй для каждой задачи создания HTML-миниприложения в этом репозитории.
+description: Generate one standalone HTML mini-app with Canvas visualization, synchronized subtitles, step-by-step animation, and shared playback settings. Use this skill for every HTML mini-app creation task in this repository.
 ---
 
 # App Generator
 
-## Обязательное правило
+## Mandatory Rule
 
-Перед созданием HTML-приложения используй app-generator. Это единственный источник общей разметки, метатегов, стилей, адаптивной компоновки, контролов, настроек, горячих клавиш и цикла анимации.
+Use app-generator before creating an HTML mini-app. It is the only supported source of the shared document structure, metadata, styles, responsive layout, controls, settings dialog, keyboard shortcuts, and playback runtime.
 
-Агенту запрещено самостоятельно генерировать или изменять общую оболочку приложения. Не создавай собственные html, head, body, meta, style, script, панель Play/Pause, модальное окно настроек, обработчики клавиатуры, таймеры или общий цикл requestAnimationFrame.
+The agent must not generate or modify the shared application shell independently. Do not create custom html, head, body, meta, style, or script elements; Play/Pause controls; settings dialogs; application keyboard handlers; timers; or a shared requestAnimationFrame loop.
 
-## Зона ответственности агента
+## Agent Responsibilities
 
-Создай только:
+Create only:
 
-1. scene.json — заголовок, краткое описание и 6–10 шагов, каждый с одним субтитром длиной не более 12 слов.
-2. scene.js — window.AppScene с синхронной функцией draw(ctx, frame).
+1. **scene.json** — title, concise description, and the configured number of steps, each with one subtitle.
+2. **scene.js** — window.AppScene with the synchronous draw(ctx, frame) function.
 
-Контракт и пример реализации описаны в README.md и examples/.
+The current app-spec.json configuration requires 6–10 steps and limits each subtitle to 12 whitespace-separated words. Always read the current configuration instead of assuming these values will remain fixed.
 
-Не создавай отдельные CSS/JS-файлы результата. Не меняй значения дизайн-токенов в коде сцены: используй frame.palette.
+Use frame.palette for shared design tokens. Do not create separate output CSS or JavaScript files.
 
-## Порядок работы
+## Workflow
 
-Из корня репозитория выполни:
+Run from the repository root:
 
 ~~~bash
 python app-generator/scripts/generate_app.py \
-  --config <путь-к-scene.json> \
-  --scene <путь-к-scene.js> \
-  --output <путь-к-результату.html>
+  --config <path-to-scene.json> \
+  --scene <path-to-scene.js> \
+  --output <path-to-output.html>
 ~~~
 
-Затем выполни:
+Then validate the result:
 
 ~~~bash
-python app-generator/scripts/validate_app.py <путь-к-результату.html>
+python app-generator/scripts/validate_app.py <path-to-output.html>
 ~~~
 
-Если выходной файл уже существует, используй --force только когда его действительно нужно заменить.
+Use **--force** only when an existing output file is intentionally being replaced.
 
-## Приоритет источников
+## Source Priority
 
-1. config/app-spec.json — нормативные значения и настройки.
-2. templates/ — общая HTML/CSS/JS-реализация.
-3. scripts/ — генерация и валидация.
-4. scene.json и scene.js — только содержание и отрисовка конкретной задачи.
+1. **config/app-spec.json** — canonical parameter values and options.
+2. **templates/** — shared HTML, CSS, and JavaScript implementation.
+3. **scripts/** — generation and validation behavior.
+4. **scene.json and scene.js** — content and rendering for the specific topic.
 
-При противоречии между старой инструкцией, извлечённым компонентом или примером HTML и app-generator приоритет имеет app-generator. Не копируй код из Done (don't touch) и устаревших UI-компонентов.
+If an old instruction, extracted component, or archived HTML example conflicts with app-generator, follow app-generator and update the affected documentation when appropriate. Do not copy shared code from **Done (don't touch)/** or deprecated UI components.

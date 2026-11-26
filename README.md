@@ -1,65 +1,81 @@
-# Спецификация миниприложений для коротких видео
+# Interactive Mini-App Specifications for Short-Form Video
 
-## Назначение
+## Purpose
 
-Репозиторий задаёт требования к интерактивным HTML-миниприложениям для коротких видео. Результат — один автономный HTML-файл, который открывается непосредственно в браузере.
+This repository defines the requirements and tools for interactive HTML mini-apps that accompany short educational and explanatory videos. The deliverable is one standalone HTML file that opens directly in a browser.
 
-## Обязательный порядок работы
+## Required Workflow
 
-1. Прочитай `AGENT.md`: в нём описаны назначение проекта, границы компонентов, архитектура и обязательные правила для агентов.
-2. Прочитай этот файл и навык app-generator/SKILL.md.
-2. Используй app-generator/config/app-spec.json как единственный нормативный источник параметров.
-3. Прочитай тематические спецификации 01–08 для требований к содержанию и поведению.
-4. Создай только scene.json и scene.js для конкретной задачи.
-5. Сгенерируй HTML командой из app-generator/README.md.
-6. Проверь результат скриптом validate_app.py.
+1. Read **AGENT.md** for the project architecture, component boundaries, and agent rules.
+2. Read **app-generator/SKILL.md** before creating or modifying an application.
+3. Read the relevant brief in **Tasks/** when one exists. Treat it as subject-matter input, not as an implementation specification.
+4. Use **app-generator/config/app-spec.json** as the only source of canonical parameter values.
+5. Consult **00_parameter-registry.md** and the relevant specifications **01–08**.
+6. Create only the topic inputs: **scene.json** and **scene.js**.
+7. Generate the application using the command in **app-generator/README.md**.
+8. Run the generated-file validator and the available unit tests.
+9. Verify the result in a browser when possible, then deliver the generated HTML file.
 
-Агент не должен вручную создавать общую HTML-структуру, метатеги, CSS, контролы, модальное окно, обработчики клавиатуры или цикл анимации.
+Do not manually create the shared HTML structure, metadata, CSS, controls, settings dialog, keyboard handlers, or animation loop.
 
-Подробное описание структуры каталогов, контракта `scene.json` / `scene.js`, потока генерации и правил изменения проекта находится в [AGENT.md](AGENT.md).
+## Root Specifications
 
-## Единственный источник истины
+| File | Scope |
+|---|---|
+| [AGENT.md](AGENT.md) | Architecture and mandatory agent workflow |
+| [00_parameter-registry.md](00_parameter-registry.md) | Parameter IDs and canonical configuration keys |
+| [01_app-format-spec.md](01_app-format-spec.md) | Output format and standalone-document requirements |
+| [02_layout-and-safe-areas.md](02_layout-and-safe-areas.md) | Responsive layout and reserved areas |
+| [03_visual-system.md](03_visual-system.md) | Shared palette and Canvas visual rules |
+| [04_animation-and-playback.md](04_animation-and-playback.md) | Playback modes and animation contract |
+| [05_subtitles.md](05_subtitles.md) | Subtitle content and synchronization |
+| [06_interface-controls-and-settings.md](06_interface-controls-and-settings.md) | Shared interface, controls, settings, and keyboard behavior |
+| [07_scene-code-architecture.md](07_scene-code-architecture.md) | Topic-specific JavaScript scene API |
+| [08_validation-and-acceptance.md](08_validation-and-acceptance.md) | Validation and acceptance criteria |
 
-app-generator/config/app-spec.json содержит нормативные значения:
+## Canonical Configuration and Implementation
 
-- viewport и настройки документа;
-- геометрию адаптивной компоновки и безопасные зоны;
-- минимальные размеры контролов и высоту модального окна;
-- палитру и типографику;
-- задержки, скорости и интервалы анимации;
-- количество шагов и ограничения субтитров;
-- контрольные размеры экранов.
+**app-generator/config/app-spec.json** stores canonical values for:
 
-Файлы app-generator/templates/ реализуют эти параметры. Скрипт app-generator/scripts/generate_app.py формирует из них автономный HTML. Не дублируй числовые и цветовые значения в тематических документах.
+- Document language and viewport metadata.
+- Responsive layout and reserved safe areas.
+- Minimum control target size and settings-dialog height.
+- Palette and typography.
+- Playback timing and speed options.
+- Step count and subtitle-length limits.
+- Test viewport dimensions and default behavior.
 
-00_parameter-registry.md — индекс идентификаторов и ссылок на ключи JSON, а не независимый набор значений.
+The templates in **app-generator/templates/** implement the shared document, styles, and runtime. **app-generator/scripts/generate_app.py** produces the standalone HTML file. **app-generator/scripts/validate_app.py** validates the generated output.
 
-## Приоритет требований при конфликте
+**00_parameter-registry.md** is an index of parameter IDs and their JSON keys. It is not an independent source of values.
 
-1. app-generator/config/app-spec.json — нормативные значения.
-2. app-generator/templates/ и app-generator/scripts/ — обязательная общая реализация.
-3. Тематические спецификации 01–08 — требования к поведению и содержанию сцены.
-4. Примеры HTML и каталог Done (don't touch) — только справочные материалы, не источник шаблонного кода.
+## Requirement Priority
 
-Практические следствия:
+1. **app-spec.json** — canonical configuration values.
+2. **app-generator/templates/** and **app-generator/scripts/** — shared implementation and generation behavior.
+3. **Specifications 01–08** — documented requirements for the output and topic scene.
+4. **Tasks/** — subject-matter requirements for each task.
+5. **Examples and Done (don't touch)/** — reference material only.
 
-- На мобильном устройстве правая зарезервированная зона остаётся пустой.
-- Нижняя зарезервированная зона не содержит интерфейс приложения.
-- Режим 9:16 не отменяет безопасные зоны; субтитры и контролы остаются внутри рамки.
-- При конфликте декоративный эффект уступает требованиям компоновки и читаемости.
+Practical consequences:
 
-## Термины
+- The mobile right and bottom reserved areas must remain free of application content.
+- Portrait mode does not remove the reserved-area requirements.
+- Subtitles and controls must remain inside the application's available area.
+- Decorative effects never take priority over layout, readability, or safety requirements.
 
-- **Основной экран** — экран приложения без открытого окна настроек.
-- **Canvas** — область визуализации.
-- **Шаг** — логическое состояние визуализации, которому соответствует один субтитр.
-- **AUTO** — непрерывное автоматическое воспроизведение шагов.
-- **STEP** — ручной переход между шагами.
-- **Правая и нижняя безопасные зоны** — области, оставленные свободными для элементов социальной платформы.
-- **Режим вертикальной рамки** — отображение визуализации в рамке с отношением сторон из app-spec.json.
+## Terminology
 
-## Не допускай расхождения реализаций
+- **Main screen** — the application screen when the settings dialog is closed.
+- **Canvas** — the topic visualization area.
+- **Step** — one logical visualization state with one corresponding subtitle.
+- **AUTO** — continuous automatic playback through the steps.
+- **STEP** — user-controlled progression through the steps.
+- **Reserved safe areas** — areas intentionally left free for social-platform overlays.
+- **Portrait-frame mode** — visualization mode using the aspect ratio configured in app-spec.json.
 
-Не копируй общую разметку и стили из Done (don't touch), старого short-video-ui-kit или отдельных HTML-примеров. Для нового приложения используй только app-generator.
+## Avoid Divergent Implementations
 
-При изменении нормативного параметра редактируй app-spec.json и связанные шаблоны. После этого запускай генерацию и валидацию.
+Do not copy shared markup or styles from **Done (don't touch)/**, the deprecated **short-video-ui-kit/**, or standalone archived HTML files. Use **app-generator/** for every new application.
+
+When a canonical parameter changes, update app-spec.json and the relevant templates. When implementation behavior changes, update the relevant tests and root documentation. Regenerate and validate the example output after generator changes.
