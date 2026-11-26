@@ -48,11 +48,11 @@
     return;
   }
 
-  const ctx = elements.canvas.getContext("2d", { alpha: false });
+  const ctx = elements.canvas.getContext("2d");
   const previousCanvas = document.createElement("canvas");
   const currentCanvas = document.createElement("canvas");
-  const previousCtx = previousCanvas.getContext("2d", { alpha: false });
-  const currentCtx = currentCanvas.getContext("2d", { alpha: false });
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
 
   if (!ctx || !previousCtx || !currentCtx) {
     showFatalError("Браузер не смог создать Canvas 2D-контекст.");
@@ -60,11 +60,11 @@
   }
 
   const state = {
-    mode: "auto",
+    mode: timing.defaultMode,
     isPlaying: false,
     currentStep: 0,
     speed: timing.defaultSpeed,
-    videoMode: false,
+    videoMode: timing.defaultVideoMode,
     controlsHidden: false,
     elapsedMs: 0,
     waitElapsedMs: 0,
@@ -440,7 +440,7 @@
 
   animationFrameId = requestAnimationFrame(animationLoop);
   window.setTimeout(() => {
-    if (!state.isPlaying && state.mode === "auto") setPlaying(true);
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
   }, timing.autoStartDelayMs);
 
   window.addEventListener("pagehide", () => {
