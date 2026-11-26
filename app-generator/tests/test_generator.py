@@ -93,6 +93,8 @@ class GeneratorTests(unittest.TestCase):
         self.assertIn("if (modalIsOpen) {", runtime)
         self.assertIn("elements.appRoot.inert = true;", runtime)
         self.assertIn("elements.appRoot.inert = false;", runtime)
+        self.assertIn('target.closest("button, a, [role=\'button\'], [role=\'slider\'], [role=\'switch\']")', runtime)
+        self.assertIn("function isInteractiveTarget(target)", runtime)
 
     def test_spec_is_valid_json(self) -> None:
         parsed = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
