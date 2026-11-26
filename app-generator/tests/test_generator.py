@@ -105,14 +105,18 @@ class GeneratorTests(unittest.TestCase):
         self.assertLess(runtime.index("scene.init({"), runtime.index("sceneInitialized = true;"))
         self.assertLess(runtime.index("sceneInitialized = true;"), runtime.index("resizeCanvas();", runtime.index("sceneInitialized = true;")))
 
-    def test_mobile_modal_backdrop_respects_reserved_right_zone(self) -> None:
+    def test_mobile_modal_backdrop_respects_reserved_safe_areas(self) -> None:
         css = (TEMPLATE_DIR / "app.css").read_text(encoding="utf-8")
         self.assertIn(
             "right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));",
             css,
         )
+        self.assertIn(
+            "bottom: calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px));",
+            css,
+        )
         self.assertIn("@media (min-width: {{BREAKPOINT_PX}}px)", css)
-        self.assertIn("  .modal-backdrop {\n    right: 0;", css)
+        self.assertIn("  .modal-backdrop {\n    right: 0;\n    bottom: 0;", css)
 
     def test_keyboard_shortcuts_do_not_leak_from_modal(self) -> None:
         runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")

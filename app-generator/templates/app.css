@@ -237,6 +237,7 @@ input:focus-visible {
   z-index: 20;
   inset: 0;
   right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px));
   display: none;
   align-items: center;
   justify-content: center;
@@ -419,6 +420,7 @@ kbd {
 
   .modal-backdrop {
     right: 0;
+    bottom: 0;
     padding: 20px;
   }
 }
