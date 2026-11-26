@@ -6,6 +6,9 @@
   },
   "layout": {
     "breakpoint_px": 768,
+    "root_height_fallback": "100vh",
+    "root_height_dynamic": "100dvh",
+    "page_overflow": "hidden",
     "right_reserved_px": 80,
     "left_padding_px": 16,
     "header_top_padding_px": 16,
@@ -58,6 +61,11 @@
     "max_steps": 10,
     "max_words": 12,
     "background_blur_px": 8
+  },
+  "test_viewports": {
+    "compact_phone": [390, 844],
+    "tablet_breakpoint": [768, 1024],
+    "desktop": [1920, 1080]
   },
   "behavior": {
     "default_mode": "auto",
