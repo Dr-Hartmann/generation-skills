@@ -1,2102 +1,1164 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Кибербезопасность</title>
-    <style>
-      :root {
-        --ui-bg: #0f0f13;
-        --ui-bg-gradient: #111118;
-        --ui-panel: #1a1a20;
-        --ui-panel-glass: rgba(26, 26, 32, 0.55);
-        --ui-modal-bg: rgba(26, 26, 32, 0.94);
-        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
-        --ui-text: #ffffff;
-        --ui-muted: #a0a0a0;
-        --ui-label: #cfcfcf;
-        --ui-accent: #2eac65;
-        --ui-accent-dark: #1e7a47;
-        --ui-accent-soft: rgba(46, 172, 101, 0.14);
-        --ui-accent-soft-hover: rgba(46, 172, 101, 0.26);
-        --ui-accent-border: rgba(46, 172, 101, 0.5);
-        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
-        --ui-accent-halo: rgba(46, 172, 101, 0.14);
-        --ui-white-06: rgba(255, 255, 255, 0.06);
-        --ui-white-08: rgba(255, 255, 255, 0.08);
-        --ui-white-10: rgba(255, 255, 255, 0.1);
-        --ui-white-12: rgba(255, 255, 255, 0.12);
-        --ui-white-14: rgba(255, 255, 255, 0.14);
-        --ui-border-soft: rgba(255, 255, 255, 0.12);
-        --ui-ambient-blur: 90px;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-      body {
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        background: var(--ui-bg);
-        color: var(--ui-text);
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        overscroll-behavior: none;
-      }
-      button {
-        font-family: inherit;
-        color: var(--ui-text);
-      }
-      :focus-visible {
-        outline: 2px solid var(--ui-accent);
-        outline-offset: 2px;
-      }
-      #ambient {
-        position: fixed;
-        inset: -10%;
-        z-index: 0;
-        opacity: 0;
-        transition: opacity 0.5s;
-        pointer-events: none;
-        overflow: hidden;
-      }
-      #ambient i {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(var(--ui-ambient-blur));
-      }
-      #ambient .b1 {
-        width: 46vmin;
-        height: 46vmin;
-        left: -6%;
-        top: 8%;
-        background: rgba(46, 172, 101, 0.34);
-        animation: drift 9s ease-in-out infinite alternate;
-      }
-      #ambient .b2 {
-        width: 40vmin;
-        height: 40vmin;
-        right: -4%;
-        top: 38%;
-        background: rgba(30, 122, 71, 0.3);
-        animation: drift 11s ease-in-out infinite alternate-reverse;
-      }
-      #ambient .b3 {
-        width: 52vmin;
-        height: 52vmin;
-        left: 16%;
-        bottom: -8%;
-        background: rgba(20, 80, 45, 0.38);
-        animation: drift 13s ease-in-out infinite alternate;
-      }
-      @keyframes drift {
-        from {
-          transform: translate(0, 0) scale(1);
-        }
-        to {
-          transform: translate(4vmin, -5vmin) scale(1.12);
-        }
-      }
-      body.v916 #ambient {
-        opacity: 1;
-      }
-      @media (max-width: 767.98px) {
-        #ambient {
-          right: calc(80px + env(safe-area-inset-right, 0px));
-        }
-      }
-      #app {
-        position: relative;
-        height: 100vh;
-        height: 100dvh;
-        display: grid;
-        grid-template-columns: 100%;
-        grid-template-rows: auto minmax(0, 1fr) auto auto;
-        grid-template-areas: "title" "stage" "sub" "panel";
-        gap: 12px 0;
-        padding-top: calc(16px + env(safe-area-inset-top, 0px));
-        padding-right: calc(80px + env(safe-area-inset-right, 0px));
-        padding-bottom: calc(25vh + env(safe-area-inset-bottom, 0px));
-        padding-left: calc(16px + env(safe-area-inset-left, 0px));
-      }
-      #title {
-        grid-area: title;
-        min-width: 0;
-      }
-      #title h1 {
-        margin: 0;
-        font-size: clamp(20px, 5vw, 30px);
-        font-weight: 800;
-        letter-spacing: 0.3px;
-        text-shadow: 0 0 24px var(--ui-accent-halo);
-      }
-      #stage {
-        grid-area: stage;
-        position: relative;
-        min-width: 0;
-        min-height: 0;
-        display: grid;
-        place-items: center;
-      }
-      #vframe {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        border-radius: 16px;
-        background: var(--ui-bg-gradient);
-        border: 1px solid var(--ui-white-08);
-        transition:
-          border-color 0.3s,
-          box-shadow 0.3s;
-      }
-      body.v916 #vframe {
-        position: relative;
-        inset: auto;
-        border-radius: 24px;
-        border: 1px solid var(--ui-accent-border);
-        box-shadow:
-          0 0 60px var(--ui-accent-halo),
-          0 24px 80px rgba(0, 0, 0, 0.5);
-        background: var(--ui-bg);
-      }
-      #scene {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-      #frameDock {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 3;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        padding: 0 14px 14px;
-        pointer-events: none;
-      }
-      body.v916 #frameDock {
-        display: flex;
-      }
-      #frameDock > * {
-        pointer-events: auto;
-      }
-      #subSlotA {
-        grid-area: sub;
-        display: block;
-        margin-bottom: 12px;
-        min-width: 0;
-      }
-      #subSlotB {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-      }
-      #sidebar {
-        grid-area: side;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        border-left: 1px solid var(--ui-white-08);
-        background: var(--ui-panel);
-        border-radius: 16px;
-        padding: 20px;
-        min-width: 0;
-        overflow: hidden;
-      }
-      .subtitle {
-        width: 100%;
-        max-width: 560px;
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        min-height: calc(2.7em + 22px);
-        padding: 11px 16px;
-        background: rgba(0, 0, 0, 0.5);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        border: 1px solid var(--ui-white-10);
-        border-radius: 16px;
-        font-size: clamp(16px, 4.5vw, 22px);
-        line-height: 1.35;
-        font-weight: 700;
-        color: var(--ui-text);
-      }
-      #subtitleText {
-        overflow-wrap: break-word;
-      }
-      .subtitle__keyword {
-        color: var(--ui-accent);
-        font-weight: 800;
-      }
-      .subtitle.show {
-        animation: subIn 0.3s ease-out both;
-      }
-      @keyframes subIn {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      #panel {
-        grid-area: panel;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        min-height: 56px;
-        padding: 4px;
-        transition:
-          opacity 0.25s,
-          visibility 0.25s;
-      }
-      #gearBtn {
-        position: relative;
-        z-index: 25;
-      }
-      body.v916 #panel {
-        background: var(--ui-panel-glass);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        border: 1px solid var(--ui-white-08);
-        border-radius: 999px;
-        padding: 6px 12px;
-      }
-      body.controls-hidden #panel {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      .ctlbtn {
-        width: 52px;
-        height: 52px;
-        min-width: 48px;
-        min-height: 48px;
-        display: grid;
-        place-items: center;
-        border-radius: 16px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-        cursor: pointer;
-        transition:
-          background 0.2s,
-          border-color 0.2s,
-          transform 0.1s;
-      }
-      .ctlbtn:hover {
-        background: var(--ui-accent-soft);
-        border-color: var(--ui-accent-border);
-      }
-      .ctlbtn:active {
-        transform: scale(0.95);
-      }
-      .ctlbtn svg {
-        width: 22px;
-        height: 22px;
-      }
-      #playBtn .ic-play {
-        display: none;
-      }
-      #playBtn:not(.playing) .ic-pause {
-        display: none;
-      }
-      #playBtn:not(.playing) .ic-play {
-        display: block;
-      }
-      #scrim {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: none;
-        background: var(--ui-modal-scrim);
-        -webkit-backdrop-filter: blur(4px);
-        backdrop-filter: blur(4px);
-      }
-      body.modal-open #scrim {
-        display: block;
-      }
-      #modalWrap {
-        position: fixed;
-        inset: 0;
-        z-index: 32;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
-          max(16px, env(safe-area-inset-bottom, 0px));
-        pointer-events: none;
-      }
-      #modalWrap.open {
-        display: flex;
-      }
-      @media (max-width: 767.98px) {
-        #modalWrap {
-          padding-right: calc(80px + env(safe-area-inset-right, 0px));
-        }
-      }
-      @media (max-width: 767.98px) and (min-height: 820px) {
-        #modalWrap {
-          padding-bottom: calc(25vh + env(safe-area-inset-bottom, 0px) + 76px);
-        }
-      }
-      #modal {
-        width: min(92vw, 380px);
-        max-height: 90vh;
-        max-height: 90dvh;
-        overflow: auto;
-        pointer-events: auto;
-        background: var(--ui-modal-bg);
-        -webkit-backdrop-filter: blur(18px);
-        backdrop-filter: blur(18px);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 20px;
-        padding: 20px;
-        outline: none;
-        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-      }
-      #modalWrap.closing #modal {
-        animation: popOut 0.2s ease-in both;
-      }
-      @keyframes pop {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      @keyframes popOut {
-        from {
-          opacity: 1;
-          transform: scale(1);
-        }
-        to {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-      }
-      #modal button {
-        cursor: pointer;
-      }
-      .modal-close {
-        display: grid;
-        place-items: center;
-        width: 48px;
-        height: 48px;
-        flex: 0 0 48px;
-        border-radius: 14px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-      }
-      .mhead {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-      .mhead h2 {
-        margin: 0;
-        font-size: clamp(18px, 4.6vw, 19px);
-        font-weight: 800;
-      }
-      .mstep {
-        color: var(--ui-muted);
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-      .seg {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .seg button {
-        flex: 1;
-        min-height: 48px;
-        border-radius: 12px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-        font-size: 14px;
-        font-weight: 800;
-        transition:
-          background 0.2s,
-          box-shadow 0.2s;
-      }
-      .seg button.active {
-        background: linear-gradient(
-          135deg,
-          var(--ui-accent),
-          var(--ui-accent-dark)
-        );
-        border-color: transparent;
-        box-shadow: 0 4px 14px var(--ui-accent-shadow);
-      }
-      #mNext {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 12px;
-        background: var(--ui-accent-soft);
-        border: 1px solid var(--ui-accent-border);
-        font-size: 15px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition:
-          background 0.2s,
-          opacity 0.2s;
-      }
-      #mNext:disabled {
-        opacity: 0.35;
-        cursor: not-allowed;
-      }
-      #mNext:not(:disabled):hover {
-        background: var(--ui-accent-soft-hover);
-      }
-      .mrow {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-      .mlabel {
-        flex: 1;
-        color: var(--ui-label);
-        font-size: 14px;
-        font-weight: 700;
-      }
-      .speedseg {
-        display: flex;
-        flex: 1.4;
-        gap: 6px;
-      }
-      .speedseg button {
-        flex: 1;
-        min-height: 48px;
-        border-radius: 12px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-        font-size: 13px;
-        font-weight: 800;
-        transition:
-          background 0.2s,
-          box-shadow 0.2s;
-      }
-      .speedseg button.active {
-        background: linear-gradient(
-          135deg,
-          var(--ui-accent),
-          var(--ui-accent-dark)
-        );
-        border-color: transparent;
-        box-shadow: 0 4px 14px var(--ui-accent-shadow);
-      }
-      .sw {
-        position: relative;
-        display: inline-block;
-        flex: 0 0 52px;
-        width: 52px;
-        height: 48px;
-      }
-      .sw input {
-        position: absolute;
-        inset: 0;
-        width: 52px;
-        height: 48px;
-        opacity: 0;
-        margin: 0;
-        cursor: pointer;
-      }
-      .sw span {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 50%;
-        height: 30px;
-        transform: translateY(-50%);
-        background: var(--ui-white-12);
-        border-radius: 999px;
-        transition: background 0.25s;
-        pointer-events: none;
-      }
-      .sw span::before {
-        content: "";
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 3px;
-        background: var(--ui-text);
-        border-radius: 50%;
-        transition: transform 0.25s;
-      }
-      .sw input:checked + span {
-        background: var(--ui-accent);
-      }
-      .sw input:checked + span::before {
-        transform: translateX(22px);
-      }
-      .sw input:focus-visible + span {
-        outline: 2px solid var(--ui-text);
-        outline-offset: 3px;
-      }
-      #mReset {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 12px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-white-14);
-        font-size: 14px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition: border-color 0.2s;
-      }
-      #mReset:hover {
-        border-color: rgba(229, 72, 77, 0.6);
-      }
-      .keys {
-        display: grid;
-        grid-template-columns: auto 1fr auto 1fr;
-        gap: 6px 10px;
-        align-items: center;
-        color: var(--ui-muted);
-        font-size: 12px;
-      }
-      .keys span {
-        justify-self: start;
-        padding: 2px 7px;
-        color: var(--ui-text);
-        background: var(--ui-white-08);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 6px;
-        font-weight: 800;
-      }
-      .keys i {
-        font-style: normal;
-      }
-      body.modal-open {
-        overflow: hidden;
-      }
-      #fatal {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: var(--ui-muted);
-        font-size: 15px;
-        font-weight: 700;
-        padding: 20px;
-      }
-      @media (min-width: 768px) {
-        #app {
-          grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
-          grid-template-rows: auto minmax(0, 1fr) auto;
-          grid-template-areas: "title side" "stage side" "panel side";
-          gap: 16px;
-          padding-top: calc(20px + env(safe-area-inset-top, 0px));
-          padding-right: calc(20px + env(safe-area-inset-right, 0px));
-          padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-          padding-left: calc(20px + env(safe-area-inset-left, 0px));
-        }
-        #subSlotA {
-          display: none;
-        }
-        #sidebar {
-          display: flex;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #ambient i {
-          animation: none;
-        }
-        #modal {
-          animation: none;
-        }
-        #modalWrap.closing #modal {
-          animation: none;
-        }
-        .subtitle.show {
-          animation: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="ambient" aria-hidden="true">
-      <i class="b1"></i><i class="b2"></i><i class="b3"></i>
-    </div>
-    <main id="app">
-      <header id="title"><h1>Кибербезопасность</h1></header>
-      <div id="stage">
-        <div id="vframe">
-          <canvas
-            id="scene"
-            role="img"
-            aria-label="Визуализация темы кибербезопасности"
-          ></canvas>
-          <div id="frameDock"></div>
-        </div>
-      </div>
-      <div id="subSlotA"></div>
-      <div id="panel">
-        <button id="playBtn" class="ctlbtn" type="button" aria-label="Пауза">
-          <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor" />
-          </svg>
-          <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 5l11 7-11 7z" fill="currentColor" />
-          </svg>
-        </button>
-        <button
-          id="gearBtn"
-          class="ctlbtn"
-          type="button"
-          aria-label="Настройки"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zm8.9 3.8c0-.62-.06-1.22-.17-1.8l2.13-1.66-2.1-3.64-2.52 1.02a8.9 8.9 0 0 0-3.12-1.8L14.66 1.2h-4.2l-.45 3.4a8.9 8.9 0 0 0-3.12 1.8L4.37 5.38l-2.1 3.64 2.13 1.66a9.1 9.1 0 0 0 0 3.6l-2.13 1.66 2.1 3.64 2.52-1.02a8.9 8.9 0 0 0 3.12 1.8l.45 3.4h4.2l.45-3.4a8.9 8.9 0 0 0 3.12-1.8l2.52 1.02 2.1-3.64-2.13-1.66c.11-.58.17-1.18.17-1.8z"
-              fill="currentColor"
-            />
-          </svg>
-        </button>
-      </div>
-      <aside id="sidebar"><div id="subSlotB"></div></aside>
-    </main>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F13">
+  <meta name="description" content="Основы защиты цифровых устройств, учётных записей, персональных данных и безопасного поведения в интернете.">
+  <meta name="color-scheme" content="dark">
+  <title>Кибербезопасность</title>
+  <style>
+:root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
 
-    <div id="subtitle" class="subtitle" aria-live="polite">
-      <div id="subtitleText"></div>
-    </div>
+* {
+  box-sizing: border-box;
+}
 
-    <div id="scrim" aria-hidden="true"></div>
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
 
-    <div id="modalWrap" aria-hidden="true">
-      <section
-        id="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-        tabindex="-1"
-      >
-        <header class="mhead">
-          <h2 id="modalTitle">Настройки</h2>
-          <button
-            class="modal-close"
-            id="mClose"
-            type="button"
-            data-modal-close
-            aria-label="Закрыть"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path
-                d="M6 6l12 12M18 6L6 18"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-        </header>
-        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
-        <div class="seg" role="group" aria-label="Режим воспроизведения">
-          <button
-            id="mAuto"
-            class="active"
-            type="button"
-            data-mode="auto"
-            aria-pressed="true"
-          >
-            AUTO
-          </button>
-          <button
-            id="mStepBtn"
-            type="button"
-            data-mode="step"
-            aria-pressed="false"
-          >
-            STEP
-          </button>
-        </div>
-        <button id="mNext" type="button" disabled>Следующий шаг ▶</button>
-        <div class="mrow">
-          <span class="mlabel" id="mSpeedLabel">Скорость</span>
-          <div class="speedseg" role="group" aria-labelledby="mSpeedLabel">
-            <button type="button" data-speed="0.5" aria-pressed="false">
-              0.5×
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app-root" id="appRoot">
+    <header class="app-header">
+      <h1 id="appTitle">Кибербезопасность</h1>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" id="stage" aria-label="Область визуализации">
+        <div class="visual-frame" id="visualFrame">
+          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
+
+          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
+
+          <div class="control-bar" id="controlBar">
+            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
+              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
             </button>
-            <button
-              type="button"
-              data-speed="1"
-              aria-pressed="true"
-              class="active"
-            >
-              1×
-            </button>
-            <button type="button" data-speed="2" aria-pressed="false">
-              2×
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
             </button>
           </div>
         </div>
-        <div class="mrow">
-          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
-          <label class="sw" aria-labelledby="mNineLabel">
-            <input type="checkbox" id="mNine" />
-            <span aria-hidden="true"></span>
-          </label>
-        </div>
-        <button id="mReset" type="button">Reset</button>
-        <div class="keys" aria-label="Горячие клавиши">
-          <span>Space</span><i>скрыть контролы</i> <span>→</span
-          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
-          ><i>AUTO / STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
-          ><i>закрыть</i>
-        </div>
       </section>
-    </div>
 
-    <script>
-      (function () {
-        "use strict";
-        const TAU = Math.PI * 2;
-        const LOGIC_H = 720,
-          GROUND_Y = 612,
-          PHONE_CY = 415,
-          RING_R = 205;
-        const STEP_DUR = 6000,
-          TRANS_DUR = 900;
-        const FONT = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
-        const SUBTITLES = [
-          {
-            step: 1,
-            segments: [
-              { text: "Цифровой мир полон " },
-              { text: "угроз", emphasis: true },
-              { text: ", но " },
-              { text: "защиту", emphasis: true },
-              { text: " можно выстроить заранее" },
-            ],
-          },
-          {
-            step: 2,
-            segments: [
-              { text: "Фишинг", emphasis: true },
-              { text: ": поддельные письма и сайты выманивают " },
-              { text: "пароли и данные", emphasis: true },
-            ],
-          },
-          {
-            step: 3,
-            segments: [
-              { text: "Вирусы и трояны", emphasis: true },
-              { text: " проникают через файлы и " },
-              { text: "опасные ссылки", emphasis: true },
-            ],
-          },
-          {
-            step: 4,
-            segments: [
-              { text: "Уникальный пароль", emphasis: true },
-              { text: " и " },
-              { text: "двухфакторная защита", emphasis: true },
-              { text: " закрывают вход злоумышленникам" },
-            ],
-          },
-          {
-            step: 5,
-            segments: [
-              { text: "Обновления, антивирус", emphasis: true },
-              { text: " и " },
-              { text: "осторожный Wi-Fi", emphasis: true },
-              { text: " укрепляют защиту устройств" },
-            ],
-          },
-          {
-            step: 6,
-            segments: [
-              { text: "Проверяй", emphasis: true },
-              { text: " адрес сайта и отправителя, прежде чем открыть" },
-            ],
-          },
-          {
-            step: 7,
-            segments: [
-              { text: "Публикуй меньше личных данных — " },
-              { text: "цифровой след", emphasis: true },
-              { text: " остаётся навсегда" },
-            ],
-          },
-          {
-            step: 8,
-            segments: [
-              { text: "Заметил взлом? " },
-              { text: "Смени пароль", emphasis: true },
-              { text: ", проверь сеансы и восстанови копии" },
-            ],
-          },
-        ];
-        const STEP_COUNT = SUBTITLES.length;
-        const STEP_CFG = {
-          1: { shield: 0.35, lock: 0 },
-          2: { shield: 0.3, lock: 0 },
-          3: { shield: 0.52, lock: 0 },
-          4: { shield: 0.74, lock: 1 },
-          5: { shield: 0.86, lock: 1 },
-          6: { shield: 0.8, lock: 1 },
-          7: { shield: 0.9, lock: 1 },
-          8: { shield: 1.0, lock: 1 },
-        };
-        const state = {
-          mode: "auto",
-          playing: false,
-          currentStep: 1,
-          prevStep: 0,
-          prevTime: 0,
-          trans: 0,
-          transActive: false,
-          stepTime: 0,
-          animTime: 0,
-          speed: 1,
-          videoMode: false,
-          controlsVisible: true,
-          open: false,
-        };
-        let els = {},
-          ctx = null,
-          dpr = 1;
-        let W = 1000,
-          H = LOGIC_H,
-          scale = 1,
-          ox = 0,
-          oy = 0,
-          scx = 500;
-        let stars = [],
-          motes = [];
-        let mq = null,
-          ro = null,
-          lastTs = 0,
-          closeTimer = 0,
-          lastFocus = null,
-          inited = false;
-        const C = {};
-        function byId(id) {
-          return document.getElementById(id);
-        }
-        function clamp(v, a, b) {
-          return v < a ? a : v > b ? b : v;
-        }
-        function lerp(a, b, k) {
-          return a + (b - a) * k;
-        }
-        function eio(p) {
-          return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-        }
-        function eoc(p) {
-          return 1 - Math.pow(1 - p, 3);
-        }
-        function eob(p) {
-          const c = 1.70158;
-          return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2);
-        }
-        function pp(t) {
-          const x = t % 2;
-          return x < 1 ? x : 2 - x;
-        }
-        function mulberry(seed) {
-          let t = seed >>> 0;
-          return function () {
-            t += 0x6d2b79f5;
-            let r = t;
-            r = Math.imul(r ^ (r >>> 15), r | 1);
-            r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
-            return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-          };
-        }
-        function rgba(hex, a) {
-          let h = hex.replace("#", "");
-          if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-          const n = parseInt(h, 16);
-          return (
-            "rgba(" +
-            ((n >> 16) & 255) +
-            "," +
-            ((n >> 8) & 255) +
-            "," +
-            (n & 255) +
-            "," +
-            a +
-            ")"
-          );
-        }
-        function readColors() {
-          const cs = getComputedStyle(document.documentElement);
-          const v = (name, fb) => {
-            const x = (cs.getPropertyValue(name) || "").trim();
-            return x || fb;
-          };
-          C.bg = v("--ui-bg", "#0F0F13");
-          C.bgGrad = v("--ui-bg-gradient", "#111118");
-          C.text = v("--ui-text", "#FFFFFF");
-          C.muted = v("--ui-muted", "#A0A0A0");
-          C.accent = v("--ui-accent", "#2EAC65");
-          C.accentDark = v("--ui-accent-dark", "#1E7A47");
-          C.danger = "#E5484D";
-          C.warning = "#FFC94D";
-          C.warnGlow = "#FFE9A8";
-          C.okGlow = "#7FE0A8";
-          C.metalDark = "#0E0E12";
-          C.metal = "#14141A";
-          C.panelM = "#202028";
-          C.raised = "#26262E";
-          C.border = "#2A2A34";
-          C.stroke = "#3A3A44";
-          C.soft = "#E6E6EC";
-        }
-        function rr(x, y, w, h, r) {
-          r = Math.min(r, w / 2, h / 2);
-          ctx.beginPath();
-          if (ctx.roundRect) {
-            ctx.roundRect(x, y, w, h, r);
-            return;
-          }
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-        }
-        function circle(x, y, r) {
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, TAU);
-        }
-        function buildAmbient() {
-          const rnd = mulberry(20261126);
-          stars = [];
-          for (let i = 0; i < 42; i++)
-            stars.push({
-              u: rnd(),
-              v: rnd(),
-              s: 0.7 + rnd() * 1.3,
-              p: rnd() * TAU,
-            });
-          motes = [];
-          for (let i = 0; i < 14; i++)
-            motes.push({
-              u: rnd(),
-              v: rnd(),
-              r: 1.2 + rnd() * 1.4,
-              p: rnd() * TAU,
-            });
-        }
-        function placeNodes() {
-          if (state.videoMode) {
-            els.dock.appendChild(els.subtitle);
-            els.dock.appendChild(els.panel);
-          } else if (mq.matches) {
-            els.slotB.appendChild(els.subtitle);
-            els.app.appendChild(els.panel);
-          } else {
-            els.slotA.appendChild(els.subtitle);
-            els.app.appendChild(els.panel);
-          }
-        }
-        function resize() {
-          const sw = els.stage.clientWidth,
-            sh = els.stage.clientHeight;
-          if (state.videoMode && sw > 0 && sh > 0) {
-            const fh = Math.min(sh, (sw * 16) / 9);
-            const fw = (fh * 9) / 16;
-            els.vframe.style.width = Math.round(fw) + "px";
-            els.vframe.style.height = Math.round(fh) + "px";
-          } else {
-            els.vframe.style.width = "";
-            els.vframe.style.height = "";
-          }
-          const cw = els.vframe.clientWidth,
-            ch = els.vframe.clientHeight;
-          if (!cw || !ch) return;
-          dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-          const bw = Math.round(cw * dpr),
-            bh = Math.round(ch * dpr);
-          if (els.scene.width !== bw) els.scene.width = bw;
-          if (els.scene.height !== bh) els.scene.height = bh;
-          W = clamp(LOGIC_H * (cw / ch), 620, 1320);
-          H = LOGIC_H;
-          scale = Math.min(cw / W, ch / H);
-          ox = (cw - W * scale) / 2;
-          oy = (ch - H * scale) / 2;
-          scx = W / 2;
-        }
-        function updateSubtitles(step) {
-          const data = SUBTITLES.find((s) => s.step === step);
-          if (!data) return;
-          const box = els.subText;
-          box.replaceChildren();
-          data.segments.forEach((seg) => {
-            if (seg.emphasis) {
-              const sp = document.createElement("span");
-              sp.className = "subtitle__keyword";
-              sp.textContent = seg.text;
-              box.appendChild(sp);
-            } else {
-              box.appendChild(document.createTextNode(seg.text));
-            }
-          });
-          els.subtitle.classList.remove("show");
-          void els.subtitle.offsetWidth;
-          els.subtitle.classList.add("show");
-        }
-        function renderControls() {
-          els.play.classList.toggle("playing", state.playing);
-          els.play.setAttribute(
-            "aria-label",
-            state.playing ? "Пауза" : "Воспроизведение",
-          );
-          els.mStep.textContent =
-            "Шаг " + state.currentStep + " / " + STEP_COUNT;
-          els.mAuto.classList.toggle("active", state.mode === "auto");
-          els.mAuto.setAttribute("aria-pressed", String(state.mode === "auto"));
-          els.mStepBtn.classList.toggle("active", state.mode === "step");
-          els.mStepBtn.setAttribute(
-            "aria-pressed",
-            String(state.mode === "step"),
-          );
-          els.mNext.disabled = !(
-            state.mode === "step" &&
-            !state.transActive &&
-            state.currentStep < STEP_COUNT
-          );
-          els.speedBtns.forEach((b) => {
-            const val = parseFloat(b.getAttribute("data-speed"));
-            const on = Math.abs(val - state.speed) < 1e-9;
-            b.classList.toggle("active", on);
-            b.setAttribute("aria-pressed", String(on));
-          });
-          els.mNine.checked = state.videoMode;
-        }
-        function setPlaying(v) {
-          if (state.playing !== v) {
-            state.playing = v;
-            renderControls();
-          }
-        }
-        function startAuto() {
-          state.mode = "auto";
-          setPlaying(true);
-          renderControls();
-        }
-        function setMode(m) {
-          if (m === state.mode) return;
-          state.mode = m;
-          if (m === "step") {
-            if (!state.transActive) setPlaying(false);
-          } else {
-            state.stepTime = 0;
-            setPlaying(true);
-          }
-          renderControls();
-        }
-        function beginTransition(next) {
-          state.prevStep = state.currentStep;
-          state.prevTime = state.stepTime;
-          state.currentStep = next;
-          state.trans = 0;
-          state.transActive = true;
-          state.stepTime = 0;
-          updateSubtitles(next);
-          renderControls();
-        }
-        function autoAdvance() {
-          beginTransition(
-            state.currentStep >= STEP_COUNT ? 1 : state.currentStep + 1,
-          );
-        }
-        function onStep() {
-          if (
-            state.mode !== "step" ||
-            state.transActive ||
-            state.currentStep >= STEP_COUNT
+      <aside class="details-panel" id="detailsPanel">
+        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
+        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
+        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
+      </div>
+
+      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
+
+      <div class="setting-row">
+        <label for="speedSelect">Скорость</label>
+        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
+      </div>
+
+      <div class="setting-row">
+        <label for="portraitToggle">Вертикальная рамка 9:16</label>
+        <input id="portraitToggle" type="checkbox">
+      </div>
+
+      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
+
+      <div class="keyboard-help" aria-label="Горячие клавиши">
+        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+        <span><kbd>→</kbd> Следующий шаг в STEP</span>
+        <span><kbd>R</kbd> Сброс</span>
+        <span><kbd>S</kbd> AUTO / STEP</span>
+        <span><kbd>V</kbd> Рамка 9:16</span>
+        <span><kbd>Esc</kbd> Закрыть настройки</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const APP_CONFIG = {"steps":[{"heading":"Три принципа","subtitle":"Защита информации опирается на три принципа: конфиденциальность, целостность, доступность.","detail":"CIA • риски • контроль","icon":"shield","nodes":["Данные","Целостность","Доступ"]},{"heading":"Фишинг","subtitle":"Фишинговые сообщения маскируются под знакомые сервисы и людей.","detail":"Письмо • ссылка • подделка","icon":"mail","nodes":["Письмо","Ссылка","Подделка"]},{"heading":"Проверка","subtitle":"Проверяй адрес сайта, отправителя и неожиданные вложения.","detail":"Домен • адрес • вложение","icon":"shield","nodes":["Домен","Адрес","Вложение"]},{"heading":"Пароли","subtitle":"Уникальные пароли и менеджер паролей защищают аккаунты.","detail":"Уникальность • менеджер • хранилище","icon":"lock","nodes":["Уникальность","Менеджер","Хранилище"]},{"heading":"2FA","subtitle":"Многофакторная аутентификация добавляет второй уровень проверки личности.","detail":"Пароль • подтверждение • доступ","icon":"lock","nodes":["Пароль","Код","Подтверждение"]},{"heading":"Устройство","subtitle":"Обновления и разрешения приложений укрепляют защиту устройства.","detail":"Обновления • разрешения • защита","icon":"shield","nodes":["Обновления","Разрешения","Защита"]},{"heading":"Цифровой след","subtitle":"Публикации, фотографии и геолокация формируют цифровой след.","detail":"Приватность • профиль • данные","icon":"phone","nodes":["Фото","Геоданные","Профиль"]},{"heading":"Инцидент","subtitle":"При инциденте используй доверенное устройство и поддержку сервиса.","detail":"Смена пароля • сессии • помощь","icon":"lock","nodes":["Сессии","Поддержка","Восстановление"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+    (() => {
+  "use strict";
+  function roundedRect(ctx,x,y,w,h,r) {
+    const radius=Math.min(r,w/2,h/2);
+    ctx.beginPath();ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+  }
+  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
+    const words=String(text||"").split(/\s+/),lines=[];let line="";
+    for(const word of words){const test=line?line+" "+word:word;
+      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
+    if(line)lines.push(line);
+    const visible=lines.slice(0,maxLines);
+    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
+      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
+      visible[visible.length-1]=last+"…";}
+    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
+  }
+  function glyph(ctx,type,x,y,size,accent,soft) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
+    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
+    if(type==="database"){
+      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
+    }else if(type==="network"){
+      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
+      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }else if(type==="shield"||type==="check"){
+      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
+    }else if(type==="lock"){
+      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
+    }else if(type==="web"){
+      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
+      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
+    }else if(type==="code"){
+      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
+    }else if(type==="phone"){
+      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
+    }else if(type==="train"||type==="rail"){
+      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
+      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="game"){
+      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
+    }else if(type==="robot"){
+      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
+    }else if(type==="drone"){
+      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
+      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="mail"){
+      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
+    }else if(type==="eye"){
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function chip(ctx,x,y,w,h,label,palette){
+    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
+    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
+    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
+    ctx.fillText(value,x+w/2,y+h/2);
+  }
+  function draw(ctx,frame){
+    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
+    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
+    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
+    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
+    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
+    ctx.save();
+    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
+    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
+    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
+    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
+    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
+    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
+    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
+    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
+    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
+    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
+    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
+    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
+    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
+    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
+    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
+    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
+    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
+    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
+    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
+    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
+    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
+    ctx.restore();
+  }
+  window.AppScene={draw};
+})();
+    (() => {
+  "use strict";
+
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
+
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton")
+  };
+
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
+
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    return;
+  }
+
+  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
+    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+    return;
+  }
+
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
+
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
+
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null
+  };
+
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
+
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
+
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (cssWidth <= 0 || cssHeight <= 0) return;
+
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
+
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
+
+    drawFrame();
+  }
+
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
+
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+    if (state.transition) {
+      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    drawTo(ctx, state.currentStep, 1);
+  }
+
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
+
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
+
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
+
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
+        });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
+
+    updateControls();
+  }
+
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
+
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
+
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
+
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+      }
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    ) return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
+      }
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
+      }
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
+      }
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
           )
-            return;
-          setPlaying(true);
-          beginTransition(state.currentStep + 1);
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
-        function setSpeed(v) {
-          state.speed = v;
-          renderControls();
-        }
-        function setVideoMode(on) {
-          if (state.videoMode === on) return;
-          state.videoMode = on;
-          document.body.classList.toggle("v916", on);
-          placeNodes();
-          resize();
-          renderControls();
-        }
-        function toggleVideoMode() {
-          setVideoMode(!state.videoMode);
-        }
-        function resetApp() {
-          state.mode = "auto";
-          state.stepTime = 0;
-          setPlaying(true);
-          beginTransition(1);
-        }
-        function toggleControls() {
-          state.controlsVisible = !state.controlsVisible;
-          document.body.classList.toggle(
-            "controls-hidden",
-            !state.controlsVisible,
-          );
-        }
-        function isModalOpen() {
-          return state.open;
-        }
-        function openSettings() {
-          if (state.open) return;
-          clearTimeout(closeTimer);
-          state.open = true;
-          els.wrap.classList.remove("closing");
-          els.wrap.classList.add("open");
-          els.wrap.setAttribute("aria-hidden", "false");
-          document.body.classList.add("modal-open");
-          renderControls();
-          lastFocus = document.activeElement;
-          els.modal.focus();
-        }
-        function closeSettings() {
-          if (!state.open) return;
-          state.open = false;
-          els.wrap.classList.add("closing");
-          clearTimeout(closeTimer);
-          closeTimer = setTimeout(() => {
-            els.wrap.classList.remove("open", "closing");
-            els.wrap.setAttribute("aria-hidden", "true");
-            document.body.classList.remove("modal-open");
-          }, 180);
-          if (lastFocus && typeof lastFocus.focus === "function")
-            lastFocus.focus();
-        }
-        function handleInput(event) {
-          const t = event.target;
-          if (
-            t &&
-            (t.isContentEditable ||
-              /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ""))
-          )
-            return;
-          if (isModalOpen()) {
-            if (event.key === "Escape" || event.code === "Escape") {
-              event.preventDefault();
-              closeSettings();
-            }
-            return;
-          }
-          switch (event.code) {
-            case "Space":
-              if (
-                t &&
-                t.closest &&
-                t.closest("button, a, input, select, textarea")
-              )
-                return;
-              event.preventDefault();
-              toggleControls();
-              break;
-            case "ArrowRight":
-              if (
-                state.mode === "step" &&
-                !state.transActive &&
-                state.currentStep < STEP_COUNT
-              ) {
-                event.preventDefault();
-                onStep();
-              }
-              break;
-            case "KeyR":
-              event.preventDefault();
-              resetApp();
-              break;
-            case "KeyS":
-              event.preventDefault();
-              setMode(state.mode === "auto" ? "step" : "auto");
-              break;
-            case "KeyV":
-              event.preventDefault();
-              toggleVideoMode();
-              break;
-          }
-        }
-        function update(dt) {
-          if (!state.playing) return;
-          const s = dt * state.speed;
-          state.animTime += s;
-          state.stepTime += s;
-          if (state.transActive) {
-            state.trans += s * 1000;
-            if (state.trans >= TRANS_DUR) {
-              state.transActive = false;
-              state.prevStep = 0;
-              if (state.mode === "step") setPlaying(false);
-            }
-          } else if (
-            state.mode === "auto" &&
-            state.stepTime * 1000 >= STEP_DUR
-          ) {
-            autoAdvance();
-          }
-        }
-        function drawStars(t) {
-          for (let i = 0; i < stars.length; i++) {
-            const st = stars[i];
-            const a = 0.12 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.4 + st.p));
-            ctx.fillStyle = "rgba(255,255,255," + a.toFixed(3) + ")";
-            ctx.beginPath();
-            ctx.arc(st.u * W, st.v * (GROUND_Y - 60), st.s, 0, TAU);
-            ctx.fill();
-          }
-        }
-        function drawMotes(t) {
-          for (let i = 0; i < motes.length; i++) {
-            const m = motes[i];
-            const yy = (m.v + t * 0.03) % 1;
-            const y = (1 - yy) * (GROUND_Y - 40);
-            const x = m.u * W + Math.sin(t * 0.5 + m.p) * 10;
-            const a = 0.05 + 0.06 * (0.5 + 0.5 * Math.sin(t + m.p * 2));
-            ctx.fillStyle = rgba(C.accent, a);
-            ctx.beginPath();
-            ctx.arc(x, y, m.r, 0, TAU);
-            ctx.fill();
-          }
-        }
-        function drawGlow(s) {
-          const g = ctx.createRadialGradient(
-            scx,
-            PHONE_CY,
-            40,
-            scx,
-            PHONE_CY,
-            330,
-          );
-          g.addColorStop(0, rgba(C.accent, 0.08 + 0.06 * s));
-          g.addColorStop(1, rgba(C.accent, 0));
-          ctx.fillStyle = g;
-          ctx.fillRect(scx - 340, PHONE_CY - 340, 680, 680);
-        }
-        function drawGround() {
-          ctx.fillStyle = C.metalDark;
-          ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-          ctx.strokeStyle = "rgba(255,255,255,.045)";
-          ctx.lineWidth = 1;
-          for (let x = 40; x < W; x += 80) {
-            ctx.beginPath();
-            ctx.moveTo(x, GROUND_Y);
-            ctx.lineTo(x, H);
-            ctx.stroke();
-          }
-          ctx.save();
-          ctx.translate(scx, GROUND_Y);
-          ctx.scale(1, 0.28);
-          const g = ctx.createRadialGradient(0, 0, 10, 0, 0, 260);
-          g.addColorStop(0, rgba(C.accent, 0.14));
-          g.addColorStop(1, rgba(C.accent, 0));
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(0, 0, 260, 0, TAU);
-          ctx.fill();
-          ctx.restore();
-          ctx.strokeStyle = rgba(C.stroke, 0.9);
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(0, GROUND_Y);
-          ctx.lineTo(W, GROUND_Y);
-          ctx.stroke();
-        }
-        function drawOrbit(t) {
-          for (let i = 0; i < 6; i++) {
-            const ang = (i * TAU) / 6 + t * 0.35;
-            const r = 160;
-            const x = scx + Math.cos(ang) * r;
-            const y = PHONE_CY + Math.sin(ang) * r * 0.92;
-            ctx.fillStyle = rgba(C.soft, 0.75);
-            ctx.beginPath();
-            ctx.arc(x, y, 3.5 + 0.6 * Math.sin(t * 2 + i), 0, TAU);
-            ctx.fill();
-          }
-        }
-        function drawPhone(lockK, alpha) {
-          const px = scx - 75,
-            py = 275,
-            pw = 150,
-            ph = 290;
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          const bg = ctx.createLinearGradient(0, py, 0, py + ph);
-          bg.addColorStop(0, C.panelM);
-          bg.addColorStop(1, C.metal);
-          rr(px, py, pw, ph, 22);
-          ctx.fillStyle = bg;
-          ctx.fill();
-          ctx.strokeStyle = C.border;
-          ctx.lineWidth = 1.6;
-          ctx.stroke();
-          rr(px + 12, py + 17, 126, 256, 14);
-          ctx.fillStyle = C.metalDark;
-          ctx.fill();
-          ctx.strokeStyle = C.raised;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-          rr(scx - 18, py + 7, 36, 4, 2);
-          ctx.fillStyle = C.border;
-          ctx.fill();
-          ctx.fillStyle = rgba(C.stroke, 0.85);
-          rr(scx - 38, 330, 76, 7, 3);
-          ctx.fill();
-          rr(scx - 38, 348, 52, 7, 3);
-          ctx.fill();
-          rr(scx - 38, 366, 64, 7, 3);
-          ctx.fill();
-          const lx = scx,
-            ly = 447;
-          const openK = 1 - lockK;
-          const lockCol = lockK > 0.5 ? C.accent : C.muted;
-          ctx.save();
-          ctx.translate(lx, ly - 12);
-          ctx.rotate(-0.55 * openK);
-          ctx.strokeStyle = rgba(lockK > 0.5 ? C.accent : C.muted, 0.95);
-          ctx.lineWidth = 5;
-          ctx.lineCap = "round";
-          ctx.beginPath();
-          ctx.moveTo(-15, 10);
-          ctx.lineTo(-15, 0);
-          ctx.arc(0, 0, 15, Math.PI, TAU, false);
-          ctx.lineTo(15, 10);
-          ctx.stroke();
-          ctx.restore();
-          if (lockK > 0.9) {
-            ctx.shadowColor = C.accentDark;
-            ctx.shadowBlur = 18;
-          }
-          rr(lx - 27, ly - 2, 54, 42, 9);
-          ctx.fillStyle = lockK > 0.5 ? rgba(C.accent, 0.16) : C.panelM;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = rgba(lockCol, 0.95);
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-          ctx.fillStyle = rgba(lockCol, 0.95);
-          circle(lx, ly + 14, 5);
-          ctx.fill();
-          ctx.fillRect(lx - 2, ly + 16, 4, 10);
-          ctx.restore();
-        }
-        function drawShield(s, t, alpha, lockK) {
-          let flick = 1;
-          if (state.currentStep === 2 && !state.transActive)
-            flick = 0.7 + 0.3 * Math.abs(Math.sin(state.stepTime * 3.4));
-          ctx.save();
-          ctx.globalAlpha = alpha * flick;
-          ctx.shadowColor = C.accentDark;
-          ctx.shadowBlur = 12 + 26 * s;
-          ctx.strokeStyle = rgba(C.accent, 0.35 + 0.5 * s);
-          ctx.lineWidth = 2.5 + 3.5 * s;
-          circle(scx, PHONE_CY, RING_R);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = rgba(C.accent, 0.26);
-          ctx.lineWidth = 1.4;
-          ctx.setLineDash([5, 13]);
-          ctx.lineDashOffset = -t * 16;
-          circle(scx, PHONE_CY, RING_R - 11);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          if (lockK > 0.6) {
-            const a2 = ((lockK - 0.6) / 0.4) * 0.55;
-            ctx.strokeStyle = rgba(C.accent, a2);
-            ctx.lineWidth = 1.6;
-            ctx.setLineDash([4, 10]);
-            ctx.lineDashOffset = -t * 14;
-            circle(scx, PHONE_CY, 252);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = rgba(C.accent, Math.min(1, a2 * 1.8));
-            ctx.font = "800 15px " + FONT;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "alphabetic";
-            ctx.fillText("2FA", scx, PHONE_CY - 266);
-          }
-          ctx.restore();
-        }
-        function checkMark(x, y, r, style, w) {
-          ctx.strokeStyle = style;
-          ctx.lineWidth = w || 3;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.beginPath();
-          ctx.moveTo(x - r, y);
-          ctx.lineTo(x - r * 0.25, y + r * 0.8);
-          ctx.lineTo(x + r, y - r * 0.8);
-          ctx.stroke();
-        }
-        function drawIntro(a, t) {
-          ctx.save();
-          ctx.globalAlpha = a;
-          ctx.strokeStyle = rgba(C.accent, 0.3 + 0.18 * Math.sin(t * 2.4));
-          ctx.lineWidth = 2;
-          circle(scx, PHONE_CY, RING_R - 8 + Math.sin(t * 2.4) * 6);
-          ctx.stroke();
-          ctx.restore();
-        }
-        function drawPhishing(a, t) {
-          const px = scx + Math.min(RING_R + 130, W / 2 - 60);
-          ctx.save();
-          ctx.globalAlpha = a;
-          ctx.strokeStyle = C.warning;
-          ctx.lineWidth = 4;
-          ctx.lineCap = "round";
-          ctx.beginPath();
-          ctx.moveTo(px, -30);
-          ctx.lineTo(px, 110);
-          ctx.quadraticCurveTo(px, 140, px - 18, 140);
-          ctx.quadraticCurveTo(px - 36, 140, px - 36, 122);
-          ctx.stroke();
-          const sw = Math.sin(t * 2) * 0.14;
-          const ex = px - 36 + Math.sin(sw) * 70;
-          const ey = 124 + Math.cos(sw) * 70;
-          ctx.strokeStyle = rgba(C.warning, 0.7);
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(px - 36, 124);
-          ctx.lineTo(ex, ey);
-          ctx.stroke();
-          const ew = 78,
-            eh = 52;
-          rr(ex - ew / 2, ey, ew, eh, 8);
-          ctx.fillStyle = C.soft;
-          ctx.fill();
-          ctx.strokeStyle = "rgba(14,14,18,.5)";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.strokeStyle = "rgba(14,14,18,.65)";
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.moveTo(ex - ew / 2 + 4, ey + 5);
-          ctx.lineTo(ex, ey + 28);
-          ctx.lineTo(ex + ew / 2 - 4, ey + 5);
-          ctx.stroke();
-          const br = 11 + Math.sin(t * 5) * 1.5;
-          circle(ex + ew / 2 + 2, ey + 2, br);
-          ctx.fillStyle = C.danger;
-          ctx.fill();
-          ctx.fillStyle = "#FFFFFF";
-          ctx.font = "800 15px " + FONT;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("!", ex + ew / 2 + 2, ey + 3);
-          ctx.fillStyle = rgba(C.muted, 0.45 + 0.3 * Math.sin(t * 1.7));
-          ctx.font = "800 26px " + FONT;
-          ctx.fillText("?", scx - RING_R - 34, 250);
-          ctx.fillText("?", scx + RING_R + 26, 320);
-          ctx.restore();
-        }
-        function drawMalware(a, t) {
-          ctx.save();
-          ctx.globalAlpha = a;
-          for (let i = 0; i < 3; i++) {
-            const ph = t * 1.1 + i * 1.05;
-            const ap = (Math.sin(ph) + 1) / 2;
-            const x0 = scx + Math.min(RING_R + 150, W / 2 - 40) + i * 34;
-            const x1 = scx + 94;
-            const x = lerp(x0, x1, ap);
-            const y = GROUND_Y - 14;
-            ctx.strokeStyle = rgba(C.danger, 0.85);
-            ctx.lineWidth = 2.2;
-            ctx.lineCap = "round";
-            for (let j = 0; j < 3; j++) {
-              const wig = Math.sin(t * 14 + i * 2 + j * 1.3) * 4;
-              ctx.beginPath();
-              ctx.moveTo(x - 4 + j * 7, y + 7);
-              ctx.lineTo(x - 6 + j * 7 + wig, y + 15);
-              ctx.stroke();
-            }
-            ctx.fillStyle = C.danger;
-            ctx.beginPath();
-            ctx.ellipse(x, y, 15, 10, 0, 0, TAU);
-            ctx.fill();
-            ctx.fillStyle = rgba(C.metalDark, 0.4);
-            ctx.beginPath();
-            ctx.ellipse(x + 3, y - 2, 7, 4, 0, 0, TAU);
-            ctx.fill();
-            ctx.fillStyle = rgba(C.danger, 0.9);
-            circle(x - 16, y - 3, 6);
-            ctx.fill();
-            ctx.strokeStyle = rgba(C.danger, 0.9);
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(x - 19, y - 8);
-            ctx.lineTo(x - 24, y - 15);
-            ctx.moveTo(x - 14, y - 9);
-            ctx.lineTo(x - 15, y - 17);
-            ctx.stroke();
-            ctx.fillStyle = "#FFFFFF";
-            circle(x - 18, y - 4, 1.6);
-            ctx.fill();
-            if (ap > 0.9) {
-              const k = (ap - 0.9) * 10;
-              ctx.strokeStyle = rgba(C.okGlow, Math.min(1, k) * 0.9);
-              ctx.lineWidth = 2;
-              for (let j = 0; j < 4; j++) {
-                const an = (j * TAU) / 4 + t * 6;
-                ctx.beginPath();
-                ctx.moveTo(x - 22 + Math.cos(an) * 6, y - 8 + Math.sin(an) * 6);
-                ctx.lineTo(
-                  x - 22 + Math.cos(an) * (8 + k * 6),
-                  y - 8 + Math.sin(an) * (8 + k * 6),
-                );
-                ctx.stroke();
-              }
-            }
-          }
-          ctx.restore();
-        }
-        function drawDefense(a, t) {
-          ctx.save();
-          ctx.globalAlpha = a;
-          const segs = [45, 135, 225, 315];
-          ctx.lineCap = "round";
-          for (let i = 0; i < segs.length; i++) {
-            const k = clamp((t - 0.2 - i * 0.18) / 0.5, 0, 1);
-            if (k <= 0) continue;
-            const ang = ((segs[i] - 90) * Math.PI) / 180;
-            const spread = 0.3 * eob(k);
-            ctx.strokeStyle = rgba(C.accent, 0.95 * k);
-            ctx.lineWidth = 13;
-            ctx.beginPath();
-            ctx.arc(scx, PHONE_CY, RING_R, ang - spread, ang + spread);
-            ctx.stroke();
-            const mx = scx + Math.cos(ang) * (RING_R + 17);
-            const my = PHONE_CY + Math.sin(ang) * (RING_R + 17);
-            checkMark(mx, my, 8 * k, rgba(C.okGlow, k), 3);
-          }
-          const ang2 = (t * 1.1) % TAU;
-          ctx.save();
-          ctx.translate(scx, PHONE_CY);
-          ctx.rotate(ang2);
-          ctx.fillStyle = rgba(C.accent, 0.13);
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.arc(0, 0, RING_R + 26, -0.42, 0);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = rgba(C.okGlow, 0.5);
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(
-            Math.cos(-0.42) * (RING_R + 26),
-            Math.sin(-0.42) * (RING_R + 26),
-          );
-          ctx.stroke();
-          ctx.restore();
-          const wx = scx + Math.min(RING_R + 120, W / 2 - 46),
-            wy = 150;
-          ctx.strokeStyle = rgba(C.okGlow, 0.95);
-          ctx.lineWidth = 3.2;
-          for (let j = 0; j < 3; j++) {
-            const r = 6 + j * 7;
-            ctx.beginPath();
-            ctx.arc(wx, wy + 14, r, -Math.PI * 0.78, -Math.PI * 0.22);
-            ctx.stroke();
-          }
-          ctx.fillStyle = C.okGlow;
-          circle(wx, wy + 14, 3.2);
-          ctx.fill();
-          rr(wx + 16, wy + 14, 13, 10, 3);
-          ctx.fillStyle = C.accent;
-          ctx.fill();
-          ctx.strokeStyle = C.accent;
-          ctx.lineWidth = 2.4;
-          ctx.beginPath();
-          ctx.arc(wx + 22.5, wy + 14, 4.5, Math.PI, TAU);
-          ctx.stroke();
-          ctx.restore();
-        }
-        function drawCheck(a, t) {
-          const bw = Math.min(320, W - 140),
-            bx = scx - bw / 2,
-            by = 176,
-            bh = 46;
-          ctx.save();
-          ctx.globalAlpha = a;
-          rr(bx, by, bw, bh, 12);
-          ctx.fillStyle = C.panelM;
-          ctx.fill();
-          ctx.strokeStyle = C.stroke;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.strokeStyle = rgba(C.okGlow, 0.95);
-          ctx.lineWidth = 2.4;
-          ctx.beginPath();
-          ctx.arc(bx + 21, by + 25, 5, Math.PI, TAU);
-          ctx.stroke();
-          rr(bx + 14, by + 25, 14, 11, 3);
-          ctx.fillStyle = C.okGlow;
-          ctx.fill();
-          ctx.fillStyle = rgba(C.muted, 0.75);
-          rr(bx + 42, by + 13, bw - 118, 8, 3);
-          ctx.fill();
-          ctx.fillStyle = rgba(C.muted, 0.4);
-          rr(bx + 42, by + 26, bw - 158, 8, 3);
-          ctx.fill();
-          circle(bx + bw - 27, by + bh / 2, 11);
-          ctx.fillStyle = C.accent;
-          ctx.fill();
-          checkMark(bx + bw - 27, by + bh / 2 + 1, 5.5, "#FFFFFF", 2.6);
-          const mx = bx + 30 + pp(t * 0.5) * (bw - 60),
-            my = by + bh / 2;
-          ctx.fillStyle = rgba(C.accent, 0.08);
-          circle(mx, my, 26);
-          ctx.fill();
-          ctx.strokeStyle = rgba(C.accent, 0.95);
-          ctx.lineWidth = 3.5;
-          circle(mx, my, 26);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(mx + 18, my + 18);
-          ctx.lineTo(mx + 31, my + 31);
-          ctx.stroke();
-          const fx = scx - bw / 2 - 64,
-            fy = 296,
-            k = clamp((t - 1.7) / 1, 0, 1);
-          ctx.save();
-          ctx.translate(fx, fy);
-          ctx.rotate(-0.12 + k * 0.4);
-          ctx.globalAlpha = a * (1 - k);
-          rr(-27, -36, 54, 72, 8);
-          ctx.fillStyle = C.panelM;
-          ctx.fill();
-          ctx.strokeStyle = rgba(C.warning, 0.85);
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.fillStyle = rgba(C.muted, 0.5);
-          rr(-18, -26, 36, 6, 3);
-          ctx.fill();
-          rr(-18, -14, 28, 6, 3);
-          ctx.fill();
-          rr(-18, -2, 32, 6, 3);
-          ctx.fill();
-          ctx.strokeStyle = C.danger;
-          ctx.lineWidth = 5;
-          ctx.lineCap = "round";
-          ctx.beginPath();
-          ctx.moveTo(-14, 14);
-          ctx.lineTo(14, 40);
-          ctx.moveTo(14, 14);
-          ctx.lineTo(-14, 40);
-          ctx.stroke();
-          ctx.restore();
-          ctx.restore();
-        }
-        function icoPhoto(al) {
-          ctx.globalAlpha = al;
-          rr(-20, -16, 40, 32, 5);
-          ctx.fillStyle = C.panelM;
-          ctx.fill();
-          ctx.strokeStyle = C.stroke;
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
-          ctx.fillStyle = rgba(C.okGlow, 0.75);
-          ctx.beginPath();
-          ctx.moveTo(-13, 8);
-          ctx.lineTo(-3, -6);
-          ctx.lineTo(3, 2);
-          ctx.lineTo(9, -4);
-          ctx.lineTo(13, 8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = C.warnGlow;
-          circle(8, -9, 3);
-          ctx.fill();
-        }
-        function icoPin(al) {
-          ctx.globalAlpha = al;
-          ctx.fillStyle = rgba(C.soft, 0.92);
-          ctx.beginPath();
-          ctx.arc(0, -4, 10, Math.PI * 0.62, Math.PI * 0.38);
-          ctx.lineTo(0, 14);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = C.bg;
-          circle(0, -5, 4);
-          ctx.fill();
-        }
-        function icoCard(al) {
-          ctx.globalAlpha = al;
-          rr(-22, -15, 44, 30, 6);
-          ctx.fillStyle = C.panelM;
-          ctx.fill();
-          ctx.strokeStyle = C.stroke;
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
-          ctx.fillStyle = rgba(C.danger, 0.75);
-          ctx.fillRect(-22, -7, 44, 7);
-          ctx.fillStyle = rgba(C.warnGlow, 0.8);
-          rr(-16, 5, 14, 5, 2);
-          ctx.fill();
-        }
-        function drawPrivacy(a, t) {
-          const rE = Math.min(330, W / 2 - 40);
-          const k = clamp((t - 1.2) / 2.2, 0, 1);
-          ctx.save();
-          ctx.globalAlpha = a;
-          ctx.strokeStyle = rgba(C.danger, 0.4 * (1 - k * 0.5));
-          ctx.lineWidth = 1.6;
-          ctx.setLineDash([5, 9]);
-          ctx.lineDashOffset = t * 10;
-          circle(scx, PHONE_CY, rE + 14);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          const angles = [-2.35, -1.5708, -0.785];
-          const icons = [icoPhoto, icoPin, icoCard];
-          for (let i = 0; i < 3; i++) {
-            const ki = clamp((k - i * 0.14) / 0.65, 0, 1);
-            const sx = scx + Math.cos(angles[i]) * rE;
-            const sy = PHONE_CY + Math.sin(angles[i]) * rE;
-            const ke = eio(ki);
-            const x = lerp(sx, scx, ke);
-            const y = lerp(sy, 470, ke) - Math.sin(ke * Math.PI) * 30;
-            for (let j = 0; j < 7; j++) {
-              const fj = j / 7;
-              const tx = lerp(sx, x, fj);
-              const ty = lerp(sy, y, fj);
-              ctx.fillStyle = rgba(C.muted, 0.32 * (1 - ki * 0.55));
-              circle(tx, ty, 2);
-              ctx.fill();
-            }
-            if (ki < 1) {
-              ctx.save();
-              ctx.translate(x, y);
-              const sc = lerp(1, 0.45, ke);
-              ctx.scale(sc, sc);
-              icons[i](a * (1 - ki * 0.85));
-              ctx.restore();
-            }
-          }
-          ctx.restore();
-        }
-        function drawKey(x, y, rot, col, al) {
-          ctx.save();
-          ctx.globalAlpha = al;
-          ctx.translate(x, y);
-          ctx.rotate(rot);
-          ctx.strokeStyle = col;
-          ctx.lineWidth = 3;
-          ctx.lineCap = "round";
-          circle(-14, 0, 8);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(-6, 0);
-          ctx.lineTo(16, 0);
-          ctx.moveTo(10, 0);
-          ctx.lineTo(10, 7);
-          ctx.moveTo(15, 0);
-          ctx.lineTo(15, 6);
-          ctx.stroke();
-          ctx.restore();
-        }
-        function drawDevice(x, y, style) {
-          ctx.strokeStyle = style;
-          ctx.fillStyle = style;
-          ctx.lineWidth = 2;
-          rr(x - 14, y - 9, 28, 16, 3);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.moveTo(x - 18, y + 10);
-          ctx.lineTo(x + 18, y + 10);
-          ctx.stroke();
-        }
-        function drawIncident(a, t) {
-          ctx.save();
-          ctx.globalAlpha = a;
-          const alertK =
-            clamp(t / 0.4, 0, 1) *
-            (t < 1.6 ? 1 : clamp(1 - (t - 1.6) / 0.3, 0, 1));
-          if (alertK > 0) {
-            ctx.strokeStyle = rgba(C.danger, 0.55 * alertK);
-            ctx.lineWidth = 3;
-            circle(scx, PHONE_CY, RING_R + 16 + Math.sin(t * 6) * 5);
-            ctx.stroke();
-            ctx.fillStyle = rgba(C.danger, 0.14 * alertK);
-            rr(scx - 63, 292, 126, 256, 14);
-            ctx.fill();
-            const by = PHONE_CY - RING_R - 34;
-            ctx.save();
-            ctx.translate(scx, by);
-            ctx.globalAlpha = a * alertK;
-            ctx.fillStyle = C.danger;
-            ctx.beginPath();
-            ctx.moveTo(-16, 14);
-            ctx.lineTo(0, -14);
-            ctx.lineTo(16, 14);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "800 15px " + FONT;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("!", 0, 4);
-            ctx.restore();
-          }
-          const kk = clamp((t - 1.6) / 1.2, 0, 1);
-          if (kk > 0) {
-            const rot = kk * TAU;
-            const col = kk < 0.5 ? C.muted : C.accent;
-            drawKey(scx + 150, 330, rot, col, a);
-            for (let i = 0; i < 3; i++) {
-              const sa = 1 - clamp((t - 1.7 - i * 0.35) / 0.4, 0, 1);
-              if (sa <= 0) continue;
-              drawDevice(
-                scx - 170 + i * 170,
-                GROUND_Y + 20,
-                rgba(C.muted, a * sa),
-              );
-            }
-          }
-          const fk = clamp((t - 2.9) / 0.5, 0, 1);
-          if (fk > 0 && fk < 1) {
-            ctx.strokeStyle = rgba(C.okGlow, (1 - fk) * 0.85);
-            ctx.lineWidth = 6;
-            circle(scx, PHONE_CY, RING_R + 8);
-            ctx.stroke();
-            ctx.strokeStyle = rgba(C.okGlow, 1 - fk);
-            ctx.lineWidth = 2;
-            for (let j = 0; j < 8; j++) {
-              const an = (j * TAU) / 8 + 0.4;
-              const r1 = RING_R + 20,
-                r2 = RING_R + 34 + (1 - fk) * 12;
-              ctx.beginPath();
-              ctx.moveTo(scx + Math.cos(an) * r1, PHONE_CY + Math.sin(an) * r1);
-              ctx.lineTo(scx + Math.cos(an) * r2, PHONE_CY + Math.sin(an) * r2);
-              ctx.stroke();
-            }
-            const by = PHONE_CY - RING_R - 34;
-            circle(scx, by, 22);
-            ctx.fillStyle = C.accent;
-            ctx.fill();
-            checkMark(scx, by + 2, 11, "#FFFFFF", 4);
-          }
-          ctx.restore();
-        }
-        function drawStepActors(step, a, t) {
-          if (a <= 0.01 || step < 1) return;
-          switch (step) {
-            case 1:
-              drawIntro(a, t);
-              break;
-            case 2:
-              drawPhishing(a, t);
-              break;
-            case 3:
-              drawMalware(a, t);
-              break;
-            case 4:
-              drawAuth(a, t);
-              break;
-            case 5:
-              drawDefense(a, t);
-              break;
-            case 6:
-              drawCheck(a, t);
-              break;
-            case 7:
-              drawPrivacy(a, t);
-              break;
-            case 8:
-              drawIncident(a, t);
-              break;
-          }
-        }
-        function drawAuth(a, t) {
-          ctx.save();
-          ctx.globalAlpha = a;
-          for (let i = 0; i < 3; i++) {
-            const k = clamp((t - 0.3 - i * 0.35) / 1.1, 0, 1);
-            if (k <= 0 || k >= 1) continue;
-            const x = lerp(scx - RING_R - 50, scx - 42, eio(k));
-            const y = lerp(380 + i * 36, 440, eio(k));
-            drawKey(x, y, k * TAU * 0.5, C.accent, (1 - k) * a);
-          }
-          ctx.restore();
-        }
-        function draw() {
-          if (!ctx) return;
-          const cw = els.vframe.clientWidth,
-            ch = els.vframe.clientHeight;
-          if (!cw || !ch) return;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          const g = ctx.createLinearGradient(0, 0, 0, ch);
-          g.addColorStop(0, C.bgGrad);
-          g.addColorStop(1, C.bg);
-          ctx.fillStyle = g;
-          ctx.fillRect(0, 0, cw, ch);
-          ctx.save();
-          ctx.translate(ox, oy);
-          ctx.scale(scale, scale);
-          const t = state.animTime,
-            st = state.stepTime;
-          const p = state.transActive
-            ? clamp(state.trans / TRANS_DUR, 0, 1)
-            : 1;
-          const e = eio(p);
-          const prev = STEP_CFG[state.prevStep] || STEP_CFG[state.currentStep];
-          const cur = STEP_CFG[state.currentStep];
-          const sSh = lerp(prev.shield, cur.shield, e);
-          const sLock = lerp(prev.lock, cur.lock, e);
-          drawStars(t);
-          drawMotes(t);
-          drawGlow(sSh);
-          drawGround();
-          drawStepActors(
-            state.prevStep,
-            state.transActive ? 1 - e : 0,
-            state.prevTime,
-          );
-          drawStepActors(state.currentStep, state.transActive ? e : 1, st);
-          drawOrbit(t);
-          drawPhone(sLock, 1);
-          drawShield(sSh, t, 1, sLock);
-          ctx.restore();
-        }
-        function frame(ts) {
-          requestAnimationFrame(frame);
-          let dt = lastTs ? (ts - lastTs) / 1000 : 0;
-          lastTs = ts;
-          if (dt > 0.05) dt = 0.05;
-          update(dt);
-          draw();
-        }
-        function bind() {
-          els.play.addEventListener("click", (e) => {
-            setPlaying(!state.playing);
-            if (e.detail > 0) els.play.blur();
-          });
-          els.gear.addEventListener("click", (e) => {
-            if (e.detail > 0) els.gear.blur();
-            isModalOpen() ? closeSettings() : openSettings();
-          });
-          els.mClose.addEventListener("click", closeSettings);
-          els.scrim.addEventListener("click", closeSettings);
-          document.querySelectorAll("[data-mode]").forEach((btn) => {
-            btn.addEventListener("click", () =>
-              setMode(btn.getAttribute("data-mode")),
-            );
-          });
-          els.speedBtns.forEach((btn) => {
-            btn.addEventListener("click", () =>
-              setSpeed(parseFloat(btn.getAttribute("data-speed"))),
-            );
-          });
-          els.mNext.addEventListener("click", onStep);
-          els.mNine.addEventListener("change", () =>
-            setVideoMode(els.mNine.checked),
-          );
-          els.mReset.addEventListener("click", resetApp);
-          document.addEventListener("keydown", handleInput);
-          window.addEventListener("resize", resize);
-          mq = window.matchMedia("(min-width: 768px)");
-          if (mq.addEventListener) mq.addEventListener("change", placeNodes);
-          else if (mq.addListener) mq.addListener(placeNodes);
-          ro = new ResizeObserver(resize);
-          ro.observe(els.vframe);
-        }
-        function init() {
-          if (inited) return;
-          inited = true;
-          els = {
-            scene: byId("scene"),
-            vframe: byId("vframe"),
-            dock: byId("frameDock"),
-            subtitle: byId("subtitle"),
-            subText: byId("subtitleText"),
-            slotA: byId("subSlotA"),
-            slotB: byId("subSlotB"),
-            sidebar: byId("sidebar"),
-            app: byId("app"),
-            stage: byId("stage"),
-            panel: byId("panel"),
-            play: byId("playBtn"),
-            gear: byId("gearBtn"),
-            wrap: byId("modalWrap"),
-            scrim: byId("scrim"),
-            modal: byId("modal"),
-            mClose: byId("mClose"),
-            mStep: byId("mStepTxt"),
-            mAuto: byId("mAuto"),
-            mStepBtn: byId("mStepBtn"),
-            mNext: byId("mNext"),
-            mNine: byId("mNine"),
-            mReset: byId("mReset"),
-          };
-          els.speedBtns = Array.prototype.slice.call(
-            document.querySelectorAll("[data-speed]"),
-          );
-          for (const k in els) {
-            if (!els[k]) throw new Error("Элемент не найден: " + k);
-          }
-          if (els.speedBtns.length !== 3)
-            throw new Error("Неверное число кнопок скорости");
-          ctx = els.scene.getContext("2d");
-          if (!ctx) throw new Error("Canvas 2D недоступен");
-          readColors();
-          buildAmbient();
-          bind();
-          placeNodes();
-          resize();
-          updateSubtitles(1);
-          renderControls();
-          requestAnimationFrame(frame);
-          setTimeout(() => {
-            if (state.mode === "auto" && !state.playing) startAuto();
-          }, 500);
-        }
-        try {
-          init();
-        } catch (err) {
-          if (window.console && console.error) console.error(err);
-          const stage = document.getElementById("stage");
-          if (stage) {
-            stage.replaceChildren();
-            const d = document.createElement("div");
-            d.id = "fatal";
-            d.textContent =
-              "Не удалось запустить визуализацию. Откройте файл в актуальном браузере.";
-            stage.appendChild(d);
-          }
-        }
-      })();
-    </script>
-  </body>
+      }
+      return;
+    }
+
+    if (isInteractiveTarget(event.target)) return;
+
+    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+      return;
+    }
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+        event.preventDefault();
+        nextStep();
+      }
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
+
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
+
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
+  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
+
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
+
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
+  }
+
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
+
+  window.addEventListener("pagehide", () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }, { once: true });
+})();
+  </script>
+</body>
 </html>

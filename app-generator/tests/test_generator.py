@@ -69,8 +69,34 @@ class GeneratorTests(unittest.TestCase):
             '<meta content=',
             1,
         )
-        with self.assertRaisesRegex(ValueError, "exactly one viewport"):
+        with self.assertRaisesRegex(ValueError, "exactly one meta\\[name=viewport\\]"):
             validate_html(document, self.spec["meta"]["viewport"])
+
+    def test_all_done_archive_files_pass_the_canonical_validator(self) -> None:
+        archive = ROOT.parent / "Done (don't touch)"
+        html_files = sorted(archive.glob("*.html"))
+        self.assertEqual(len(html_files), 21, "Update archive coverage when its file set changes.")
+        for html_file in html_files:
+            with self.subTest(file=html_file.name):
+                validate_html(html_file.read_text(encoding="utf-8"), self.spec["meta"]["viewport"])
+
+    def test_rejects_duplicate_document_and_metadata_tags(self) -> None:
+        document = self.build_example()
+        duplicate_head = document.replace("<head>", "<head><head>", 1)
+        with self.assertRaisesRegex(ValueError, "exactly one <head>"):
+            validate_html(duplicate_head, self.spec["meta"]["viewport"])
+
+        duplicate_meta = document.replace(
+            '<meta name="theme-color" content="#0F0F13">',
+            '<meta name="theme-color" content="#0F0F13">\\n<meta name="theme-color" content="#0F0F13">',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate metadata tags"):
+            validate_html(duplicate_meta, self.spec["meta"]["viewport"])
+
+        duplicate_body = document.replace("<body>", "<body><body>", 1)
+        with self.assertRaisesRegex(ValueError, "exactly one <body>"):
+            validate_html(duplicate_body, self.spec["meta"]["viewport"])
 
     def test_scene_initialization_precedes_first_draw(self) -> None:
         runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")

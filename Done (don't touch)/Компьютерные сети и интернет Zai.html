@@ -1,1934 +1,1164 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Компьютерные сети и интернет</title>
-    <style>
-      :root {
-        --bg: #0f0f13;
-        --panel: #1a1a20;
-        --accent: #2eac65;
-        --accent-shadow: #1e7a47;
-        --text: #ffffff;
-        --text-secondary: #a0a0a0;
-        --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        height: 100%;
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--font);
-        -webkit-tap-highlight-color: transparent;
-      }
-      body {
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-      }
-      button {
-        font-family: var(--font);
-        touch-action: manipulation;
-      }
-      .app {
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-      }
-      .app__title {
-        font-weight: 800;
-        font-size: clamp(18px, 4.5vw, 26px);
-        letter-spacing: 0.01em;
-        padding: 16px 16px 8px 16px;
-        padding-top: max(16px, env(safe-area-inset-top));
-        padding-left: max(16px, env(safe-area-inset-left));
-      }
-      .app__main {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .viz {
-        position: relative;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
-      }
-      .viz__ambient {
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(
-            60% 55% at 30% 40%,
-            rgba(46, 172, 101, 0.1),
-            transparent 70%
-          ),
-          radial-gradient(
-            50% 50% at 75% 70%,
-            rgba(30, 122, 71, 0.12),
-            transparent 70%
-          );
-        pointer-events: none;
-      }
-      .viz__canvas {
-        position: absolute;
-        inset: 0;
-      }
-      .viz__canvas canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-      .viz__mount {
-        position: absolute;
-        inset: 0;
-      }
-      .vframe {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        aspect-ratio: 9/16;
-        height: 100%;
-        max-width: 100%;
-        display: none;
-        flex-direction: column;
-        border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(26, 26, 32, 0.6);
-        box-shadow:
-          0 0 40px rgba(30, 122, 71, 0.35),
-          0 0 90px rgba(46, 172, 101, 0.12);
-        overflow: hidden;
-      }
-      .vframe__canvas {
-        position: relative;
-        flex: 1;
-        min-height: 0;
-      }
-      .vframe__canvas canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-      .vframe__bottom {
-        flex-shrink: 0;
-        padding: 8px 12px;
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .subtitle {
-        min-height: 64px;
-        display: flex;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border-radius: 12px;
-        padding: 10px 14px;
-        font-size: clamp(16px, 4.5vw, 22px);
-        line-height: 1.3;
-        font-weight: 700;
-      }
-      .subtitle__keyword {
-        color: var(--accent);
-      }
-      .subtitle--animate {
-        animation: subIn 0.35s ease-out;
-      }
-      @keyframes subIn {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .controls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        min-height: 56px;
-      }
-      .controls--hidden {
-        display: none;
-      }
-      .btn {
-        min-width: 48px;
-        min-height: 48px;
-        width: 48px;
-        height: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: var(--panel);
-        color: var(--text);
-        cursor: pointer;
-        transition:
-          background 0.15s ease,
-          border-color 0.15s ease,
-          transform 0.1s ease;
-      }
-      .btn:hover {
-        background: #222229;
-        border-color: rgba(46, 172, 101, 0.5);
-      }
-      .btn:active {
-        transform: scale(0.96);
-      }
-      .btn:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-      }
-      .btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .btn--accent {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #08120c;
-        box-shadow: 0 0 18px rgba(46, 172, 101, 0.45);
-      }
-      .btn--accent:hover {
-        background: #33bd71;
-      }
-      .btn svg {
-        pointer-events: none;
-      }
-      .footer {
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 8px 16px 0 16px;
-        padding-left: max(16px, env(safe-area-inset-left));
-        padding-right: 16px;
-        margin-bottom: calc(25vh + env(safe-area-inset-bottom));
-      }
-      .sidebar {
-        display: none;
-      }
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        z-index: 50;
-      }
-      .modal-overlay--open {
-        display: flex;
-        animation: fadeIn 0.2s ease-out;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      .modal-overlay--closing {
-        animation: fadeOut 0.18s ease-in forwards;
-      }
-      @keyframes fadeOut {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0;
-        }
-      }
-      .modal {
-        width: min(420px, 100%);
-        max-height: 90dvh;
-        display: flex;
-        flex-direction: column;
-        background: var(--panel);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px;
-        box-shadow:
-          0 12px 50px rgba(0, 0, 0, 0.6),
-          0 0 30px rgba(30, 122, 71, 0.2);
-        transform: scale(1);
-        animation: modalIn 0.22s ease-out;
-      }
-      @keyframes modalIn {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      .modal-overlay--closing .modal {
-        animation: modalOut 0.18s ease-in forwards;
-      }
-      @keyframes modalOut {
-        from {
-          opacity: 1;
-          transform: scale(1);
-        }
-        to {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-      }
-      .modal__head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 18px 10px;
-      }
-      .modal__title {
-        font-weight: 800;
-        font-size: 20px;
-      }
-      .modal__body {
-        overflow-y: auto;
-        padding: 4px 18px 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .setting {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .setting__label {
-        font-size: 13px;
-        color: var(--text-secondary);
-        font-weight: 700;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-      }
-      .step-indicator {
-        font-size: 15px;
-        color: var(--text);
-        background: rgba(0, 0, 0, 0.35);
-        border-radius: 10px;
-        padding: 10px 12px;
-        text-align: center;
-        font-weight: 700;
-      }
-      .segmented {
-        display: flex;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 12px;
-        overflow: hidden;
-      }
-      .segmented button {
-        flex: 1;
-        min-height: 48px;
-        background: transparent;
-        border: none;
-        color: var(--text-secondary);
-        font-weight: 700;
-        font-size: 15px;
-        cursor: pointer;
-        transition:
-          background 0.15s ease,
-          color 0.15s ease;
-      }
-      .segmented button:hover {
-        color: var(--text);
-      }
-      .segmented button:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: -2px;
-      }
-      .segmented button.active {
-        background: var(--accent);
-        color: #08120c;
-      }
-      .next-btn {
-        min-height: 48px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: transparent;
-        color: var(--text);
-        font-weight: 700;
-        font-size: 15px;
-        cursor: pointer;
-        transition:
-          background 0.15s ease,
-          border-color 0.15s ease;
-      }
-      .next-btn:hover:not(:disabled) {
-        background: rgba(46, 172, 101, 0.12);
-        border-color: var(--accent);
-      }
-      .next-btn:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-      }
-      .next-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .toggle-label {
-        font-weight: 700;
-        font-size: 15px;
-      }
-      .switch {
-        position: relative;
-        width: 56px;
-        height: 32px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(0, 0, 0, 0.4);
-        cursor: pointer;
-        flex-shrink: 0;
-        transition:
-          background 0.18s ease,
-          border-color 0.18s ease;
-      }
-      .switch::after {
-        content: "";
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--text-secondary);
-        transition:
-          transform 0.18s ease,
-          background 0.18s ease;
-      }
-      .switch[aria-checked="true"] {
-        background: var(--accent-shadow);
-        border-color: var(--accent);
-      }
-      .switch[aria-checked="true"]::after {
-        transform: translateX(24px);
-        background: var(--accent);
-      }
-      .switch:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-      }
-      .reset-btn {
-        min-height: 48px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: transparent;
-        color: var(--text);
-        font-weight: 700;
-        font-size: 15px;
-        cursor: pointer;
-        transition: background 0.15s ease;
-      }
-      .reset-btn:hover {
-        background: rgba(46, 172, 101, 0.12);
-        border-color: var(--accent);
-      }
-      .reset-btn:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-      }
-      .hotkeys {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        font-size: 13px;
-        color: var(--text-secondary);
-      }
-      .hotkeys div {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .hotkeys kbd {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: 6px;
-        padding: 2px 8px;
-        font-family: var(--font);
-        font-size: 12px;
-        color: var(--text);
-      }
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F13">
+  <meta name="description" content="Как устроены компьютерные сети, адресация, маршрутизация, протоколы, интернет-сервисы и защита соединений.">
+  <meta name="color-scheme" content="dark">
+  <title>Компьютерные сети и интернет</title>
+  <style>
+:root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
 
-      .viz-col {
-        flex: 1;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .viz-col .viz {
-        flex: 1;
-      }
-      @media (min-width: 768px) {
-        .app {
-          flex-direction: row;
-        }
-        .app__main {
-          flex-direction: row;
-          flex: 1;
-        }
-        .viz-col {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-        }
-        .viz-col .app__title {
-          padding-left: 28px;
-          padding-top: 24px;
-          font-size: clamp(20px, 2vw, 28px);
-        }
-        .sidebar {
-          display: flex;
-          flex-direction: column;
-          width: clamp(320px, 30vw, 380px);
-          flex-shrink: 0;
-          background: var(--panel);
-          border-left: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 24px 20px;
-          padding-top: max(24px, env(safe-area-inset-top));
-          padding-bottom: max(20px, env(safe-area-inset-bottom));
-          gap: 16px;
-        }
-        .sidebar #sidebarControls {
-          margin-top: auto;
-        }
-        .sidebar .subtitle {
-          flex: 0 0 auto;
-          min-height: 96px;
-          font-size: clamp(16px, 1.4vw, 20px);
-        }
-        .sidebar .controls {
-          margin-top: auto;
-        }
-        .footer {
-          display: none;
-        }
-        .viz-col .viz {
-          flex: 1;
-          margin: 12px 20px 20px;
-        }
-        .app {
-          padding-right: env(safe-area-inset-right);
-        }
-      }
-      @media (max-width: 767.98px) {
-        .app {
-          padding-right: calc(80px + env(safe-area-inset-right));
-        }
-      }
-      body:not(.desktop) .footer {
-        display: flex;
-      }
-      body.desktop .footer {
-        display: none;
-      }
-      body.frame-mode .viz__mount {
-        display: none;
-      }
-      body.frame-mode .vframe {
-        display: flex;
-      }
-      body.frame-mode .footer {
-        display: none;
-      }
-      body.frame-mode .sidebar .sidebar__subs {
-        display: none;
-      }
-      body.controls-hidden .controls {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app">
-      <div class="app__main">
-        <div class="viz-col">
-          <h1 class="app__title">Компьютерные сети и интернет</h1>
-          <div class="viz" id="viz">
-            <div class="viz__ambient"></div>
-            <div class="vframe" id="vframe">
-              <div class="vframe__canvas" id="vframeCanvas"></div>
-              <div class="vframe__bottom" id="vframeBottom"></div>
-            </div>
-            <div class="viz__mount" id="canvasMount"></div>
-          </div>
-        </div>
-        <aside class="sidebar">
-          <div class="sidebar__subs" id="sidebarSubs"></div>
-          <div id="sidebarControls"></div>
-        </aside>
-      </div>
-      <div class="footer">
-        <div id="mobileSubs"></div>
-        <div id="mobileControls"></div>
-      </div>
-    </div>
+* {
+  box-sizing: border-box;
+}
 
-    <div class="modal-overlay" id="modalOverlay">
-      <div
-        class="modal"
-        id="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-      >
-        <div class="modal__head">
-          <div class="modal__title" id="modalTitle">Настройки</div>
-          <button
-            class="btn"
-            id="closeSettingsBtn"
-            aria-label="Закрыть настройки"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.4"
-              stroke-linecap="round"
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
-        <div class="modal__body">
-          <div class="setting">
-            <div class="setting__label">Прогресс</div>
-            <div class="step-indicator" id="stepIndicator">Шаг 1 / 8</div>
-          </div>
-          <div class="setting">
-            <div class="setting__label">Режим воспроизведения</div>
-            <div class="segmented" id="modeSegment">
-              <button id="modeAutoBtn" type="button">AUTO</button>
-              <button id="modeStepBtn" type="button">STEP</button>
-            </div>
-          </div>
-          <div class="setting">
-            <button class="next-btn" id="nextStepBtn" type="button">
-              Следующий шаг ▶
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app-root" id="appRoot">
+    <header class="app-header">
+      <h1 id="appTitle">Компьютерные сети и интернет</h1>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" id="stage" aria-label="Область визуализации">
+        <div class="visual-frame" id="visualFrame">
+          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
+
+          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
+
+          <div class="control-bar" id="controlBar">
+            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
+              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
             </button>
           </div>
-          <div class="setting">
-            <div class="setting__label">Скорость</div>
-            <div class="segmented" id="speedSegment">
-              <button data-speed="0.5" type="button">0.5×</button>
-              <button data-speed="1" type="button">1×</button>
-              <button data-speed="2" type="button">2×</button>
-            </div>
-          </div>
-          <div class="setting">
-            <div class="toggle-row">
-              <span class="toggle-label">Вертикальная рамка 9:16</span>
-              <div
-                class="switch"
-                id="videoModeToggle"
-                role="switch"
-                aria-checked="false"
-                tabindex="0"
-                aria-label="Режим вертикальной рамки"
-              ></div>
-            </div>
-          </div>
-          <div class="setting">
-            <button class="reset-btn" id="resetBtn" type="button">Reset</button>
-          </div>
-          <div class="setting">
-            <div class="setting__label">Горячие клавиши</div>
-            <div class="hotkeys">
-              <div><span>Скрыть / показать контролы</span><kbd>Space</kbd></div>
-              <div><span>Следующий шаг (в STEP)</span><kbd>→</kbd></div>
-              <div><span>Сброс</span><kbd>R</kbd></div>
-              <div><span>Режим AUTO / STEP</span><kbd>S</kbd></div>
-              <div><span>Вертикальная рамка</span><kbd>V</kbd></div>
-              <div><span>Закрыть настройки</span><kbd>Esc</kbd></div>
-            </div>
-          </div>
         </div>
+      </section>
+
+      <aside class="details-panel" id="detailsPanel">
+        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
+        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
+        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
       </div>
-    </div>
 
-    <script>
-      (function () {
-        "use strict";
+      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
 
-        const STEP_COUNT = 8;
-        const AUTO_STEP_MS = 6500;
-        const STEP_TRANSITION_MS = 1800;
-        const SCENE_W = 1000;
-        const SCENE_H = 640;
+      <div class="setting-row">
+        <label for="speedSelect">Скорость</label>
+        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
+      </div>
 
-        const C = {
-          bg: "#0F0F13",
-          panel: "#1A1A20",
-          accent: "#2EAC65",
-          shadow: "#1E7A47",
-          text: "#FFFFFF",
-          secondary: "#A0A0A0",
-        };
+      <div class="setting-row">
+        <label for="portraitToggle">Вертикальная рамка 9:16</label>
+        <input id="portraitToggle" type="checkbox">
+      </div>
 
-        const SUBTITLES = [
-          {
-            step: 1,
-            segments: [
-              { text: "Устройства соединяются " },
-              { text: "каналами связи", emphasis: true },
-              { text: " и образуют сеть" },
-            ],
-          },
-          {
-            step: 2,
-            segments: [
-              { text: "Локальные сети охватывают дом, " },
-              { text: "глобальные", emphasis: true },
-              { text: " — целые континенты" },
-            ],
-          },
-          {
-            step: 3,
-            segments: [
-              { text: "Маршрутизатор", emphasis: true },
-              { text: " выбирает маршрут, " },
-              { text: "коммутатор", emphasis: true },
-              { text: " соединяет локальные устройства" },
-            ],
-          },
-          {
-            step: 4,
-            segments: [
-              { text: "Каждому устройству назначается уникальный " },
-              { text: "IP-адрес", emphasis: true },
-            ],
-          },
-          {
-            step: 5,
-            segments: [
-              { text: "DNS-сервер", emphasis: true },
-              { text: " переводит доменное имя в " },
-              { text: "числовой адрес", emphasis: true },
-            ],
-          },
-          {
-            step: 6,
-            segments: [
-              { text: "Браузер отправляет HTTP-запрос, " },
-              { text: "HTTPS", emphasis: true },
-              { text: " шифрует передачу" },
-            ],
-          },
-          {
-            step: 7,
-            segments: [
-              { text: "Запрос идёт к серверу, " },
-              { text: "ответ возвращается обратно", emphasis: true },
-            ],
-          },
-          {
-            step: 8,
-            segments: [
-              { text: "В публичных сетях — " },
-              { text: "VPN", emphasis: true },
-              { text: ", дома — надёжный " },
-              { text: "пароль", emphasis: true },
-            ],
-          },
-        ];
+      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
 
-        const state = {
-          mode: "AUTO",
-          isPlaying: false,
-          currentStep: 1,
-          speed: 1,
-          videoMode: false,
-          progress: 0,
-          controlsHidden: false,
-          settingsOpen: false,
-        };
+      <div class="keyboard-help" aria-label="Горячие клавиши">
+        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+        <span><kbd>→</kbd> Следующий шаг в STEP</span>
+        <span><kbd>R</kbd> Сброс</span>
+        <span><kbd>S</kbd> AUTO / STEP</span>
+        <span><kbd>V</kbd> Рамка 9:16</span>
+        <span><kbd>Esc</kbd> Закрыть настройки</span>
+      </div>
+    </section>
+  </div>
 
-        let canvas = null;
-        let ctx = null;
-        let canvasWrap = null;
-        let resizeObserver = null;
-        let rafId = null;
-        let lastFrameTime = 0;
-        let cssW = 0,
-          cssH = 0;
-        let dpr = 1;
+  <script>
+    const APP_CONFIG = {"steps":[{"heading":"Сеть","subtitle":"Сеть объединяет устройства для обмена данными и ресурсами.","detail":"LAN • WAN • Wi-Fi","icon":"network","nodes":["LAN","WAN","Wi-Fi"]},{"heading":"Оборудование","subtitle":"Коммутатор связывает устройства, маршрутизатор соединяет сети.","detail":"Роутер • switch • access point","icon":"network","nodes":["Роутер","Switch","Access Point"]},{"heading":"Адресация","subtitle":"IP-адрес помогает доставить данные нужному устройству.","detail":"IPv4 • IPv6 • MAC","icon":"network","nodes":["IPv4","IPv6","MAC"]},{"heading":"DNS","subtitle":"DNS преобразует доменное имя в IP-адрес сервера.","detail":"Домен • запрос • IP","icon":"network","nodes":["DNS","Домен","IP"]},{"heading":"Протоколы","subtitle":"TCP контролирует доставку, UDP передаёт пакеты без подтверждения.","detail":"Пакеты • TCP • UDP","icon":"network","nodes":["TCP","UDP","Пакеты"]},{"heading":"Маршрут","subtitle":"Маршрутизаторы направляют пакеты между разными сетями.","detail":"Узлы • маршрут • шлюз","icon":"network","nodes":["Маршрут","Узел","Сеть"]},{"heading":"Шифрование","subtitle":"HTTPS и TLS защищают обмен данными с веб-сервисом.","detail":"Сертификат • TLS • HTTPS","icon":"shield","nodes":["TLS","HTTPS","Сертификат"]},{"heading":"Диагностика","subtitle":"Диагностика проверяет адресацию, DNS и качество соединения.","detail":"Ping • маршрут • соединение","icon":"chart","nodes":["Ping","DNS","Wi-Fi"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+    (() => {
+  "use strict";
+  function roundedRect(ctx,x,y,w,h,r) {
+    const radius=Math.min(r,w/2,h/2);
+    ctx.beginPath();ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+  }
+  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
+    const words=String(text||"").split(/\s+/),lines=[];let line="";
+    for(const word of words){const test=line?line+" "+word:word;
+      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
+    if(line)lines.push(line);
+    const visible=lines.slice(0,maxLines);
+    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
+      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
+      visible[visible.length-1]=last+"…";}
+    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
+  }
+  function glyph(ctx,type,x,y,size,accent,soft) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
+    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
+    if(type==="database"){
+      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
+    }else if(type==="network"){
+      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
+      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }else if(type==="shield"||type==="check"){
+      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
+    }else if(type==="lock"){
+      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
+    }else if(type==="web"){
+      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
+      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
+    }else if(type==="code"){
+      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
+    }else if(type==="phone"){
+      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
+    }else if(type==="train"||type==="rail"){
+      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
+      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="game"){
+      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
+    }else if(type==="robot"){
+      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
+    }else if(type==="drone"){
+      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
+      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="mail"){
+      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
+    }else if(type==="eye"){
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function chip(ctx,x,y,w,h,label,palette){
+    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
+    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
+    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
+    ctx.fillText(value,x+w/2,y+h/2);
+  }
+  function draw(ctx,frame){
+    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
+    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
+    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
+    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
+    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
+    ctx.save();
+    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
+    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
+    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
+    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
+    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
+    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
+    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
+    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
+    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
+    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
+    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
+    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
+    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
+    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
+    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
+    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
+    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
+    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
+    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
+    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
+    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
+    ctx.restore();
+  }
+  window.AppScene={draw};
+})();
+    (() => {
+  "use strict";
 
-        const el = {};
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
 
-        const NODES = {
-          phone: { x: 120, y: 205 },
-          laptop: { x: 120, y: 445 },
-          switch: { x: 335, y: 325 },
-          router: { x: 515, y: 325 },
-          dns: { x: 700, y: 110 },
-          cloud: { x: 700, y: 325 },
-          server: { x: 885, y: 325 },
-        };
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton")
+  };
 
-        const LINKS = [
-          { from: "phone", to: "switch" },
-          { from: "laptop", to: "switch" },
-          { from: "switch", to: "router" },
-          { from: "router", to: "cloud" },
-          { from: "cloud", to: "server" },
-          { from: "router", to: "dns" },
-        ];
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
 
-        function clamp(v, a, b) {
-          return Math.max(a, Math.min(b, v));
-        }
-        function easeOutCubic(t) {
-          return 1 - Math.pow(1 - clamp(t, 0, 1), 3);
-        }
-        function smooth(t) {
-          return clamp(t, 0, 1);
-        }
-        function easeInOut(t) {
-          t = clamp(t, 0, 1);
-          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        }
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    return;
+  }
 
-        function initDom() {
-          el.viz = document.getElementById("viz");
-          el.canvasMount = document.getElementById("canvasMount");
-          el.vframe = document.getElementById("vframe");
-          el.vframeCanvas = document.getElementById("vframeCanvas");
-          el.vframeBottom = document.getElementById("vframeBottom");
-          el.sidebarSubs = document.getElementById("sidebarSubs");
-          el.sidebarControls = document.getElementById("sidebarControls");
-          el.footer = document.querySelector(".footer");
-          el.mobileSubs = document.getElementById("mobileSubs");
-          el.mobileControls = document.getElementById("mobileControls");
-          el.modalOverlay = document.getElementById("modalOverlay");
-          el.modal = document.getElementById("modal");
-          el.stepIndicator = document.getElementById("stepIndicator");
-          el.modeAutoBtn = document.getElementById("modeAutoBtn");
-          el.modeStepBtn = document.getElementById("modeStepBtn");
-          el.nextStepBtn = document.getElementById("nextStepBtn");
-          el.speedSegment = document.getElementById("speedSegment");
-          el.videoModeToggle = document.getElementById("videoModeToggle");
-          el.resetBtn = document.getElementById("resetBtn");
-          el.closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
+    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+    return;
+  }
 
-          if (!el.viz || !el.canvasMount || !el.modalOverlay)
-            throw new Error("dom-missing");
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
 
-          el.subtitle = buildSubtitleEl();
-          el.controls = buildControls();
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
 
-          el.sidebarSubs.appendChild(el.subtitle);
-          el.sidebarControls.appendChild(el.controls);
-          placeChrome();
-        }
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null
+  };
 
-        function isDesktop() {
-          return window.matchMedia("(min-width: 768px)").matches;
-        }
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
 
-        function placeChrome() {
-          const desktop = isDesktop();
-          document.body.classList.toggle("desktop", desktop);
-          if (!desktop) {
-            el.mobileSubs.appendChild(el.subtitle);
-            el.mobileControls.appendChild(el.controls);
-            el.footer.style.display = "";
-            if (!state.videoMode) {
-              el.footer.style.display = "flex";
-            }
-          } else {
-            el.sidebarSubs.appendChild(el.subtitle);
-            el.sidebarControls.appendChild(el.controls);
-            el.footer.style.display = "none";
-          }
-          if (state.videoMode) {
-            el.vframeBottom.appendChild(el.subtitle);
-            el.vframeBottom.appendChild(el.controls);
-          }
-        }
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
 
-        function buildSubtitleEl() {
-          const d = document.createElement("div");
-          d.className = "subtitle";
-          d.setAttribute("aria-live", "polite");
-          return d;
-        }
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-        function buildControls() {
-          const d = document.createElement("div");
-          d.className = "controls";
+    if (cssWidth <= 0 || cssHeight <= 0) return;
 
-          const play = document.createElement("button");
-          play.className = "btn btn--accent";
-          play.id = "playPauseBtn";
-          play.type = "button";
-          play.innerHTML =
-            '<svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
-          const gear = document.createElement("button");
-          gear.className = "btn";
-          gear.id = "settingsBtn";
-          gear.type = "button";
-          gear.setAttribute("aria-label", "Настройки");
-          gear.innerHTML =
-            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
 
-          d.appendChild(play);
-          d.appendChild(gear);
+    if (!sceneInitialized) return;
 
-          play.addEventListener("click", togglePlay);
-          gear.addEventListener("click", function () {
-            if (state.settingsOpen) closeSettings();
-            else openSettings();
-          });
-          el.playPauseBtn = play;
-          el.settingsBtn = gear;
-          return d;
-        }
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
 
-        function initCanvas() {
-          canvas = document.createElement("canvas");
-          canvasWrap = el.canvasMount;
-          canvasWrap.appendChild(canvas);
-          ctx = canvas.getContext("2d");
-          if (!ctx) throw new Error("canvas-context-missing");
-          resizeObserver = new ResizeObserver(resize);
-          resizeObserver.observe(canvasWrap.parentElement);
-          window.addEventListener("resize", resize);
-          resize();
-        }
+    drawFrame();
+  }
 
-        function resize() {
-          const host = canvas.parentElement ? canvas.parentElement : canvasWrap;
-          const hostRect = host.getBoundingClientRect();
-          cssW = Math.max(1, hostRect.width);
-          cssH = Math.max(1, hostRect.height);
-          dpr = window.devicePixelRatio || 1;
-          canvas.width = Math.round(cssW * dpr);
-          canvas.height = Math.round(cssH * dpr);
-          canvas.style.width = cssW + "px";
-          canvas.style.height = cssH + "px";
-          draw();
-        }
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
 
-        function sceneTransform() {
-          const scale = Math.min(cssW / SCENE_W, cssH / SCENE_H);
-          const ox = (cssW - SCENE_W * scale) / 2;
-          const oy = (cssH - SCENE_H * scale) / 2;
-          ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);
-          return scale;
-        }
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
 
-        function currentTransitionDur() {
-          return state.mode === "STEP" ? STEP_TRANSITION_MS : AUTO_STEP_MS;
-        }
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
 
-        function startAuto() {
-          state.mode = "AUTO";
-          state.isPlaying = true;
-          renderControls();
-        }
+    if (state.transition) {
+      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
 
-        function updateSubtitles(step) {
-          const data = SUBTITLES[step - 1];
-          if (!data) return;
-          el.subtitle.textContent = "";
-          const wrap = document.createElement("span");
-          wrap.style.display = "inline";
-          el.subtitle.appendChild(wrap);
-          data.segments.forEach(function (seg) {
-            if (seg.emphasis) {
-              const s = document.createElement("span");
-              s.className = "subtitle__keyword";
-              s.textContent = seg.text;
-              wrap.appendChild(s);
-            } else {
-              wrap.appendChild(document.createTextNode(seg.text));
-            }
-          });
-          el.subtitle.classList.remove("subtitle--animate");
-          void el.subtitle.offsetWidth;
-          el.subtitle.classList.add("subtitle--animate");
-        }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
 
-        function setCurrentStep(step, play) {
-          state.currentStep = clamp(step, 1, STEP_COUNT);
-          state.progress = 0;
-          if (state.mode === "STEP") {
-            state.isPlaying = !!play;
-          } else {
-            state.isPlaying = true;
-          }
-          updateSubtitles(state.currentStep);
-          renderControls();
-        }
+    drawTo(ctx, state.currentStep, 1);
+  }
 
-        function nextStep() {
-          if (state.mode !== "STEP") return;
-          if (state.isPlaying) return;
-          if (state.currentStep >= STEP_COUNT) return;
-          setCurrentStep(state.currentStep + 1, true);
-        }
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
 
-        function onStep() {
-          nextStep();
-        }
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
 
-        function togglePlay() {
-          if (state.mode === "STEP" && state.progress >= 1) return;
-          state.isPlaying = !state.isPlaying;
-          renderControls();
-        }
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
 
-        function setMode(mode) {
-          if (mode === state.mode) return;
-          state.mode = mode;
-          if (mode === "STEP") {
-            state.isPlaying = false;
-          } else {
-            state.isPlaying = true;
-            if (state.progress >= 1) {
-              state.progress = 0;
-              setCurrentStep(state.currentStep, true);
-            }
-          }
-          renderControls();
-        }
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
+        });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
 
-        function setSpeed(v) {
-          state.speed = v;
-          renderControls();
-        }
+    updateControls();
+  }
 
-        function toggleVideoMode() {
-          state.videoMode = !state.videoMode;
-          document.body.classList.toggle("frame-mode", state.videoMode);
-          if (state.videoMode) {
-            el.vframeCanvas.appendChild(canvas);
-            el.vframeBottom.appendChild(el.subtitle);
-            el.vframeBottom.appendChild(el.controls);
-            el.footer.style.display = "none";
-          } else {
-            canvasWrap = el.canvasMount;
-            el.canvasMount.appendChild(canvas);
-            placeChrome();
-            el.footer.style.display = isDesktop() ? "none" : "flex";
-          }
-          el.videoModeToggle.setAttribute(
-            "aria-checked",
-            state.videoMode ? "true" : "false",
-          );
-          resize();
-        }
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
 
-        function reset() {
-          state.mode = "AUTO";
-          state.isPlaying = true;
-          state.currentStep = 1;
-          state.progress = 0;
-          updateSubtitles(1);
-          renderControls();
-        }
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
 
-        function openSettings() {
-          state.settingsOpen = true;
-          el.modalOverlay.classList.remove("modal-overlay--closing");
-          el.modalOverlay.classList.add("modal-overlay--open");
-          renderControls();
-        }
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
 
-        function closeSettings() {
-          state.settingsOpen = false;
-          el.modalOverlay.classList.add("modal-overlay--closing");
-          const overlay = el.modalOverlay;
-          setTimeout(function () {
-            overlay.classList.remove(
-              "modal-overlay--open",
-              "modal-overlay--closing",
-            );
-          }, 180);
-          renderControls();
-        }
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
 
-        function handleInput(event) {
-          if (event.defaultPrevented) return;
-          const target = event.target;
-          if (
-            target &&
-            (target.tagName === "INPUT" ||
-              target.tagName === "TEXTAREA" ||
-              target.isContentEditable)
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+      }
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    ) return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
+      }
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
+      }
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
+      }
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
           )
-            return;
-          const key = event.key;
-          if (key === " " || key === "Spacebar") {
-            state.controlsHidden = !state.controlsHidden;
-            document.body.classList.toggle(
-              "controls-hidden",
-              state.controlsHidden,
-            );
-            event.preventDefault();
-            return;
-          }
-          if (key === "ArrowRight") {
-            if (state.mode === "STEP") {
-              onStep();
-              event.preventDefault();
-            }
-            return;
-          }
-          if (key === "r" || key === "R" || key === "к" || key === "К") {
-            reset();
-            return;
-          }
-          if (key === "s" || key === "S" || key === "ы" || key === "Ы") {
-            setMode(state.mode === "AUTO" ? "STEP" : "AUTO");
-            return;
-          }
-          if (key === "v" || key === "V" || key === "м" || key === "М") {
-            toggleVideoMode();
-            return;
-          }
-          if (key === "Escape") {
-            if (state.settingsOpen) closeSettings();
-            return;
-          }
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
+      }
+      return;
+    }
 
-        function update(dt) {
-          if (!state.isPlaying) return;
-          const dur = currentTransitionDur();
-          state.progress += (dt * state.speed) / dur;
-          if (state.mode === "AUTO") {
-            while (state.progress >= 1) {
-              state.progress -= 1;
-              const next =
-                state.currentStep >= STEP_COUNT ? 1 : state.currentStep + 1;
-              state.currentStep = next;
-              updateSubtitles(next);
-              renderControls();
-            }
-          } else {
-            if (state.progress >= 1) {
-              state.progress = 1;
-              state.isPlaying = false;
-              renderControls();
-            }
-          }
-        }
+    if (isInteractiveTarget(event.target)) return;
 
-        function draw() {
-          if (!ctx) return;
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          sceneTransform();
-          drawBackground();
-          const p = state.progress;
-          drawStep(state.currentStep, p);
-        }
+    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+      return;
+    }
 
-        function drawBackground() {
-          ctx.save();
-          ctx.fillStyle = "#0F0F13";
-          ctx.fillRect(-2000, -2000, 6000, 6000);
-          ctx.strokeStyle = "rgba(255,255,255,0.035)";
-          ctx.lineWidth = 1;
-          const grid = 46;
-          ctx.beginPath();
-          for (let x = 0; x <= SCENE_W; x += grid) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, SCENE_H);
-          }
-          for (let y = 0; y <= SCENE_H; y += grid) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(SCENE_W, y);
-          }
-          ctx.stroke();
-          const glow1 = ctx.createRadialGradient(280, 300, 20, 280, 300, 420);
-          glow1.addColorStop(0, "rgba(46,172,101,0.10)");
-          glow1.addColorStop(1, "rgba(46,172,101,0)");
-          ctx.fillStyle = glow1;
-          ctx.fillRect(0, 0, SCENE_W, SCENE_H);
-          const glow2 = ctx.createRadialGradient(760, 380, 20, 760, 380, 380);
-          glow2.addColorStop(0, "rgba(30,122,71,0.12)");
-          glow2.addColorStop(1, "rgba(30,122,71,0)");
-          ctx.fillStyle = glow2;
-          ctx.fillRect(0, 0, SCENE_W, SCENE_H);
-          ctx.restore();
-        }
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
 
-        function setGlow(color, blur) {
-          ctx.shadowColor = color;
-          ctx.shadowBlur = blur;
-        }
-        function clearGlow() {
-          ctx.shadowBlur = 0;
-          ctx.shadowColor = "transparent";
-        }
+    if (event.key === "ArrowRight") {
+      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+        event.preventDefault();
+        nextStep();
+      }
+      return;
+    }
 
-        function roundRect(x, y, w, h, r) {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-        }
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
 
-        function drawLink(a, b, alpha, width, color) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.strokeStyle = color || "rgba(255,255,255,0.25)";
-          ctx.lineWidth = width || 3;
-          ctx.setLineDash([7, 6]);
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-          ctx.restore();
-        }
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
 
-        function drawLinkAnimated(a, b, p, width) {
-          ctx.save();
-          ctx.strokeStyle = C.accent;
-          ctx.lineWidth = width || 3;
-          setGlow("rgba(46,172,101,0.8)", 12);
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(a.x + (b.x - a.x) * p, a.y + (b.y - a.y) * p);
-          ctx.stroke();
-          clearGlow();
-          ctx.restore();
-        }
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
+  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
 
-        function drawPacket(x, y, r, label) {
-          ctx.save();
-          ctx.fillStyle = C.accent;
-          setGlow("rgba(46,172,101,0.9)", 18);
-          ctx.beginPath();
-          ctx.arc(x, y, r || 8, 0, Math.PI * 2);
-          ctx.fill();
-          clearGlow();
-          if (label) {
-            ctx.fillStyle = C.text;
-            ctx.font = "700 13px " + "system-ui, sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(label, x, y - (r || 8) - 8);
-          }
-          ctx.restore();
-        }
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
 
-        function pill(x, y, text, opts) {
-          opts = opts || {};
-          ctx.save();
-          ctx.font = "700 15px system-ui, sans-serif";
-          const w = ctx.measureText(text).width + 22;
-          const h = 28;
-          ctx.globalAlpha = opts.alpha !== undefined ? opts.alpha : 1;
-          ctx.fillStyle = opts.bg || "rgba(26,26,32,0.92)";
-          ctx.strokeStyle = opts.border || "rgba(46,172,101,0.55)";
-          ctx.lineWidth = 1.4;
-          roundRect(x - w / 2, y - h / 2, w, h, 9);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = opts.color || C.text;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(text, x, y + 1);
-          ctx.restore();
-        }
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
 
-        function deviceBox(x, y, w, h, active, alpha) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = C.panel;
-          ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.18)";
-          ctx.lineWidth = active ? 2 : 1.4;
-          if (active) setGlow("rgba(46,172,101,0.55)", 16);
-          roundRect(x - w / 2, y - h / 2, w, h, 12);
-          ctx.fill();
-          ctx.stroke();
-          clearGlow();
-          ctx.restore();
-        }
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
+  }
 
-        function drawPhone(n, alpha, active) {
-          deviceBox(n.x, n.y, 52, 92, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = "rgba(255,255,255,0.10)";
-          roundRect(n.x - 19, n.y - 34, 38, 58, 6);
-          ctx.fill();
-          ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
-          ctx.beginPath();
-          ctx.arc(n.x, n.y + 36, 4, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.45)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(n.x - 8, n.y - 42);
-          ctx.lineTo(n.x + 8, n.y - 42);
-          ctx.stroke();
-          ctx.restore();
-        }
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
 
-        function drawLaptop(n, alpha, active) {
-          deviceBox(n.x, n.y, 78, 58, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = "rgba(255,255,255,0.10)";
-          roundRect(n.x - 30, n.y - 22, 60, 36, 5);
-          ctx.fill();
-          ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.4)";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(n.x - 36, n.y + 24);
-          ctx.lineTo(n.x + 36, n.y + 24);
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        function drawSwitchNode(n, alpha, active) {
-          deviceBox(n.x, n.y, 92, 50, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          for (let i = 0; i < 4; i++) {
-            ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
-            ctx.beginPath();
-            ctx.arc(n.x - 27 + i * 18, n.y, 4.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.restore();
-        }
-
-        function drawRouterNode(n, alpha, active, t) {
-          deviceBox(n.x, n.y, 92, 54, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.45)";
-          ctx.lineWidth = 2.4;
-          ctx.beginPath();
-          ctx.moveTo(n.x - 20, n.y - 26);
-          ctx.lineTo(n.x - 28, n.y - 48);
-          ctx.moveTo(n.x + 20, n.y - 26);
-          ctx.lineTo(n.x + 28, n.y - 48);
-          ctx.stroke();
-          const pulse = active ? 0.55 + 0.45 * Math.sin(t * 3) : 0.35;
-          ctx.strokeStyle = active
-            ? "rgba(46,172,101," + pulse + ")"
-            : "rgba(255,255,255,0.35)";
-          ctx.lineWidth = 2;
-          for (let i = 1; i <= 2; i++) {
-            ctx.beginPath();
-            ctx.arc(n.x, n.y - 6, i * 11, -Math.PI * 0.8, -Math.PI * 0.2);
-            ctx.stroke();
-          }
-          ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
-          ctx.beginPath();
-          ctx.arc(n.x, n.y + 6, 4, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-
-        function drawCloudNode(n, alpha, active, t) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          const r = 44;
-          ctx.fillStyle = C.panel;
-          ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.2)";
-          ctx.lineWidth = active ? 2 : 1.4;
-          if (active) setGlow("rgba(46,172,101,0.5)", 18);
-          ctx.beginPath();
-          ctx.arc(n.x - 30, n.y + 6, r * 0.55, 0, Math.PI * 2);
-          ctx.arc(n.x + 26, n.y + 6, r * 0.5, 0, Math.PI * 2);
-          ctx.arc(n.x - 2, n.y - 12, r * 0.62, 0, Math.PI * 2);
-          ctx.arc(n.x, n.y + 10, r * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fill();
-          ctx.stroke();
-          clearGlow();
-          const bob = Math.sin(t * 1.4) * 2;
-          ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.5)";
-          ctx.font = "800 15px system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText("ИНТЕРНЕТ", n.x, n.y + bob);
-          ctx.restore();
-        }
-
-        function drawServerNode(n, alpha, active, t) {
-          deviceBox(n.x, n.y, 62, 118, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          for (let i = 0; i < 3; i++) {
-            ctx.fillStyle = "rgba(255,255,255,0.08)";
-            roundRect(n.x - 22, n.y - 46 + i * 32, 44, 22, 5);
-            ctx.fill();
-            ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.35)";
-            const blink = active
-              ? Math.sin(t * 4 + i * 1.3) > 0
-                ? 1
-                : 0.3
-              : 0.4;
-            ctx.globalAlpha = alpha * blink;
-            ctx.beginPath();
-            ctx.arc(n.x + 12, n.y - 35 + i * 32, 3.4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
-            ctx.lineWidth = 1.4;
-            ctx.beginPath();
-            ctx.moveTo(n.x - 16, n.y - 35 + i * 32);
-            ctx.lineTo(n.x + 2, n.y - 35 + i * 32);
-            ctx.stroke();
-          }
-          ctx.restore();
-        }
-
-        function drawDnsNode(n, alpha, active) {
-          deviceBox(n.x, n.y, 86, 52, active, alpha);
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.6)";
-          ctx.font = "800 16px system-ui, sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("DNS", n.x, n.y + 1);
-          ctx.restore();
-        }
-
-        function posAlong(points, p) {
-          let total = 0;
-          const segs = [];
-          for (let i = 0; i < points.length - 1; i++) {
-            const dx = points[i + 1].x - points[i].x;
-            const dy = points[i + 1].y - points[i].y;
-            const len = Math.hypot(dx, dy);
-            segs.push(len);
-            total += len;
-          }
-          let target = clamp(p, 0, 1) * total;
-          for (let i = 0; i < segs.length; i++) {
-            if (target <= segs[i] || i === segs.length - 1) {
-              const f = segs[i] === 0 ? 0 : target / segs[i];
-              return {
-                x: points[i].x + (points[i + 1].x - points[i].x) * f,
-                y: points[i].y + (points[i + 1].y - points[i].y) * f,
-              };
-            }
-            target -= segs[i];
-          }
-          return points[points.length - 1];
-        }
-
-        function drawPath(points, p, width) {
-          let total = 0;
-          const segs = [];
-          for (let i = 0; i < points.length - 1; i++) {
-            const len = Math.hypot(
-              points[i + 1].x - points[i].x,
-              points[i + 1].y - points[i].y,
-            );
-            segs.push(len);
-            total += len;
-          }
-          const target = clamp(p, 0, 1) * total;
-          ctx.save();
-          ctx.strokeStyle = C.accent;
-          ctx.lineWidth = width || 3.4;
-          ctx.setLineDash([]);
-          setGlow("rgba(46,172,101,0.7)", 12);
-          ctx.beginPath();
-          ctx.moveTo(points[0].x, points[0].y);
-          let acc = 0;
-          for (let i = 0; i < segs.length; i++) {
-            if (target <= acc + segs[i]) {
-              const f = segs[i] === 0 ? 0 : (target - acc) / segs[i];
-              ctx.lineTo(
-                points[i].x + (points[i + 1].x - points[i].x) * f,
-                points[i].y + (points[i + 1].y - points[i].y) * f,
-              );
-              break;
-            }
-            ctx.lineTo(points[i + 1].x, points[i + 1].y);
-            acc += segs[i];
-          }
-          ctx.stroke();
-          clearGlow();
-          ctx.restore();
-        }
-
-        function drawTower(x, y, alpha) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.strokeStyle = "rgba(255,255,255,0.5)";
-          ctx.lineWidth = 2.4;
-          ctx.beginPath();
-          ctx.moveTo(x, y + 22);
-          ctx.lineTo(x - 10, y - 26);
-          ctx.moveTo(x, y + 22);
-          ctx.lineTo(x + 10, y - 26);
-          ctx.moveTo(x - 5, y + 4);
-          ctx.lineTo(x + 5, y + 4);
-          ctx.stroke();
-          ctx.fillStyle = C.accent;
-          ctx.beginPath();
-          ctx.arc(x, y - 30, 4.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "rgba(46,172,101,0.6)";
-          ctx.lineWidth = 2;
-          for (let i = 1; i <= 2; i++) {
-            ctx.beginPath();
-            ctx.arc(x, y - 30, i * 10 + 4, -Math.PI * 0.75, -Math.PI * 0.25);
-            ctx.stroke();
-          }
-          ctx.restore();
-        }
-
-        function drawLockIcon(x, y, s, alpha, open) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = C.accent;
-          setGlow("rgba(46,172,101,0.7)", 10);
-          roundRect(x - s / 2, y - s / 4, s, s * 0.75, 3);
-          ctx.fill();
-          clearGlow();
-          ctx.strokeStyle = C.accent;
-          ctx.lineWidth = 2.4;
-          ctx.beginPath();
-          if (open) {
-            ctx.arc(x, y - s / 4, s * 0.3, Math.PI, Math.PI * 1.6, false);
-          } else {
-            ctx.arc(x, y - s / 4, s * 0.3, Math.PI, 0, false);
-          }
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        function drawShieldIcon(x, y, s, alpha) {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = C.accent;
-          setGlow("rgba(46,172,101,0.7)", 14);
-          ctx.beginPath();
-          ctx.moveTo(x, y - s);
-          ctx.quadraticCurveTo(
-            x + s * 0.9,
-            y - s * 0.6,
-            x + s * 0.8,
-            y + s * 0.1,
-          );
-          ctx.quadraticCurveTo(x + s * 0.6, y + s * 0.8, x, y + s);
-          ctx.quadraticCurveTo(
-            x - s * 0.6,
-            y + s * 0.8,
-            x - s * 0.8,
-            y + s * 0.1,
-          );
-          ctx.quadraticCurveTo(x - s * 0.9, y - s * 0.6, x, y - s);
-          ctx.closePath();
-          ctx.fill();
-          clearGlow();
-          ctx.strokeStyle = "#0F0F13";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(x - s * 0.32, y);
-          ctx.lineTo(x - s * 0.05, y + s * 0.3);
-          ctx.lineTo(x + s * 0.4, y - s * 0.28);
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        function drawStep(step, p) {
-          const t = performance.now() / 1000;
-          const e = easeOutCubic(p);
-          const N = NODES;
-
-          const linkAlpha = step === 1 ? e : 1;
-          LINKS.forEach(function (l) {
-            const a = N[l.from],
-              b = N[l.to];
-            if (step === 1) {
-              const lp = clamp(p * 1.6, 0, 1);
-              drawLink(a, b, 0.25 * e);
-              if (lp > 0 && lp < 1) drawLinkAnimated(a, b, lp);
-              else drawLink(a, b, 0.5 * e, 3, "rgba(46,172,101,0.5)");
-            } else {
-              drawLink(a, b, 0.5);
-            }
-          });
-
-          const activeRouter =
-            step === 3 ||
-            step === 4 ||
-            step === 5 ||
-            step === 6 ||
-            step === 7 ||
-            step === 8;
-          drawPhone(N.phone, 1, step === 1 || step === 4 || step === 6);
-          drawLaptop(N.laptop, 1, step === 1 || step === 3);
-          drawSwitchNode(N.switch, 1, step === 1 || step === 3);
-          drawRouterNode(N.router, 1, activeRouter, t);
-          drawDnsNode(N.dns, 1, step === 5);
-          drawCloudNode(N.cloud, 1, step >= 2, t);
-          drawServerNode(N.server, 1, step === 6 || step === 7, t);
-
-          if (step === 1) {
-            const cycle = (p * 2) % 1;
-            const points = [N.phone, N.switch, N.laptop];
-            const q = cycle < 0.5 ? cycle * 2 : 2 - cycle * 2;
-            const pos = posAlong(points, easeInOut(q));
-            drawPacket(pos.x, pos.y, 7);
-            pill(SCENE_W / 2, 60, "Данные передаются между устройствами", {
-              alpha: e,
-            });
-          }
-
-          if (step === 2) {
-            drawTower(105, 90, e);
-            pill(235, 95, "Мобильная связь", {
-              alpha: clamp((p - 0.05) * 2.5, 0, 1),
-            });
-            pill(N.switch.x, 120, "LAN — локальная сеть", {
-              alpha: clamp((p - 0.2) * 2.5, 0, 1),
-            });
-            pill(N.cloud.x, 190, "WAN — глобальная сеть", {
-              alpha: clamp((p - 0.35) * 2.5, 0, 1),
-            });
-            ctx.save();
-            ctx.globalAlpha = clamp((p - 0.5) * 2.5, 0, 1);
-            ctx.strokeStyle = "rgba(46,172,101,0.85)";
-            ctx.lineWidth = 2.4;
-            for (let i = 1; i <= 3; i++) {
-              const r = i * 13 + 6;
-              const w = 0.55 + 0.45 * Math.sin(t * 2.5 + i);
-              ctx.strokeStyle =
-                "rgba(46,172,101," + w * clamp((p - 0.5) * 2.5, 0, 1) + ")";
-              ctx.beginPath();
-              ctx.arc(
-                N.phone.x,
-                N.phone.y - 52,
-                r,
-                -Math.PI * 0.85,
-                -Math.PI * 0.15,
-              );
-              ctx.stroke();
-            }
-            ctx.restore();
-            pill(430, 80, "Wi-Fi — без проводов", {
-              alpha: clamp((p - 0.55) * 2.5, 0, 1),
-            });
-          }
-
-          if (step === 3) {
-            pill(N.switch.x, N.switch.y + 52, "Коммутатор", { alpha: e });
-            pill(N.router.x, N.router.y + 56, "Маршрутизатор", {
-              alpha: clamp((p - 0.15) * 2.2, 0, 1),
-            });
-            pill(N.server.x, N.server.y + 86, "Сервер", {
-              alpha: clamp((p - 0.3) * 2.2, 0, 1),
-            });
-            ctx.save();
-            ctx.globalAlpha = clamp((p - 0.45) * 2.2, 0, 1);
-            ctx.strokeStyle = C.accent;
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]);
-            [N.phone, N.laptop].forEach(function (d) {
-              ctx.beginPath();
-              ctx.moveTo(d.x - 34, d.y + 20);
-              ctx.lineTo(d.x + 34, d.y + 20);
-              ctx.stroke();
-            });
-            ctx.restore();
-            pill(N.phone.x, N.phone.y + 80, "Сетевой адаптер", {
-              alpha: clamp((p - 0.55) * 2.2, 0, 1),
-            });
-            pill(N.laptop.x, N.laptop.y + 62, "Сетевой адаптер", {
-              alpha: clamp((p - 0.65) * 2.2, 0, 1),
-            });
-            const dir = clamp(((p - 0.25) % 0.5) / 0.5, 0, 1);
-            drawPath([N.router, N.cloud], dir, 3);
-          }
-
-          if (step === 4) {
-            pill(N.phone.x, N.phone.y - 78, "192.168.1.24", {
-              alpha: clamp((p - 0.05) * 2.2, 0, 1),
-            });
-            pill(N.laptop.x, N.laptop.y - 62, "192.168.1.31", {
-              alpha: clamp((p - 0.2) * 2.2, 0, 1),
-            });
-            pill(N.router.x, N.router.y - 78, "192.168.1.1", {
-              alpha: clamp((p - 0.35) * 2.2, 0, 1),
-            });
-            pill(N.server.x, N.server.y - 86, "203.0.113.40", {
-              alpha: clamp((p - 0.5) * 2.2, 0, 1),
-            });
-            pill(N.dns.x, N.dns.y - 58, "198.51.100.53", {
-              alpha: clamp((p - 0.65) * 2.2, 0, 1),
-            });
-            pill(SCENE_W / 2, 60, "IP-адрес — уникальный номер в сети", {
-              alpha: e,
-            });
-          }
-
-          if (step === 5) {
-            const q1 = clamp(p / 0.4, 0, 1);
-            const q2 = clamp((p - 0.45) / 0.45, 0, 1);
-            const pathToDns = [N.phone, N.switch, N.router, N.dns];
-            drawPath(pathToDns, easeInOut(q1), 3.4);
-            if (q1 > 0 && q1 < 1) {
-              const pos = posAlong(pathToDns, easeInOut(q1));
-              drawPacket(pos.x, pos.y, 8, "example.ru?");
-            }
-            if (p >= 0.42) {
-              pill(N.dns.x, N.dns.y + 58, "example.ru → 93.184.216.34", {
-                alpha: clamp((p - 0.42) * 3, 0, 1),
-              });
-            }
-            if (q2 > 0) {
-              drawPath(pathToDns.slice().reverse(), easeInOut(q2), 3.4);
-              const pos = posAlong(pathToDns.slice().reverse(), easeInOut(q2));
-              drawPacket(pos.x, pos.y, 8, "IP");
-            }
-          }
-
-          if (step === 6) {
-            const q = easeInOut(clamp(p / 0.8, 0, 1));
-            const path = [N.phone, N.switch, N.router, N.cloud, N.server];
-            drawPath(path, q, 3.4);
-            if (q > 0 && q < 1) {
-              const pos = posAlong(path, q);
-              drawPacket(pos.x, pos.y, 8, "HTTPS");
-            }
-            drawLockIcon(N.phone.x, N.phone.y - 62, 20, e, false);
-            drawLockIcon(
-              N.server.x,
-              N.server.y - 76,
-              20,
-              clamp((p - 0.3) * 2.5, 0, 1),
-              false,
-            );
-            pill(SCENE_W / 2, 60, "HTTPS шифрует данные сертификатом", {
-              alpha: e,
-            });
-          }
-
-          if (step === 7) {
-            const q1 = easeInOut(clamp(p / 0.5, 0, 1));
-            const q2 = easeInOut(clamp((p - 0.5) / 0.5, 0, 1));
-            const path = [N.phone, N.switch, N.router, N.cloud, N.server];
-            ctx.save();
-            ctx.globalAlpha = 0.25 + 0.3 * Math.sin(t * 2) * 0.5 + 0.15;
-            ctx.strokeStyle = "rgba(46,172,101,0.45)";
-            ctx.lineWidth = 12;
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            ctx.moveTo(path[0].x, path[0].y);
-            path.forEach(function (pt) {
-              ctx.lineTo(pt.x, pt.y);
-            });
-            ctx.stroke();
-            ctx.restore();
-            if (q2 < 1) {
-              drawPath(path, q1, 3.4);
-              const pos = posAlong(path, q1);
-              drawPacket(pos.x, pos.y, 8, "запрос");
-            }
-            if (p >= 0.5) {
-              drawPath(path.slice().reverse(), q2, 3.4);
-              const pos = posAlong(path.slice().reverse(), q2);
-              drawPacket(pos.x, pos.y, 8, "ответ");
-            }
-            pill(SCENE_W / 2, 60, "Путь: устройство → маршрутизатор → сервер", {
-              alpha: e,
-            });
-          }
-
-          if (step === 8) {
-            ctx.save();
-            ctx.globalAlpha = 0.8 * e;
-            ctx.strokeStyle = "rgba(46,172,101,0.6)";
-            ctx.lineWidth = 14;
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            ctx.moveTo(N.router.x, N.router.y);
-            ctx.lineTo(N.cloud.x, N.cloud.y);
-            ctx.lineTo(N.server.x, N.server.y);
-            ctx.stroke();
-            ctx.restore();
-            pill(640, 262, "VPN-туннель", {
-              alpha: clamp((p - 0.1) * 2.5, 0, 1),
-            });
-            drawShieldIcon(
-              N.phone.x,
-              N.phone.y - 72,
-              16,
-              clamp((p - 0.25) * 2.5, 0, 1),
-            );
-            drawLockIcon(
-              N.router.x,
-              N.router.y - 84,
-              18,
-              clamp((p - 0.4) * 2.5, 0, 1),
-              false,
-            );
-            pill(360, 170, "Публичная сеть: VPN", {
-              alpha: clamp((p - 0.55) * 2.5, 0, 1),
-            });
-            pill(700, 470, "Домашняя сеть: пароль WPA3", {
-              alpha: clamp((p - 0.7) * 2.5, 0, 1),
-            });
-            pill(
-              SCENE_W / 2,
-              60,
-              "Безопасное подключение защищает ваши данные",
-              { alpha: e },
-            );
-          }
-        }
-
-        function renderControls() {
-          const playIcon = el.playPauseBtn.querySelector("#playIcon");
-          const pauseIcon = el.playPauseBtn.querySelector("#pauseIcon");
-          if (playIcon && pauseIcon) {
-            const showPlay = !state.isPlaying;
-            playIcon.style.display = showPlay ? "" : "none";
-            pauseIcon.style.display = showPlay ? "none" : "";
-          }
-          el.playPauseBtn.setAttribute(
-            "aria-label",
-            state.isPlaying ? "Пауза" : "Воспроизведение",
-          );
-          el.playPauseBtn.disabled =
-            state.mode === "STEP" && state.progress >= 1 && !state.isPlaying;
-
-          el.modeAutoBtn.classList.toggle("active", state.mode === "AUTO");
-          el.modeStepBtn.classList.toggle("active", state.mode === "STEP");
-
-          el.stepIndicator.textContent =
-            "Шаг " + state.currentStep + " / " + STEP_COUNT;
-
-          el.nextStepBtn.disabled = !(
-            state.mode === "STEP" &&
-            !state.isPlaying &&
-            state.currentStep < STEP_COUNT
-          );
-
-          el.speedSegment.querySelectorAll("button").forEach(function (b) {
-            b.classList.toggle(
-              "active",
-              parseFloat(b.dataset.speed) === state.speed,
-            );
-          });
-
-          el.videoModeToggle.setAttribute(
-            "aria-checked",
-            state.videoMode ? "true" : "false",
-          );
-        }
-
-        function bindEvents() {
-          el.modeAutoBtn.addEventListener("click", function () {
-            setMode("AUTO");
-          });
-          el.modeStepBtn.addEventListener("click", function () {
-            setMode("STEP");
-          });
-          el.nextStepBtn.addEventListener("click", onStep);
-          el.resetBtn.addEventListener("click", reset);
-          el.closeSettingsBtn.addEventListener("click", closeSettings);
-          el.videoModeToggle.addEventListener("click", toggleVideoMode);
-          el.videoModeToggle.addEventListener("keydown", function (e) {
-            if (e.key === " " || e.key === "Enter") {
-              e.preventDefault();
-              toggleVideoMode();
-            }
-          });
-          el.speedSegment.querySelectorAll("button").forEach(function (b) {
-            b.addEventListener("click", function () {
-              setSpeed(parseFloat(b.dataset.speed));
-            });
-          });
-          el.modalOverlay.addEventListener("pointerdown", function (e) {
-            if (e.target === el.modalOverlay) closeSettings();
-          });
-          el.modal.addEventListener("pointerdown", function (e) {
-            e.stopPropagation();
-          });
-          document.addEventListener("keydown", handleInput);
-          window
-            .matchMedia("(min-width: 768px)")
-            .addEventListener("change", function () {
-              if (!state.videoMode) placeChrome();
-            });
-        }
-
-        function init() {
-          initDom();
-          initCanvas();
-          bindEvents();
-          updateSubtitles(1);
-          renderControls();
-          state.isPlaying = true;
-          setTimeout(function () {
-            lastFrameTime = performance.now();
-            rafId = requestAnimationFrame(loop);
-          }, 500);
-        }
-
-        function loop(now) {
-          const dt = clamp(now - lastFrameTime, 0, 50);
-          lastFrameTime = now;
-          update(dt);
-          draw();
-          rafId = requestAnimationFrame(loop);
-        }
-
-        try {
-          init();
-        } catch (err) {
-          console.error("Ошибка инициализации:", err);
-          const title = document.querySelector(".app__title");
-          if (title) {
-            const msg = document.createElement("p");
-            msg.textContent =
-              "Не удалось запустить визуализацию. Обновите страницу или откройте файл в другом браузере.";
-            msg.style.cssText = "color:#A0A0A0;padding:16px;font-size:15px;";
-            title.insertAdjacentElement("afterend", msg);
-          }
-        }
-      })();
-    </script>
-  </body>
+  window.addEventListener("pagehide", () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }, { once: true });
+})();
+  </script>
+</body>
 </html>

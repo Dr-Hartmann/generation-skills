@@ -1,2648 +1,1164 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>Веб-разработка</title>
-    <style>
-      :root {
-        --ui-bg: #0f0f13;
-        --ui-bg-gradient: #111118;
-        --ui-panel: #1a1a20;
-        --ui-panel-glass: rgba(26, 26, 32, 0.55);
-        --ui-modal-bg: rgba(26, 26, 32, 0.94);
-        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
-        --ui-text: #ffffff;
-        --ui-muted: #a0a0a0;
-        --ui-label: #cfcfcf;
-        --ui-accent: #2eac65;
-        --ui-accent-dark: #1e7a47;
-        --ui-accent-soft: rgba(46, 172, 101, 0.14);
-        --ui-accent-soft-hover: rgba(46, 172, 101, 0.26);
-        --ui-accent-border: rgba(46, 172, 101, 0.5);
-        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
-        --ui-accent-shadow-strong: rgba(46, 172, 101, 0.35);
-        --ui-accent-ambient-1: rgba(46, 172, 101, 0.34);
-        --ui-accent-ambient-2: rgba(30, 122, 71, 0.3);
-        --ui-accent-ambient-3: rgba(20, 80, 45, 0.38);
-        --ui-accent-halo: rgba(46, 172, 101, 0.14);
-        --ui-danger: #e5484d;
-        --ui-danger-hover-border: rgba(229, 72, 77, 0.6);
-        --ui-white-06: rgba(255, 255, 255, 0.06);
-        --ui-white-08: rgba(255, 255, 255, 0.08);
-        --ui-white-10: rgba(255, 255, 255, 0.1);
-        --ui-white-12: rgba(255, 255, 255, 0.12);
-        --ui-white-14: rgba(255, 255, 255, 0.14);
-        --ui-border-soft: rgba(255, 255, 255, 0.12);
-        --ui-border-faint: rgba(255, 255, 255, 0.08);
-        --ui-scrim-strong: rgba(0, 0, 0, 0.65);
-        --ui-surface-inset: rgba(0, 0, 0, 0.35);
-        --ui-shadow-text: rgba(0, 0, 0, 0.8);
-        --ui-ambient-blur: 90px;
-      }
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        height: 100dvh;
-      }
-      body {
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow: hidden;
-        color: var(--ui-text);
-        background: var(--ui-bg);
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        overscroll-behavior: none;
-      }
-      button {
-        font-family: inherit;
-        color: inherit;
-      }
-      #ambient {
-        position: fixed;
-        inset: -10%;
-        z-index: 0;
-        opacity: 0;
-        transition: opacity 0.5s;
-        pointer-events: none;
-      }
-      #ambient i {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(var(--ui-ambient-blur));
-      }
-      #ambient .b1 {
-        width: 46vmin;
-        height: 46vmin;
-        left: -6%;
-        top: 8%;
-        background: var(--ui-accent-ambient-1);
-        animation: drift 9s ease-in-out infinite alternate;
-      }
-      #ambient .b2 {
-        width: 40vmin;
-        height: 40vmin;
-        right: -4%;
-        top: 38%;
-        background: var(--ui-accent-ambient-2);
-        animation: drift 11s ease-in-out infinite alternate-reverse;
-      }
-      #ambient .b3 {
-        width: 52vmin;
-        height: 52vmin;
-        left: 16%;
-        bottom: -8%;
-        background: var(--ui-accent-ambient-3);
-        animation: drift 13s ease-in-out infinite alternate;
-      }
-      @keyframes drift {
-        from {
-          transform: translate(0, 0) scale(1);
-        }
-        to {
-          transform: translate(4vmin, -5vmin) scale(1.12);
-        }
-      }
-      body.v916 #ambient {
-        opacity: 1;
-      }
-      @media (max-width: 767.98px) {
-        #ambient {
-          inset: -10% calc(80px + env(safe-area-inset-right)) -10% -10%;
-          overflow: hidden;
-        }
-        #ambient .b2 {
-          right: 8%;
-        }
-      }
-      #modalWrap {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
-          max(16px, env(safe-area-inset-bottom, 0px));
-        background: var(--ui-modal-scrim);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-      #modalWrap.open {
-        display: flex;
-      }
-      #modalWrap.closing {
-        opacity: 0;
-        transition: opacity 0.18s;
-      }
-      #modalWrap.closing #modal {
-        animation: unpop 0.18s ease both;
-      }
-      #modal {
-        width: min(92vw, 380px);
-        max-height: 90vh;
-        max-height: 90dvh;
-        overflow: auto;
-        color: var(--ui-text);
-        background: var(--ui-modal-bg);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 20px;
-        padding: 20px;
-        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-        outline: none;
-      }
-      @keyframes pop {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      @keyframes unpop {
-        from {
-          opacity: 1;
-          transform: scale(1);
-        }
-        to {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-      }
-      #modal button {
-        font-family: inherit;
-        color: var(--ui-text);
-        cursor: pointer;
-      }
-      .modal-close {
-        display: grid;
-        place-items: center;
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        border-radius: 14px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-      }
-      .mhead {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-      .mhead h2 {
-        margin: 0;
-        font-size: 19px;
-        font-weight: 800;
-      }
-      .mstep {
-        color: var(--ui-muted);
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-      .seg {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .seg button {
-        flex: 1;
-        min-height: 44px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-        font: inherit;
-        font-size: 14px;
-        font-weight: 800;
-        transition:
-          background 0.2s,
-          box-shadow 0.2s;
-      }
-      .seg button.active {
-        background: linear-gradient(
-          135deg,
-          var(--ui-accent),
-          var(--ui-accent-dark)
-        );
-        border-color: transparent;
-        box-shadow: 0 4px 14px var(--ui-accent-shadow);
-      }
-      .seg button:not(.active):hover {
-        background: var(--ui-white-10);
-      }
-      .seg.speed-seg {
-        margin-bottom: 14px;
-      }
-      #mNext {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-accent-soft);
-        border: 1px solid var(--ui-accent-border);
-        font: inherit;
-        font-size: 15px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition:
-          background 0.2s,
-          opacity 0.2s;
-      }
-      #mNext:disabled {
-        opacity: 0.35;
-        cursor: not-allowed;
-      }
-      #mNext:not(:disabled):hover {
-        background: var(--ui-accent-soft-hover);
-      }
-      .mrow {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-      .mlabel {
-        flex: 1;
-        color: var(--ui-label);
-        font-size: 14px;
-        font-weight: 700;
-      }
-      .sw {
-        position: relative;
-        display: inline-block;
-        flex: 0 0 52px;
-        width: 52px;
-        height: 30px;
-      }
-      .sw input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-      }
-      .sw span {
-        position: absolute;
-        inset: 0;
-        background: var(--ui-white-12);
-        border-radius: 999px;
-        transition: background 0.25s;
-        pointer-events: none;
-      }
-      .sw span::before {
-        content: "";
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 3px;
-        background: var(--ui-text);
-        border-radius: 50%;
-        transition: transform 0.25s;
-      }
-      .sw input:checked + span {
-        background: var(--ui-accent);
-      }
-      .sw input:checked + span::before {
-        transform: translateX(22px);
-      }
-      .sw input:focus-visible + span {
-        outline: 2px solid var(--ui-text);
-        outline-offset: 3px;
-      }
-      #mReset {
-        width: 100%;
-        min-height: 46px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-white-14);
-        font: inherit;
-        font-size: 14px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition: border-color 0.2s;
-      }
-      #mReset:hover {
-        border-color: var(--ui-danger-hover-border);
-      }
-      .keys {
-        display: grid;
-        grid-template-columns: auto 1fr auto 1fr;
-        gap: 6px 10px;
-        align-items: center;
-        color: var(--ui-muted);
-        font-size: 12px;
-      }
-      .keys span {
-        justify-self: start;
-        padding: 2px 7px;
-        color: var(--ui-text);
-        background: var(--ui-white-08);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 6px;
-        font-weight: 800;
-      }
-      .keys i {
-        font-style: normal;
-      }
-      body.modal-open {
-        overflow: hidden;
-      }
-      button:focus-visible,
-      input:focus-visible {
-        outline: 2px solid var(--ui-accent);
-        outline-offset: 2px;
-      }
-      #app {
-        position: relative;
-        z-index: 1;
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        padding-top: calc(16px + env(safe-area-inset-top));
-        padding-right: calc(80px + env(safe-area-inset-right));
-        padding-bottom: calc(25vh + env(safe-area-inset-bottom));
-        padding-left: calc(16px + env(safe-area-inset-left));
-        gap: 12px;
-      }
-      #titleWrap {
-        flex: 0 0 auto;
-      }
-      #titleWrap h1 {
-        margin: 0;
-        font-size: clamp(22px, 2vw + 12px, 30px);
-        font-weight: 800;
-        line-height: 1.15;
-        letter-spacing: 0.2px;
-      }
-      #stage {
-        flex: 1 1 auto;
-        min-height: 0;
-        position: relative;
-      }
-      #canvasWrap {
-        position: absolute;
-        inset: 0;
-      }
-      #scene {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-      #frame {
-        position: absolute;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-      }
-      #frame.on {
-        display: flex;
-      }
-      #frameInner {
-        position: relative;
-        overflow: hidden;
-        border-radius: 22px;
-        border: 1px solid var(--ui-border-faint);
-        box-shadow: 0 0 70px var(--ui-accent-halo);
-        background: var(--ui-bg);
-      }
-      #frameOverlay {
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        z-index: 2;
-      }
-      #framePanel {
-        display: flex;
-        justify-content: center;
-      }
-      .slot {
-        min-height: 0;
-      }
-      .slot:empty {
-        display: none;
-      }
-      #subSlotMobile {
-        display: flex;
-      }
-      #panelSlotMobile {
-        display: flex;
-        margin-top: 12px;
-      }
-      .subtitle {
-        box-sizing: border-box;
-        width: 100%;
-        min-height: 3.4em;
-        background: rgba(0, 0, 0, 0.5);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        border: 1px solid var(--ui-border-faint);
-        border-radius: 14px;
-        padding: 10px 14px;
-        font-size: clamp(16px, 4.5vw, 22px);
-        line-height: 1.35;
-        font-weight: 700;
-        color: var(--ui-text);
-        display: flex;
-        align-items: center;
-      }
-      .subtitle__inner {
-        display: block;
-        width: 100%;
-      }
-      .subtitle__keyword {
-        color: var(--ui-accent);
-        font-weight: 800;
-      }
-      .subtitle.show {
-        animation: subIn 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-      }
-      @keyframes subIn {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      #panel {
-        display: flex;
-        gap: 10px;
-        padding: 8px;
-        border-radius: 999px;
-        background: var(--ui-panel-glass);
-        border: 1px solid var(--ui-border-faint);
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-        width: max-content;
-        transition:
-          opacity 0.25s,
-          visibility 0.25s;
-      }
-      .pbtn {
-        box-sizing: border-box;
-        width: 48px;
-        height: 48px;
-        display: grid;
-        place-items: center;
-        border-radius: 999px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-faint);
-        color: var(--ui-text);
-        cursor: pointer;
-        padding: 0;
-        transition:
-          background 0.2s,
-          transform 0.1s;
-        touch-action: manipulation;
-      }
-      .pbtn:hover {
-        background: var(--ui-accent-soft);
-      }
-      .pbtn:active {
-        transform: scale(0.95);
-      }
-      .pbtn svg {
-        width: 22px;
-        height: 22px;
-        display: block;
-      }
-      body.controls-hidden #panel {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      #sidebar {
-        display: none;
-      }
-      #fatal {
-        position: fixed;
-        inset: 0;
-        z-index: 60;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 24px;
-        background: var(--ui-bg);
-        color: var(--ui-text);
-        font-weight: 700;
-      }
-      #fatal.on {
-        display: flex;
-      }
-      @media (min-width: 768px) {
-        #app {
-          flex-direction: row;
-          padding-top: calc(16px + env(safe-area-inset-top));
-          padding-right: calc(16px + env(safe-area-inset-right));
-          padding-bottom: calc(16px + env(safe-area-inset-bottom));
-          padding-left: calc(16px + env(safe-area-inset-left));
-          gap: 16px;
-        }
-        #sidebar {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          min-height: 0;
-          width: clamp(320px, 30vw, 380px);
-          flex: 0 0 clamp(320px, 30vw, 380px);
-        }
-        #subSlotMobile,
-        #panelSlotMobile {
-          display: none;
-        }
-        #subSlotDesk {
-          display: flex;
-        }
-        #panelSlotDesk {
-          display: flex;
-          margin-top: auto;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #ambient .b1,
-        #ambient .b2,
-        #ambient .b3 {
-          animation: none;
-        }
-        #modal {
-          animation: none;
-        }
-        .subtitle.show {
-          animation: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="ambient" aria-hidden="true">
-      <i class="b1"></i><i class="b2"></i><i class="b3"></i>
-    </div>
-    <div id="app">
-      <header id="titleWrap"><h1>Веб-разработка</h1></header>
-      <div id="stage">
-        <div id="canvasWrap">
-          <canvas id="scene"></canvas>
-          <div id="frame">
-            <div id="frameInner">
-              <div id="frameOverlay">
-                <div id="framePanel" class="slot"></div>
-              </div>
-            </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F13">
+  <meta name="description" content="Основы создания сайтов и веб-приложений: браузер, HTML, CSS, JavaScript, API, тестирование и публикация.">
+  <meta name="color-scheme" content="dark">
+  <title>Веб-разработка</title>
+  <style>
+:root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app-root" id="appRoot">
+    <header class="app-header">
+      <h1 id="appTitle">Веб-разработка</h1>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" id="stage" aria-label="Область визуализации">
+        <div class="visual-frame" id="visualFrame">
+          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
+
+          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
+
+          <div class="control-bar" id="controlBar">
+            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
+              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </div>
-      </div>
-      <div id="subSlotMobile" class="slot"></div>
-      <div id="panelSlotMobile" class="slot"></div>
-      <aside id="sidebar">
-        <div id="subSlotDesk" class="slot"></div>
-        <div id="panelSlotDesk" class="slot"></div>
-      </aside>
-    </div>
-    <div id="subs" class="subtitle" role="status" aria-live="polite"></div>
-    <div id="panel">
-      <button id="btnPlay" class="pbtn" type="button" aria-label="Пауза">
-        <svg id="icPause" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor" />
-        </svg>
-        <svg
-          id="icPlay"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          style="display: none"
-        >
-          <path
-            d="M8 5.3v13.4c0 .4.45.65.8.42l10.3-6.7a.5.5 0 0 0 0-.84L8.8 4.88a.5.5 0 0 0-.8.42z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
-      <button
-        id="btnGear"
-        class="pbtn js-gear"
-        type="button"
-        aria-label="Настройки"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M19.14 12.94a7.07 7.07 0 0 0 .06-.94 7.07 7.07 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.75 8.84a.5.5 0 0 0 .12.64L4.9 11.06a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.09.48 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
-    </div>
-    <div id="modalWrap" aria-hidden="true">
-      <section
-        id="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-        tabindex="-1"
-      >
-        <header class="mhead">
-          <h2 id="modalTitle">Настройки</h2>
-          <button
-            class="modal-close"
-            id="mClose"
-            type="button"
-            data-modal-close
-            aria-label="Закрыть"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path
-                d="M6 6l12 12M18 6L6 18"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-        </header>
-        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
-        <div class="seg" role="group" aria-label="Режим воспроизведения">
-          <button
-            id="mAuto"
-            class="active"
-            type="button"
-            data-mode="auto"
-            aria-pressed="true"
-          >
-            AUTO
-          </button>
-          <button
-            id="mStepBtn"
-            type="button"
-            data-mode="step"
-            aria-pressed="false"
-          >
-            STEP
-          </button>
-        </div>
-        <button id="mNext" type="button" data-modal-action="next-step" disabled>
-          Следующий шаг ▶
-        </button>
-        <div class="seg speed-seg" role="group" aria-label="Скорость">
-          <button type="button" data-speed="0.5" aria-pressed="false">
-            0.5×
-          </button>
-          <button
-            type="button"
-            data-speed="1"
-            class="active"
-            aria-pressed="true"
-          >
-            1×
-          </button>
-          <button type="button" data-speed="2" aria-pressed="false">2×</button>
-        </div>
-        <div class="mrow">
-          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
-          <label class="sw" aria-labelledby="mNineLabel">
-            <input type="checkbox" id="mNine" data-modal-toggle="video-mode" />
-            <span aria-hidden="true"></span>
-          </label>
-        </div>
-        <button id="mReset" type="button" data-modal-action="reset">
-          Reset
-        </button>
-        <div class="keys" aria-label="Горячие клавиши">
-          <span>Space</span><i>скрыть панель</i> <span>→</span
-          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
-          ><i>AUTO/STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
-          ><i>закрыть</i>
-        </div>
       </section>
-    </div>
-    <div id="fatal">
-      Не удалось запустить визуализацию. Откройте файл в современном браузере с
-      поддержкой Canvas.
-    </div>
-    <script>
-      (function (global) {
-        "use strict";
-
-        function initSettingsModal(options) {
-          const config = Object.assign(
-            {
-              overlaySelector: "#modalWrap",
-              dialogSelector: "#modal",
-              openSelector: ".js-gear",
-              closeSelector: "[data-modal-close]",
-            },
-            options || {},
-          );
-
-          const overlay = document.querySelector(config.overlaySelector);
-          if (!overlay)
-            throw new Error(
-              "Settings modal overlay not found: " + config.overlaySelector,
-            );
-
-          const dialog =
-            overlay.querySelector(config.dialogSelector) ||
-            overlay.querySelector('[role="dialog"]');
-          if (!dialog) throw new Error("Settings modal dialog not found.");
-
-          const openers = Array.from(
-            document.querySelectorAll(config.openSelector),
-          );
-          const closers = Array.from(
-            overlay.querySelectorAll(config.closeSelector),
-          );
-          let previouslyFocused = null;
-          let closeTimer = null;
-
-          function open() {
-            if (
-              overlay.classList.contains("open") &&
-              !overlay.classList.contains("closing")
-            )
-              return;
-            if (closeTimer) {
-              clearTimeout(closeTimer);
-              closeTimer = null;
-              overlay.classList.remove("closing");
-            }
-            previouslyFocused = document.activeElement;
-            overlay.classList.add("open");
-            overlay.classList.remove("closing");
-            overlay.setAttribute("aria-hidden", "false");
-            document.body.classList.add("modal-open");
-            dialog.focus();
-          }
-
-          function close() {
-            if (
-              !overlay.classList.contains("open") ||
-              overlay.classList.contains("closing")
-            )
-              return;
-            overlay.classList.add("closing");
-            closeTimer = setTimeout(function () {
-              overlay.classList.remove("open", "closing");
-              overlay.setAttribute("aria-hidden", "true");
-              document.body.classList.remove("modal-open");
-              if (
-                previouslyFocused &&
-                typeof previouslyFocused.focus === "function"
-              ) {
-                previouslyFocused.focus();
-              }
-              closeTimer = null;
-            }, 180);
-          }
-
-          function toggle() {
-            if (
-              overlay.classList.contains("open") &&
-              !overlay.classList.contains("closing")
-            )
-              close();
-            else open();
-          }
-
-          openers.forEach(function (button) {
-            button.addEventListener("click", toggle);
-          });
-          closers.forEach(function (button) {
-            button.addEventListener("click", close);
-          });
-
-          overlay.addEventListener("click", function (event) {
-            if (event.target === overlay) close();
-          });
-
-          document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape" && overlay.classList.contains("open")) {
-              close();
-            }
-          });
-
-          overlay.querySelectorAll("[data-mode]").forEach(function (button) {
-            button.addEventListener("click", function () {
-              const mode = button.dataset.mode;
-              overlay.querySelectorAll("[data-mode]").forEach(function (item) {
-                const active = item === button;
-                item.classList.toggle("active", active);
-                item.setAttribute("aria-pressed", String(active));
-              });
-              const next = overlay.querySelector(
-                '[data-modal-action="next-step"]',
-              );
-              if (next) next.disabled = mode !== "step";
-              overlay.dispatchEvent(
-                new CustomEvent("settings:mode", { detail: { mode: mode } }),
-              );
-            });
-          });
-
-          overlay
-            .querySelectorAll('[data-modal-action="next-step"]')
-            .forEach(function (button) {
-              button.addEventListener("click", function () {
-                overlay.dispatchEvent(new CustomEvent("settings:next-step"));
-              });
-            });
-
-          overlay.querySelectorAll("[data-speed]").forEach(function (button) {
-            button.addEventListener("click", function () {
-              const value = Number(button.dataset.speed);
-              overlay.querySelectorAll("[data-speed]").forEach(function (item) {
-                const active = item === button;
-                item.classList.toggle("active", active);
-                item.setAttribute("aria-pressed", String(active));
-              });
-              overlay.dispatchEvent(
-                new CustomEvent("settings:speed", { detail: { value: value } }),
-              );
-            });
-          });
-
-          const videoMode = overlay.querySelector(
-            '[data-modal-toggle="video-mode"]',
-          );
-          if (videoMode) {
-            videoMode.addEventListener("change", function () {
-              overlay.dispatchEvent(
-                new CustomEvent("settings:video-mode", {
-                  detail: { enabled: videoMode.checked },
-                }),
-              );
-            });
-          }
-
-          overlay
-            .querySelectorAll('[data-modal-action="reset"]')
-            .forEach(function (button) {
-              button.addEventListener("click", function () {
-                overlay.dispatchEvent(new CustomEvent("settings:reset"));
-              });
-            });
-
-          return {
-            open: open,
-            close: close,
-            toggle: toggle,
-            setStepText: function (text) {
-              const target = overlay.querySelector("#mStepTxt");
-              if (target) target.textContent = text;
-            },
-          };
-        }
-
-        global.SettingsModal = { init: initSettingsModal };
-      })(window);
-    </script>
-    <script>
-      (function () {
-        "use strict";
-
-        const SUBTITLES = [
-          {
-            step: 1,
-            segments: [
-              { text: "Браузер отправляет серверу " },
-              { text: "HTTP-запрос", emphasis: true },
-              { text: " по адресу сайта" },
-            ],
-          },
-          {
-            step: 2,
-            segments: [
-              { text: "Сервер возвращает " },
-              { text: "HTML", emphasis: true },
-              { text: " — структуру и содержимое страницы" },
-            ],
-          },
-          {
-            step: 3,
-            segments: [
-              { text: "CSS", emphasis: true },
-              {
-                text: " добавляет оформление: цвета, шрифты и расположение блоков",
-              },
-            ],
-          },
-          {
-            step: 4,
-            segments: [
-              { text: "JavaScript", emphasis: true },
-              {
-                text: " оживляет страницу и реагирует на действия пользователя",
-              },
-            ],
-          },
-          {
-            step: 5,
-            segments: [
-              { text: "DOM", emphasis: true },
-              { text: " связывает код и элементы: дерево объекта документа" },
-            ],
-          },
-          {
-            step: 6,
-            segments: [
-              { text: "Через " },
-              { text: "API", emphasis: true },
-              { text: " приложение обменивается данными в формате " },
-              { text: "JSON", emphasis: true },
-            ],
-          },
-          {
-            step: 7,
-            segments: [
-              { text: "Адаптивная вёрстка", emphasis: true },
-              { text: " подстраивает сайт под любые устройства" },
-            ],
-          },
-          {
-            step: 8,
-            segments: [
-              {
-                text: "Готовый проект публикуют: хостинг, домен и защищённый ",
-              },
-              { text: "HTTPS", emphasis: true },
-            ],
-          },
-        ];
-
-        const STEP_COUNT = SUBTITLES.length;
-        const STEP_DUR = 5.6;
-        const ENTER_DUR = 1.1;
-        const FLIGHT_START = 0.9;
-        const LOOP_BY_STEP = [0, 2.0, 2.2, 2.2, 2.2, 1.0, 3.0, 1.0, 1.0];
-        const FREEZE_AT = [0, 2.9, 3.1, 3.1, 3.1, 1.9, 3.9, 1.7, 1.9];
-        const TAU = Math.PI * 2;
-
-        const state = {
-          mode: "auto",
-          playing: false,
-          started: false,
-          step: 1,
-          speed: 1,
-          video: false,
-          stepT: 0,
-          animTime: 0,
-          controlsHidden: false,
-          phase: "idle",
-        };
-
-        const els = {};
-        let ctx = null;
-        let cssW = 1;
-        let cssH = 1;
-        let mqDesk = null;
-        let ro = null;
-        let settings = null;
-        let sc = null;
-        let particles = [];
-        let lastTs = null;
-
-        const clamp = function (v, a, b) {
-          return Math.max(a, Math.min(b, v));
-        };
-        const clamp01 = function (v) {
-          return clamp(v, 0, 1);
-        };
-        const lerp = function (a, b, t) {
-          return a + (b - a) * t;
-        };
-        const seg = function (t, a, b) {
-          return clamp01((t - a) / (b - a));
-        };
-        const easeOutCubic = function (t) {
-          const u = 1 - t;
-          return 1 - u * u * u;
-        };
-        const easeInOut = function (t) {
-          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        };
-        const easeOutBack = function (t) {
-          const c1 = 1.70158;
-          const c3 = c1 + 1;
-          return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-        };
-
-        function rr(c, x, y, w, h, r) {
-          r = Math.min(r, w / 2, h / 2);
-          c.beginPath();
-          c.moveTo(x + r, y);
-          c.arcTo(x + w, y, x + w, y + h, r);
-          c.arcTo(x + w, y + h, x, y + h, r);
-          c.arcTo(x, y + h, x, y, r);
-          c.arcTo(x, y, x + w, y, r);
-          c.closePath();
-        }
-
-        function qbez(p0, p1, p2, t) {
-          const u = 1 - t;
-          return {
-            x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
-            y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
-          };
-        }
-
-        function fnt(w, s) {
-          return (
-            w +
-            " " +
-            s +
-            'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
-          );
-        }
-        function accentA(a) {
-          return "rgba(46,172,101," + a + ")";
-        }
-        function darkA(a) {
-          return "rgba(30,122,71," + a + ")";
-        }
-        function whiteA(a) {
-          return "rgba(255,255,255," + a + ")";
-        }
-        function mutedA(a) {
-          return "rgba(160,160,160," + a + ")";
-        }
-
-        function initParticles() {
-          particles = [];
-          for (let i = 0; i < 26; i++) {
-            particles.push({
-              u: Math.random(),
-              v: Math.random(),
-              r: 0.8 + Math.random() * 1.6,
-              a: 0.05 + Math.random() * 0.09,
-              ph: Math.random() * TAU,
-              sp: 0.4 + Math.random() * 0.8,
-              gr: Math.random() < 0.5,
-            });
-          }
-        }
-
-        function computeScene() {
-          const W = cssW;
-          const H = cssH;
-          const portrait = H > W;
-          const S = Math.min(W, H);
-          const o = { W: W, H: H, S: S, portrait: portrait };
-          const reserve = state.video && portrait ? 200 : 0;
-          o.reserve = reserve;
-
-          let bw, bh;
-          if (!portrait) {
-            bw = clamp(W * 0.27, 230, 430);
-            bh = bw * 0.66;
-          } else {
-            bw = clamp(W * 0.6, 150, 380);
-            bh = bw * 0.74;
-          }
-          o.client = {
-            w: bw,
-            h: bh,
-            x: portrait ? (W - bw) / 2 : W * 0.055,
-            y: portrait ? Math.max(S * 0.06, 14) : (H - bh) / 2,
-          };
-
-          const sw = portrait
-            ? clamp(W * 0.34, 80, 140)
-            : clamp(W * 0.105, 110, 190);
-          const sh = sw * 1.28;
-          o.server = {
-            w: sw,
-            h: sh,
-            x: portrait ? (W - sw) / 2 : W * 0.94 - sw,
-            y: portrait ? H - reserve - sh - S * 0.06 : (H - sh) / 2,
-          };
-
-          if (!portrait) {
-            o.path = {
-              p0: { x: o.client.x + o.client.w, y: H / 2 },
-              p2: { x: o.server.x, y: H / 2 },
-            };
-            o.path.p1 = {
-              x: (o.path.p0.x + o.path.p2.x) / 2,
-              y: H / 2 - S * 0.05,
-            };
-          } else {
-            o.path = {
-              p0: { x: W / 2, y: o.client.y + o.client.h },
-              p2: { x: W / 2, y: o.server.y },
-            };
-            o.path.p1 = {
-              x: W / 2 + S * 0.055,
-              y: (o.path.p0.y + o.path.p2.y) / 2,
-            };
-          }
-
-          const tw = portrait
-            ? clamp(W * 0.5, 140, 240)
-            : clamp(W * 0.22, 240, 330);
-          const tfs = portrait
-            ? clamp(8.5, tw * 0.058, 12)
-            : clamp(8.5, tw * 0.058, 12.5);
-          const th = (tfs + 10) * 3 + 42;
-          o.tree = {
-            w: tw,
-            h: th,
-            fs: tfs,
-            x: portrait ? Math.max(S * 0.04, 8) : o.client.x + S * 0.01,
-            y: portrait
-              ? (o.path.p0.y + o.path.p2.y) / 2 - th / 2
-              : o.client.y + o.client.h + S * 0.055,
-          };
-
-          const dw = portrait
-            ? clamp(S * 0.19, 46, 74)
-            : clamp(S * 0.085, 56, 92);
-          o.db = {
-            w: dw,
-            h: dw * 1.12,
-            x: portrait
-              ? o.server.x + o.server.w + S * 0.028
-              : o.server.x + o.server.w / 2 - dw / 2,
-            y: portrait
-              ? o.server.y + o.server.h * 0.12
-              : o.server.y + o.server.h + S * 0.05,
-          };
-
-          const lapW = portrait ? S * 0.19 : S * 0.155;
-          const tabW = portrait ? S * 0.12 : S * 0.1;
-          const phW = portrait ? S * 0.07 : S * 0.06;
-          const maxH = Math.max(lapW * 0.62, tabW * 1.3, phW * 1.85);
-          o.dev = {
-            lapW: lapW,
-            tabW: tabW,
-            phW: phW,
-            gap: S * 0.032,
-            cx: portrait ? W / 2 : (o.path.p0.x + o.path.p2.x) / 2,
-            y7: portrait
-              ? Math.max(
-                  (o.path.p0.y + o.path.p2.y) / 2,
-                  o.client.y + o.client.h + maxH / 2 + 6,
-                )
-              : H * 0.78,
-            y8: portrait
-              ? o.client.y + o.client.h + maxH / 2 + S * 0.02
-              : H * 0.78,
-          };
-
-          const gm = qbez(o.path.p0, o.path.p1, o.path.p2, 0.5);
-          o.globe = {
-            x: gm.x,
-            y: gm.y,
-            r: S * 0.055,
-            rx: portrait ? S * 0.3 : S * 0.2,
-            ry: portrait ? S * 0.1 : S * 0.115,
-          };
-
-          o.labelFs = clamp(9, S * 0.024, 14);
-          o.pillFs = clamp(9, S * 0.026, 14);
-
-          o.sparks = [
-            { u: 0.18, v: 0.24, ph: 0.5, s: 0.9 },
-            { u: 0.82, v: 0.3, ph: 1.4, s: 1.1 },
-            { u: 0.7, v: 0.14, ph: 2.3, s: 0.8 },
-            { u: 0.3, v: 0.78, ph: 3.1, s: 1.0 },
-            { u: 0.88, v: 0.66, ph: 4.0, s: 0.9 },
-            { u: 0.14, v: 0.55, ph: 4.8, s: 0.8 },
-            { u: 0.55, v: 0.88, ph: 5.6, s: 1.0 },
-            { u: 0.44, v: 0.1, ph: 6.4, s: 0.85 },
-          ];
-
-          sc = o;
-        }
-
-        function features() {
-          const st = state.step;
-          const e = easeOutCubic(clamp01(state.stepT / ENTER_DUR));
-          return {
-            req: st === 1 ? e : st > 1 ? 1 : 0,
-            html: st === 2 ? e : st > 2 ? 1 : 0,
-            css: st === 3 ? e : st > 3 ? 1 : 0,
-            js: st === 4 ? e : st > 4 ? 1 : 0,
-            dom:
-              st === 5
-                ? e
-                : st === 6
-                  ? 1 - easeOutCubic(clamp01(state.stepT / 0.45))
-                  : 0,
-            api: st === 6 ? e : st > 6 ? 1 : 0,
-            dev: st === 7 ? e : st > 7 ? 1 : 0,
-            pub: st === 8 ? e : 0,
-          };
-        }
-
-        function drawParticles(c, t) {
-          for (let i = 0; i < particles.length; i++) {
-            const p = particles[i];
-            const x = (p.u + Math.sin(t * 0.25 * p.sp + p.ph) * 0.015) * sc.W;
-            const y = (p.v + Math.cos(t * 0.2 * p.sp + p.ph) * 0.02) * sc.H;
-            const a = p.a * (0.6 + 0.4 * Math.sin(t * 0.8 + p.ph));
-            c.beginPath();
-            c.arc(x, y, p.r, 0, TAU);
-            c.fillStyle = p.gr ? accentA(a) : whiteA(a);
-            c.fill();
-          }
-        }
-
-        function drawPath(c, f, t) {
-          if (f.req <= 0) return;
-          c.save();
-          c.globalAlpha = f.req;
-          c.strokeStyle = whiteA(0.16);
-          c.lineWidth = Math.max(1.2, sc.S * 0.0025);
-          c.setLineDash([6, 8]);
-          c.lineDashOffset = -(t * 22) % 14;
-          c.beginPath();
-          c.moveTo(sc.path.p0.x, sc.path.p0.y);
-          c.quadraticCurveTo(
-            sc.path.p1.x,
-            sc.path.p1.y,
-            sc.path.p2.x,
-            sc.path.p2.y,
-          );
-          c.stroke();
-          c.restore();
-        }
-
-        function drawLabel(c, text, x, y, size) {
-          c.save();
-          c.font = fnt("700", size);
-          c.textAlign = "center";
-          c.textBaseline = "top";
-          c.fillStyle = mutedA(0.9);
-          c.fillText(text, x, y);
-          c.restore();
-        }
-
-        function drawServer(c, f, t) {
-          const s = sc.server;
-          c.save();
-          c.shadowColor = accentA(0.2 * Math.max(f.req, 0.3));
-          c.shadowBlur = sc.S * 0.02;
-          rr(c, s.x, s.y, s.w, s.h, s.w * 0.12);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = whiteA(0.14);
-          c.lineWidth = 1;
-          c.stroke();
-
-          const pad = s.w * 0.1;
-          const gap = s.h * 0.045;
-          const slotH = (s.h - pad * 2 - gap * 2) / 3;
-          let flash = 0;
-          if (state.step === 1) {
-            const ph = ((((state.stepT - FLIGHT_START) % 2) + 2) % 2) / 2;
-            flash = ph > 0.72 ? (ph - 0.72) / 0.28 : 0;
-          } else if (state.step >= 2 && state.step <= 4) {
-            const ph =
-              ((((state.stepT - FLIGHT_START) % 2.2) + 2.2) % 2.2) / 2.2;
-            flash = ph < 0.15 ? 1 - ph / 0.15 : 0;
-          }
-          for (let i = 0; i < 3; i++) {
-            const sy = s.y + pad + i * (slotH + gap);
-            rr(c, s.x + pad, sy, s.w - pad * 2, slotH, slotH * 0.22);
-            c.fillStyle = "rgba(0,0,0,0.35)";
-            c.fill();
-            const ledR = Math.max(1.6, slotH * 0.1);
-            const base =
-              0.22 + 0.45 * (0.5 + 0.5 * Math.sin(t * 2.2 + i * 1.1));
-            for (let k = 0; k < 2; k++) {
-              const lx = s.x + pad + ledR + 2 + k * (ledR * 2.8);
-              const ly = sy + slotH / 2;
-              c.beginPath();
-              c.arc(lx, ly, ledR, 0, TAU);
-              c.fillStyle = accentA(clamp01(base + flash * 0.6));
-              if (flash > 0.2) {
-                c.shadowColor = accentA(0.8 * flash);
-                c.shadowBlur = ledR * 4;
-              }
-              c.fill();
-              c.shadowBlur = 0;
-            }
-            c.strokeStyle = whiteA(0.1);
-            for (let v = 0; v < 3; v++) {
-              const vx = s.x + s.w - pad - 4 - v * 5;
-              c.beginPath();
-              c.moveTo(vx, sy + slotH * 0.28);
-              c.lineTo(vx, sy + slotH * 0.72);
-              c.stroke();
-            }
-          }
-          c.restore();
-          drawLabel(
-            c,
-            "Web-сервер",
-            s.x + s.w / 2,
-            s.y + s.h + sc.S * 0.012,
-            sc.labelFs,
-          );
-        }
-
-        function drawDB(c, f) {
-          const d = sc.db;
-          const p = easeOutBack(clamp01(f.api));
-          const cx = d.x + d.w / 2;
-          const cy = d.y + d.h / 2;
-          c.save();
-          c.translate(cx, cy);
-          c.scale(p, p);
-          c.translate(-cx, -cy);
-          c.shadowColor = accentA(0.35);
-          c.shadowBlur = sc.S * 0.02;
-          rr(c, d.x, d.y + d.h * 0.16, d.w, d.h * 0.84, d.w * 0.16);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = accentA(0.5);
-          c.lineWidth = 1;
-          c.stroke();
-          c.beginPath();
-          c.ellipse(cx, d.y + d.h * 0.16, d.w / 2, d.h * 0.13, 0, 0, TAU);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.stroke();
-          c.strokeStyle = whiteA(0.1);
-          for (let i = 1; i <= 2; i++) {
-            c.beginPath();
-            c.ellipse(
-              cx,
-              d.y + d.h * (0.16 + 0.28 * i),
-              d.w / 2,
-              d.h * 0.1,
-              0,
-              Math.PI,
-              TAU,
-            );
-            c.stroke();
-          }
-          c.restore();
-          drawLabel(
-            c,
-            d.w >= 64 ? "База данных" : "БД",
-            cx,
-            d.y + d.h + 4,
-            Math.max(8, sc.labelFs - 1),
-          );
-        }
-
-        function drawLockIcon(c, x, y, s, a) {
-          c.save();
-          c.strokeStyle = accentA(0.95 * a);
-          c.fillStyle = accentA(0.95 * a);
-          c.lineWidth = Math.max(1.2, s * 0.22);
-          c.beginPath();
-          c.arc(x, y - s * 0.1, s * 0.38, Math.PI, 0);
-          c.stroke();
-          rr(c, x - s * 0.5, y - s * 0.1, s, s * 0.72, s * 0.18);
-          c.fill();
-          c.restore();
-        }
-
-        function drawClient(c, f, t) {
-          const b = sc.client;
-          c.save();
-          c.shadowColor = accentA(0.18);
-          c.shadowBlur = sc.S * 0.025;
-          rr(c, b.x, b.y, b.w, b.h, b.w * 0.055);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = whiteA(0.14);
-          c.lineWidth = 1;
-          c.stroke();
-
-          const tbH = clamp(b.h * 0.14, 16, 30);
-          const dotR = tbH * 0.13;
-          for (let i = 0; i < 3; i++) {
-            c.beginPath();
-            c.arc(
-              b.x + b.w * 0.035 + dotR + i * (dotR * 2.6),
-              b.y + tbH / 2,
-              dotR,
-              0,
-              TAU,
-            );
-            c.fillStyle = mutedA(0.5);
-            c.fill();
-          }
-
-          const ax = b.x + b.w * 0.155;
-          const aw = b.x + b.w - b.w * 0.03 - ax;
-          const ah = tbH * 0.64;
-          const ay = b.y + (tbH - ah) / 2;
-          rr(c, ax, ay, aw, ah, ah * 0.45);
-          c.fillStyle = "rgba(0,0,0,0.38)";
-          c.fill();
-          c.strokeStyle = whiteA(0.08);
-          c.stroke();
-
-          const pub = f.pub;
-          let urlText = "site.ru";
-          let urlColor = mutedA(0.95);
-          let caret = false;
-          if (pub > 0) {
-            urlText = "https://site.ru";
-            urlColor = accentA(0.95);
-          } else if (state.step === 1) {
-            const chars = Math.max(
-              1,
-              Math.round(clamp01(state.stepT / 0.7) * 7),
-            );
-            urlText = "site.ru".slice(0, chars);
-            caret = state.stepT < 1.2;
-          }
-          const urlFs = clamp(9, ah * 0.52, 13);
-          let tx = ax + ah * 0.5;
-          if (pub > 0) {
-            drawLockIcon(c, ax + ah * 0.55, ay + ah * 0.52, ah * 0.62, pub);
-            tx = ax + ah * 1.25;
-          }
-          c.font = fnt("600", urlFs);
-          c.textAlign = "left";
-          c.textBaseline = "middle";
-          c.fillStyle = urlColor;
-          c.fillText(urlText, tx, ay + ah / 2 + 0.5);
-          if (caret) {
-            const cw = c.measureText(urlText).width;
-            const blink = state.stepT % 0.5 < 0.25 ? 0.85 : 0.15;
-            c.fillStyle = whiteA(blink);
-            c.fillRect(tx + cw + 2, ay + ah * 0.2, 1.3, ah * 0.6);
-          }
-
-          const pad = b.w * 0.045;
-          const cx0 = b.x + pad;
-          const cy0 = b.y + tbH + pad * 0.8;
-          const cw = b.w - pad * 2;
-          const ch = b.h - tbH - pad * 1.6;
-          drawPageContent(c, cx0, cy0, cw, ch, f, t);
-          c.restore();
-
-          if (!sc.portrait) {
-            drawLabel(
-              c,
-              "Браузер — клиент",
-              b.x + b.w / 2,
-              b.y + b.h + sc.S * 0.012,
-              sc.labelFs,
-            );
-          } else {
-            drawLabel(
-              c,
-              "Браузер — клиент",
-              b.x + b.w / 2,
-              Math.max(2, b.y - sc.labelFs - 4),
-              sc.labelFs,
-            );
-          }
-        }
-
-        function blockPop(c, i, htmlP, fn) {
-          const pp = seg(htmlP, i * 0.13, i * 0.13 + 0.35);
-          if (pp <= 0) return;
-          const s = easeOutBack(pp);
-          fn(s);
-        }
-
-        function drawPageContent(c, cx0, cy0, cw, ch, f, t) {
-          const navH = ch * 0.1;
-          const heroH = ch * 0.34;
-          const cardH = ch * 0.28;
-          const footH = ch * 0.09;
-          const g = Math.max(4, ch * 0.055);
-          const html = f.html;
-          const css = f.css;
-
-          let y = cy0;
-          blockPop(c, 0, html, function (s) {
-            c.save();
-            c.translate(cx0 + cw / 2, y + navH / 2);
-            c.scale(s, s);
-            c.translate(-(cx0 + cw / 2), -(y + navH / 2));
-            c.beginPath();
-            c.arc(cx0 + navH * 0.45, y + navH / 2, navH * 0.3, 0, TAU);
-            c.fillStyle =
-              css > 0 ? accentA(0.9 * Math.max(css, 0.25)) : whiteA(0.25);
-            c.fill();
-            for (let i = 0; i < 3; i++) {
-              const lw = cw * 0.09;
-              const lx = cx0 + cw - (i + 1) * (lw + cw * 0.025);
-              rr(c, lx, y + navH / 2 - navH * 0.1, lw, navH * 0.2, navH * 0.1);
-              c.fillStyle = css > 0 ? accentA(0.75 * css) : whiteA(0.28);
-              c.fill();
-            }
-            c.restore();
-          });
-
-          y += navH + g;
-          const hero = { x: cx0, y: y, w: cw, h: heroH };
-          blockPop(c, 1, html, function (s) {
-            c.save();
-            c.translate(hero.x + hero.w / 2, hero.y + hero.h / 2);
-            c.scale(s, s);
-            c.translate(-(hero.x + hero.w / 2), -(hero.y + hero.h / 2));
-            rr(c, hero.x, hero.y, hero.w, hero.h, hero.h * 0.12);
-            c.fillStyle = whiteA(0.06);
-            c.fill();
-            c.strokeStyle = whiteA(0.14);
-            c.lineWidth = 1;
-            c.stroke();
-            if (css > 0) {
-              const gr = c.createLinearGradient(
-                hero.x,
-                hero.y,
-                hero.x + hero.w,
-                hero.y + hero.h,
-              );
-              gr.addColorStop(0, accentA(0.32 * css));
-              gr.addColorStop(1, darkA(0.12 * css));
-              rr(c, hero.x, hero.y, hero.w, hero.h, hero.h * 0.12);
-              c.fillStyle = gr;
-              c.fill();
-            }
-            const lineH = Math.max(3, hero.h * 0.1);
-            for (let i = 0; i < 2; i++) {
-              rr(
-                c,
-                hero.x + hero.w * 0.055,
-                hero.y + hero.h * 0.14 + i * (lineH + hero.h * 0.09),
-                hero.w * (i === 0 ? 0.52 : 0.34),
-                lineH,
-                lineH / 2,
-              );
-              c.fillStyle = whiteA(0.72);
-              c.fill();
-            }
-            if (f.js > 0) {
-              const bw2 = hero.w * 0.3;
-              const bh2 = hero.h * 0.24;
-              const bx2 = hero.x + hero.w * 0.055;
-              const by2 = hero.y + hero.h - bh2 - hero.h * 0.12;
-              const pulse = 1 + 0.05 * Math.sin(t * 4) * f.js;
-              c.save();
-              c.translate(bx2 + bw2 / 2, by2 + bh2 / 2);
-              c.scale(pulse, pulse);
-              c.translate(-(bx2 + bw2 / 2), -(by2 + bh2 / 2));
-              c.shadowColor = accentA(0.55 * f.js);
-              c.shadowBlur = Math.max(8, sc.S * 0.012);
-              const bg2 = c.createLinearGradient(bx2, by2, bx2, by2 + bh2);
-              bg2.addColorStop(0, accentA(0.95 * f.js));
-              bg2.addColorStop(1, darkA(0.95 * f.js));
-              rr(c, bx2, by2, bw2, bh2, bh2 * 0.5);
-              c.fillStyle = bg2;
-              c.fill();
-              c.shadowBlur = 0;
-              if (bw2 > 64) {
-                c.font = fnt("700", clamp(8, bh2 * 0.42, 12));
-                c.textAlign = "center";
-                c.textBaseline = "middle";
-                c.fillStyle = "#FFFFFF";
-                c.fillText("Подробнее", bx2 + bw2 / 2, by2 + bh2 / 2 + 0.5);
-              }
-              c.restore();
-
-              if (state.step === 4) {
-                const cph = ((((state.stepT - 0.4) % 2.4) + 2.4) % 2.4) / 2.4;
-                if (cph < 0.85) {
-                  const sx = bx2 + bw2 * 1.9;
-                  const sy2 = by2 + bh2 * 2.8;
-                  const ex2 = bx2 + bw2 * 0.62;
-                  const ey2 = by2 + bh2 * 0.5;
-                  const tt = easeInOut(clamp01(cph / 0.35));
-                  const px2 = lerp(sx, ex2, tt);
-                  const py2 = lerp(sy2, ey2, tt);
-                  if (cph > 0.38 && cph < 0.62) {
-                    const rp = seg(cph, 0.38, 0.62);
-                    c.beginPath();
-                    c.arc(
-                      bx2 + bw2 / 2,
-                      by2 + bh2 / 2,
-                      rp * bw2 * 0.85,
-                      0,
-                      TAU,
-                    );
-                    c.strokeStyle = accentA((1 - rp) * 0.6);
-                    c.lineWidth = 2;
-                    c.stroke();
-                  }
-                  const cs = Math.max(9, bh2 * 0.62);
-                  c.save();
-                  c.translate(px2, py2);
-                  c.beginPath();
-                  c.moveTo(0, 0);
-                  c.lineTo(cs * 0.85, cs * 0.62);
-                  c.lineTo(cs * 0.4, cs * 0.68);
-                  c.lineTo(cs * 0.5, cs);
-                  c.lineTo(cs * 0.3, cs * 0.94);
-                  c.lineTo(cs * 0.24, cs * 0.56);
-                  c.closePath();
-                  c.fillStyle = whiteA(0.95);
-                  c.fill();
-                  c.strokeStyle = "rgba(0,0,0,0.55)";
-                  c.lineWidth = 1;
-                  c.stroke();
-                  c.restore();
-                }
-              }
-            }
-            c.restore();
-          });
-
-          y += heroH + g;
-          const cardW = (cw - g) / 2;
-          for (let i = 0; i < 2; i++) {
-            const card = { x: cx0 + i * (cardW + g), y: y, w: cardW, h: cardH };
-            blockPop(c, 2 + i, html, function (s) {
-              c.save();
-              c.translate(card.x + card.w / 2, card.y + card.h / 2);
-              c.scale(s, s);
-              c.translate(-(card.x + card.w / 2), -(card.y + card.h / 2));
-              rr(c, card.x, card.y, card.w, card.h, card.h * 0.16);
-              c.fillStyle = whiteA(0.06 + 0.05 * css);
-              c.fill();
-              c.strokeStyle = whiteA(0.12);
-              c.lineWidth = 1;
-              c.stroke();
-              if (css > 0) {
-                c.save();
-                rr(c, card.x, card.y, card.w, card.h, card.h * 0.16);
-                c.clip();
-                c.fillStyle = accentA(0.75 * css);
-                c.fillRect(
-                  card.x,
-                  card.y,
-                  Math.max(2.5, card.w * 0.035),
-                  card.h,
-                );
-                c.restore();
-              }
-              const avR = card.h * 0.16;
-              const avX = card.x + card.w * 0.14;
-              const avY = card.y + card.h * 0.34;
-              const rowA = f.api;
-              if (rowA > 0) {
-                c.beginPath();
-                c.arc(avX, avY, avR, 0, TAU);
-                c.fillStyle = accentA(0.9 * rowA);
-                c.fill();
-                c.beginPath();
-                c.arc(avX, avY - avR * 0.15, avR * 0.38, 0, TAU);
-                c.fillStyle = whiteA(0.85);
-                c.fill();
-                for (let l = 0; l < 2; l++) {
-                  rr(
-                    c,
-                    card.x + card.w * 0.26,
-                    card.y + card.h * (0.24 + l * 0.24),
-                    card.w * (l === 0 ? 0.58 : 0.4),
-                    Math.max(2.5, card.h * 0.1),
-                    2,
-                  );
-                  c.fillStyle = whiteA(0.55 * rowA);
-                  c.fill();
-                }
-              } else {
-                for (let l = 0; l < 2; l++) {
-                  rr(
-                    c,
-                    card.x + card.w * 0.1,
-                    card.y + card.h * (0.28 + l * 0.26),
-                    card.w * (l === 0 ? 0.62 : 0.44),
-                    Math.max(2.5, card.h * 0.1),
-                    2,
-                  );
-                  c.fillStyle = whiteA(0.28);
-                  c.fill();
-                }
-              }
-              c.restore();
-            });
-          }
-
-          y += cardH + g;
-          blockPop(c, 4, html, function (s) {
-            c.save();
-            c.translate(cx0 + cw / 2, y + footH / 2);
-            c.scale(s, s);
-            c.translate(-(cx0 + cw / 2), -(y + footH / 2));
-            rr(
-              c,
-              cx0,
-              y,
-              cw,
-              Math.min(footH, ch + cy0 - y - 1),
-              Math.max(2, footH * 0.3),
-            );
-            c.fillStyle = css > 0 ? accentA(0.16 * css) : whiteA(0.06);
-            c.fill();
-            c.strokeStyle = whiteA(0.1);
-            c.lineWidth = 1;
-            c.stroke();
-            c.restore();
-          });
-        }
-
-        function drawTree(c, f) {
-          const T = sc.tree;
-          const a = f.dom;
-          if (a <= 0) return;
-          c.save();
-          c.globalAlpha = a;
-          c.shadowColor = accentA(0.25);
-          c.shadowBlur = sc.S * 0.02;
-          rr(c, T.x, T.y, T.w, T.h, 12);
-          c.fillStyle = "rgba(26,26,32,0.92)";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = whiteA(0.14);
-          c.lineWidth = 1;
-          c.stroke();
-
-          c.font = fnt("800", T.fs + 1);
-          c.textAlign = "left";
-          c.textBaseline = "top";
-          c.fillStyle = accentA(0.95);
-          c.fillText("DOM", T.x + 12, T.y + 9);
-
-          const pillH = T.fs + 10;
-          const topY = T.y + 9 + T.fs + 6;
-          const rootX = T.x + T.w * 0.52;
-          const l2Y = topY + pillH + T.fs * 0.75;
-          const headX = T.x + T.w * 0.26;
-          const bodyX = T.x + T.w * 0.68;
-          const l3Y = l2Y + pillH + T.fs * 0.65;
-
-          const names3 = ["header", "main", "footer"];
-          c.font = fnt("700", T.fs);
-          const widths = names3.map(function (n) {
-            return c.measureText(n).width + T.fs * 1.1;
-          });
-          const total3 = widths[0] + widths[1] + widths[2] + T.fs * 0.8 * 2;
-          let startX = Math.max(T.x + 10, bodyX - total3 / 2);
-          const centers3 = [];
-          let acc = startX;
-          for (let i = 0; i < 3; i++) {
-            centers3.push(acc + widths[i] / 2);
-            acc += widths[i] + T.fs * 0.8;
-          }
-
-          const pRoot = seg(a, 0, 0.3);
-          const pL2 = seg(a, 0.22, 0.55);
-          const pL3 = seg(a, 0.48, 0.9);
-
-          function elbow(x1, y1, x2, y2, alpha) {
-            c.strokeStyle = whiteA(0.18 * alpha);
-            c.lineWidth = 1;
-            const midY = (y1 + y2) / 2;
-            c.beginPath();
-            c.moveTo(x1, y1);
-            c.lineTo(x1, midY);
-            c.lineTo(x2, midY);
-            c.lineTo(x2, y2);
-            c.stroke();
-          }
-
-          if (pL2 > 0) {
-            elbow(rootX, topY + pillH / 2, headX, l2Y - pillH / 2, pL2);
-            elbow(rootX, topY + pillH / 2, bodyX, l2Y - pillH / 2, pL2);
-          }
-          if (pL3 > 0) {
-            for (let i = 0; i < 3; i++) {
-              elbow(bodyX, l2Y + pillH / 2, centers3[i], l3Y - pillH / 2, pL3);
-            }
-          }
-
-          function node(text, nx, ny, p, hot) {
-            if (p <= 0) return;
-            const s = easeOutBack(p);
-            const w = c.measureText(text).width + T.fs * 1.1;
-            c.save();
-            c.translate(nx, ny);
-            c.scale(s, s);
-            rr(c, -w / 2, -pillH / 2, w, pillH, pillH * 0.32);
-            c.fillStyle = "rgba(255,255,255,0.07)";
-            c.fill();
-            c.strokeStyle = hot ? accentA(0.8) : whiteA(0.16);
-            c.lineWidth = 1;
-            c.stroke();
-            c.fillStyle = whiteA(0.92);
-            c.textAlign = "center";
-            c.textBaseline = "middle";
-            c.fillText(text, 0, 0.5);
-            c.restore();
-            if (hot) {
-              const pulse = 0.35 + 0.3 * Math.sin(state.animTime * 2.4);
-              c.beginPath();
-              c.arc(nx, ny, pillH * 0.85, 0, TAU);
-              c.strokeStyle = accentA(pulse);
-              c.lineWidth = 1.4;
-              c.stroke();
-            }
-          }
-
-          node("html", rootX, topY + pillH / 2, pRoot, false);
-          node("head", headX, l2Y + pillH / 2, pL2, false);
-          node("body", bodyX, l2Y + pillH / 2, pL2, true);
-          node("header", centers3[0], l3Y + pillH / 2, pL3, false);
-          node("main", centers3[1], l3Y + pillH / 2, pL3, true);
-          node("footer", centers3[2], l3Y + pillH / 2, pL3, false);
-          c.restore();
-        }
-
-        function flightPhase(loop) {
-          return ((((state.stepT - FLIGHT_START) % loop) + loop) % loop) / loop;
-        }
-
-        function drawPacketPill(c, text, pos, alpha, dir) {
-          c.save();
-          c.globalAlpha = alpha;
-          c.font = fnt("700", sc.pillFs);
-          const w = c.measureText(text).width + 16;
-          const h = sc.pillFs + 12;
-          for (let k = 3; k >= 1; k--) {
-            const tp = qbez(dir.p0, dir.p1, dir.p2, clamp01(1 - k * 0.055));
-            c.beginPath();
-            c.arc(tp.x, tp.y, sc.pillFs * 0.16, 0, TAU);
-            c.fillStyle = accentA(0.22 / k);
-            c.fill();
-          }
-          c.shadowColor = accentA(0.55);
-          c.shadowBlur = Math.max(8, sc.S * 0.012);
-          rr(c, pos.x - w / 2, pos.y - h / 2, w, h, h / 2);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = accentA(0.7);
-          c.lineWidth = 1.2;
-          c.stroke();
-          c.fillStyle = whiteA(0.95);
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillText(text, pos.x, pos.y + 0.5);
-          c.restore();
-        }
-
-        function drawJsonCard(c, pos, alpha) {
-          c.save();
-          c.globalAlpha = alpha;
-          const w = clamp(sc.S * 0.11, 86, 122);
-          const h = w * 0.52;
-          const fs = clamp(8, sc.S * 0.016, 11);
-          c.shadowColor = accentA(0.5);
-          c.shadowBlur = Math.max(8, sc.S * 0.012);
-          rr(c, pos.x - w / 2, pos.y - h / 2, w, h, 8);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = accentA(0.65);
-          c.lineWidth = 1.2;
-          c.stroke();
-          c.textAlign = "left";
-          c.textBaseline = "top";
-          c.font = fnt("800", fs + 1);
-          c.fillStyle = accentA(0.95);
-          c.fillText("{ }", pos.x - w / 2 + 8, pos.y - h / 2 + 6);
-          c.font = fnt("600", fs);
-          c.fillStyle = whiteA(0.85);
-          c.fillText(
-            '"title": "Сайт"',
-            pos.x - w / 2 + 8,
-            pos.y - h / 2 + 6 + (fs + 3) * 1.6,
-          );
-          c.fillStyle = mutedA(0.9);
-          c.fillText(
-            '"ok": true',
-            pos.x - w / 2 + 8,
-            pos.y - h / 2 + 6 + (fs + 3) * 2.9,
-          );
-          c.restore();
-        }
-
-        function drawPackets(c, f, t) {
-          const st = state.step;
-          if (state.stepT < FLIGHT_START * 0.5) return;
-          if (st === 1 && f.req > 0) {
-            const ph = flightPhase(2);
-            const tt = easeInOut(clamp01(ph / 0.82));
-            const pos = qbez(sc.path.p0, sc.path.p1, sc.path.p2, tt);
-            drawPacketPill(
-              c,
-              "HTTP-запрос",
-              pos,
-              f.req * seg(ph, 0, 0.06),
-              sc.path,
-            );
-          } else if (st === 2 || st === 3 || st === 4) {
-            const ph = flightPhase(2.2);
-            const tt = easeInOut(clamp01(ph / 0.82));
-            const back = { p0: sc.path.p2, p1: sc.path.p1, p2: sc.path.p0 };
-            const pos = qbez(back.p0, back.p1, back.p2, tt);
-            const label = st === 2 ? "HTML" : st === 3 ? "CSS" : "JS";
-            drawPacketPill(c, label, pos, seg(ph, 0, 0.06), back);
-          } else if (st === 6 && f.api > 0.2) {
-            const p0 = sc.portrait
-              ? {
-                  x: sc.client.x + sc.client.w * 0.5,
-                  y: sc.client.y + sc.client.h,
-                }
-              : {
-                  x: sc.client.x + sc.client.w,
-                  y: sc.client.y + sc.client.h * 0.5,
-                };
-            const dbTop = {
-              x: sc.db.x + sc.db.w / 2,
-              y: sc.db.y + sc.db.h * 0.16,
-            };
-            const ctrl = {
-              x: (p0.x + dbTop.x) / 2 + (sc.portrait ? sc.S * 0.1 : 0),
-              y: (p0.y + dbTop.y) / 2 - (sc.portrait ? 0 : sc.S * 0.08),
-            };
-            const toDb = { p0: p0, p1: ctrl, p2: dbTop };
-            const toClient = { p0: dbTop, p1: ctrl, p2: p0 };
-            const ph = flightPhase(3.0);
-            if (ph < 0.42) {
-              const tt = easeInOut(clamp01(ph / 0.4));
-              drawPacketPill(
-                c,
-                "API-запрос",
-                qbez(toDb.p0, toDb.p1, toDb.p2, tt),
-                f.api * seg(ph, 0, 0.06),
-                toDb,
-              );
-            } else if (ph > 0.55 && ph < 0.97) {
-              const tt = easeInOut(clamp01((ph - 0.55) / 0.4));
-              drawJsonCard(
-                c,
-                qbez(toClient.p0, toClient.p1, toClient.p2, tt),
-                f.api * seg(ph, 0.55, 0.61),
-              );
-            }
-          }
-        }
-
-        function drawPublish(c, f, t) {
-          const g = sc.globe;
-          const e = f.pub;
-          c.save();
-          c.globalAlpha = e;
-          c.strokeStyle = accentA(0.4);
-          c.lineWidth = Math.max(1.2, sc.S * 0.0022);
-          c.beginPath();
-          c.ellipse(g.x, g.y, g.rx, g.ry, 0, 0, TAU);
-          c.stroke();
-          c.strokeStyle = darkA(0.3);
-          c.beginPath();
-          c.ellipse(g.x, g.y, g.rx * 0.88, g.ry * 0.88, 0, 0, TAU);
-          c.stroke();
-
-          c.shadowColor = accentA(0.5);
-          c.shadowBlur = sc.S * 0.03;
-          c.beginPath();
-          c.arc(g.x, g.y, g.r, 0, TAU);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = accentA(0.85);
-          c.lineWidth = 1.4;
-          c.stroke();
-          c.strokeStyle = whiteA(0.16);
-          c.beginPath();
-          c.ellipse(g.x, g.y, g.r * 0.45, g.r, 0, 0, TAU);
-          c.stroke();
-          c.beginPath();
-          c.ellipse(g.x, g.y, g.r, g.r * 0.4, 0, 0, TAU);
-          c.stroke();
-
-          const domFs = clamp(11, sc.S * 0.024, 16);
-          c.font = fnt("800", domFs);
-          c.textAlign = "center";
-          c.textBaseline = "top";
-          c.shadowColor = accentA(0.6);
-          c.shadowBlur = 8;
-          c.fillStyle = whiteA(0.95);
-          c.fillText("site.ru", g.x, g.y + g.ry + clamp(10, sc.S * 0.03, 20));
-          c.shadowBlur = 0;
-
-          for (let i = 0; i < sc.sparks.length; i++) {
-            const sp = sc.sparks[i];
-            const a = Math.max(0, Math.sin(t * 1.7 + sp.ph)) * e;
-            if (a <= 0.02) continue;
-            const x = sp.u * sc.W;
-            const y = sp.v * sc.H;
-            const len = sp.s * clamp(5, sc.S * 0.011, 9);
-            c.strokeStyle = accentA(a);
-            c.lineWidth = 1.4;
-            c.beginPath();
-            c.moveTo(x - len, y);
-            c.lineTo(x + len, y);
-            c.moveTo(x, y - len);
-            c.lineTo(x, y + len);
-            c.stroke();
-          }
-
-          const ang = t * 0.85;
-          const s1x = g.x + g.rx * Math.cos(ang);
-          const s1y = g.y + g.ry * Math.sin(ang);
-          c.font = fnt("700", sc.pillFs - 1);
-          const w1 = c.measureText("HTTPS").width + 12;
-          const h1 = sc.pillFs + 10;
-          c.shadowColor = accentA(0.6);
-          c.shadowBlur = 10;
-          rr(c, s1x - w1 / 2, s1y - h1 / 2, w1, h1, h1 / 2);
-          c.fillStyle = "#1A1A20";
-          c.fill();
-          c.shadowBlur = 0;
-          c.strokeStyle = accentA(0.8);
-          c.lineWidth = 1.2;
-          c.stroke();
-          c.fillStyle = whiteA(0.95);
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillText("HTTPS", s1x, s1y + 0.5);
-
-          const ang2 = ang + Math.PI * 0.9;
-          const s2x = g.x + g.rx * Math.cos(ang2);
-          const s2y = g.y + g.ry * Math.sin(ang2);
-          c.shadowColor = accentA(0.6);
-          c.shadowBlur = 8;
-          c.beginPath();
-          c.arc(s2x, s2y, Math.max(2.5, sc.S * 0.005), 0, TAU);
-          c.fillStyle = accentA(0.95);
-          c.fill();
-          c.restore();
-        }
-
-        function drawDevices(c, f, t) {
-          const d = sc.dev;
-          const e = f.dev;
-          const pub = f.pub;
-          const lapH = d.lapW * 0.62;
-          const tabH = d.tabW * 1.3;
-          const phH = d.phW * 1.85;
-          const maxH = Math.max(lapH, tabH, phH);
-          const total = d.lapW + d.tabW + d.phW + d.gap * 2;
-          const cy = lerp(d.y7, d.y8, pub);
-          const x0 = d.cx - total / 2;
-          const bottom = cy + maxH / 2;
-
-          function miniPage(w, h, x, y) {
-            const pad = Math.max(3, w * 0.09);
-            c.fillStyle = accentA(0.85);
-            rr(c, x + pad, y + pad, w - pad * 2, Math.max(2.5, h * 0.09), 2);
-            c.fill();
-            c.fillStyle = whiteA(0.16);
-            rr(c, x + pad, y + pad + h * 0.16, w - pad * 2, h * 0.3, 3);
-            c.fill();
-            for (let l = 0; l < 2; l++) {
-              c.fillStyle = mutedA(0.55);
-              rr(
-                c,
-                x + pad,
-                y + pad + h * 0.53 + l * h * 0.16,
-                (w - pad * 2) * (l === 0 ? 0.8 : 0.55),
-                Math.max(2, h * 0.07),
-                2,
-              );
-              c.fill();
-            }
-          }
-
-          function dev(shadowA, fn) {
-            c.save();
-            c.shadowColor = accentA(shadowA);
-            c.shadowBlur = Math.max(6, sc.S * 0.012);
-            fn();
-            c.restore();
-          }
-
-          const p0 = easeOutBack(seg(e, 0, 0.55));
-          if (p0 > 0) {
-            const lx = x0;
-            const ly = bottom - lapH - d.lapW * 0.075;
-            c.save();
-            c.globalAlpha = clamp01(p0);
-            c.translate(lx + d.lapW / 2, ly + lapH / 2);
-            c.scale(p0, p0);
-            c.translate(-(lx + d.lapW / 2), -(ly + lapH / 2));
-            dev(0.3 * p0, function () {
-              rr(c, lx, ly, d.lapW, lapH, Math.max(3, d.lapW * 0.05));
-              c.fillStyle = "#1A1A20";
-              c.fill();
-              c.strokeStyle = whiteA(0.16);
-              c.lineWidth = 1;
-              c.stroke();
-              miniPage(d.lapW, lapH, lx, ly);
-              rr(
-                c,
-                lx - d.lapW * 0.06,
-                ly + lapH,
-                d.lapW * 1.12,
-                Math.max(3, d.lapW * 0.05),
-                3,
-              );
-              c.fillStyle = whiteA(0.2);
-              c.fill();
-            });
-            c.restore();
-          }
-
-          const p1 = easeOutBack(seg(e, 0.16, 0.71));
-          if (p1 > 0) {
-            const tx = x0 + d.lapW + d.gap;
-            const ty = bottom - tabH;
-            c.save();
-            c.globalAlpha = clamp01(p1);
-            c.translate(tx + d.tabW / 2, ty + tabH / 2);
-            c.scale(p1, p1);
-            c.translate(-(tx + d.tabW / 2), -(ty + tabH / 2));
-            dev(0.3 * p1, function () {
-              rr(c, tx, ty, d.tabW, tabH, Math.max(3, d.tabW * 0.09));
-              c.fillStyle = "#1A1A20";
-              c.fill();
-              c.strokeStyle = whiteA(0.16);
-              c.lineWidth = 1;
-              c.stroke();
-              miniPage(d.tabW, tabH, tx, ty);
-            });
-            c.restore();
-          }
-
-          const p2 = easeOutBack(seg(e, 0.32, 0.87));
-          if (p2 > 0) {
-            const px2 = x0 + d.lapW + d.tabW + d.gap * 2;
-            const py2 = bottom - phH;
-            c.save();
-            c.globalAlpha = clamp01(p2);
-            c.translate(px2 + d.phW / 2, py2 + phH / 2);
-            c.scale(p2, p2);
-            c.translate(-(px2 + d.phW / 2), -(py2 + phH / 2));
-            dev(0.3 * p2, function () {
-              rr(c, px2, py2, d.phW, phH, Math.max(3, d.phW * 0.16));
-              c.fillStyle = "#1A1A20";
-              c.fill();
-              c.strokeStyle = whiteA(0.16);
-              c.lineWidth = 1;
-              c.stroke();
-              c.fillStyle = whiteA(0.25);
-              rr(
-                c,
-                px2 + d.phW * 0.32,
-                py2 + phH * 0.045,
-                d.phW * 0.36,
-                Math.max(1.5, phH * 0.025),
-                2,
-              );
-              c.fill();
-              miniPage(d.phW, phH, px2, py2);
-            });
-            c.restore();
-          }
-        }
-
-        function draw() {
-          const c = ctx;
-          if (!c || !sc) return;
-          c.save();
-          c.fillStyle = "#0F0F13";
-          c.fillRect(0, 0, sc.W, sc.H);
-          const f = features();
-          const t = state.animTime;
-          const vg = c.createRadialGradient(
-            sc.globe.x,
-            sc.globe.y,
-            0,
-            sc.globe.x,
-            sc.globe.y,
-            sc.S * 0.55,
-          );
-          vg.addColorStop(0, accentA(0.1));
-          vg.addColorStop(1, accentA(0));
-          c.fillStyle = vg;
-          c.fillRect(0, 0, sc.W, sc.H);
-          drawParticles(c, t);
-          drawPath(c, f, t);
-          drawServer(c, f, t);
-          if (f.api > 0) drawDB(c, f);
-          drawClient(c, f, t);
-          if (f.dom > 0) drawTree(c, f);
-          drawPackets(c, f, t);
-          if (f.pub > 0) drawPublish(c, f, t);
-          if (f.dev > 0) drawDevices(c, f, t);
-          c.restore();
-        }
-
-        function update(dt) {
-          if (!state.playing) return;
-          const d = Math.min(dt, 0.05) * state.speed;
-          state.stepT += d;
-          state.animTime += d;
-          if (state.mode === "auto") {
-            if (state.stepT >= STEP_DUR) {
-              state.stepT = 0;
-              state.step = (state.step % STEP_COUNT) + 1;
-              onStepChange();
-            }
-          } else {
-            const limit = FREEZE_AT[state.step] || ENTER_DUR;
-            if (state.stepT >= limit) {
-              state.stepT = limit;
-              state.phase = "idle";
-              state.playing = false;
-              renderControls();
-            }
-          }
-        }
-
-        function tick(ts) {
-          requestAnimationFrame(tick);
-          if (lastTs === null) lastTs = ts;
-          const dt = (ts - lastTs) / 1000;
-          lastTs = ts;
-          update(dt);
-          draw();
-        }
-
-        function updateSubtitles(step) {
-          const data = SUBTITLES[step - 1];
-          if (!data || !els.subs) return;
-          if (!els.subsInner) {
-            els.subsInner = document.createElement("div");
-            els.subsInner.className = "subtitle__inner";
-            els.subs.appendChild(els.subsInner);
-          }
-          const box = els.subsInner;
-          while (box.firstChild) box.removeChild(box.firstChild);
-          data.segments.forEach(function (segDef) {
-            if (segDef.emphasis) {
-              const sp = document.createElement("span");
-              sp.className = "subtitle__keyword";
-              sp.textContent = segDef.text;
-              box.appendChild(sp);
-            } else {
-              box.appendChild(document.createTextNode(segDef.text));
-            }
-          });
-          els.subs.classList.remove("show");
-          void els.subs.offsetWidth;
-          els.subs.classList.add("show");
-        }
-
-        function onStepChange() {
-          updateSubtitles(state.step);
-          renderControls();
-        }
-
-        function renderControls() {
-          const playing = state.playing;
-          if (els.icPlay && els.icPause) {
-            els.icPlay.style.display = playing ? "none" : "block";
-            els.icPause.style.display = playing ? "block" : "none";
-            els.btnPlay.setAttribute(
-              "aria-label",
-              playing ? "Пауза" : "Воспроизвести",
-            );
-          }
-          if (settings)
-            settings.setStepText("Шаг " + state.step + " / " + STEP_COUNT);
-          if (els.mAuto && els.mStepBtn) {
-            els.mAuto.classList.toggle("active", state.mode === "auto");
-            els.mAuto.setAttribute(
-              "aria-pressed",
-              String(state.mode === "auto"),
-            );
-            els.mStepBtn.classList.toggle("active", state.mode === "step");
-            els.mStepBtn.setAttribute(
-              "aria-pressed",
-              String(state.mode === "step"),
-            );
-          }
-          els.speedBtns.forEach(function (b) {
-            const on = Number(b.dataset.speed) === state.speed;
-            b.classList.toggle("active", on);
-            b.setAttribute("aria-pressed", String(on));
-          });
-          if (els.mNine) els.mNine.checked = state.video;
-          if (els.mNext) {
-            els.mNext.disabled = !(
-              state.mode === "step" &&
-              state.step < STEP_COUNT &&
-              state.phase !== "transition"
-            );
-          }
-        }
-
-        function startAuto() {
-          state.started = true;
-          state.playing = true;
-          renderControls();
-        }
-
-        function setMode(mode) {
-          if (mode !== "auto" && mode !== "step") return;
-          if (state.mode === mode) {
-            renderControls();
-            return;
-          }
-          state.mode = mode;
-          if (mode === "auto") {
-            state.phase = "idle";
-            state.playing = true;
-            state.stepT = 0;
-          }
-          renderControls();
-        }
-
-        function onStep() {
-          if (
-            state.mode !== "step" ||
-            state.phase === "transition" ||
-            state.step >= STEP_COUNT
+
+      <aside class="details-panel" id="detailsPanel">
+        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
+        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
+        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
+      </div>
+
+      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
+
+      <div class="setting-row">
+        <label for="speedSelect">Скорость</label>
+        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
+      </div>
+
+      <div class="setting-row">
+        <label for="portraitToggle">Вертикальная рамка 9:16</label>
+        <input id="portraitToggle" type="checkbox">
+      </div>
+
+      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
+
+      <div class="keyboard-help" aria-label="Горячие клавиши">
+        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+        <span><kbd>→</kbd> Следующий шаг в STEP</span>
+        <span><kbd>R</kbd> Сброс</span>
+        <span><kbd>S</kbd> AUTO / STEP</span>
+        <span><kbd>V</kbd> Рамка 9:16</span>
+        <span><kbd>Esc</kbd> Закрыть настройки</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const APP_CONFIG = {"steps":[{"heading":"Запрос","subtitle":"Браузер отправляет запрос серверу и получает веб-страницу.","detail":"Клиент • HTTP • ответ","icon":"web","nodes":["Браузер","Запрос","Ответ"]},{"heading":"HTML","subtitle":"HTML задаёт структуру и смысловое устройство страницы.","detail":"Элементы • семантика • документ","icon":"web","nodes":["HTML","Семантика","Структура"]},{"heading":"CSS","subtitle":"CSS оформляет элементы и адаптирует интерфейс к экрану.","detail":"Сетка • каскад • адаптивность","icon":"web","nodes":["CSS","Сетка","Адаптивность"]},{"heading":"JavaScript","subtitle":"JavaScript добавляет интерактивность и обрабатывает действия пользователя.","detail":"События • логика • DOM","icon":"code","nodes":["JavaScript","События","Логика"]},{"heading":"DOM","subtitle":"DOM связывает программный код с элементами документа.","detail":"Узлы • атрибуты • события","icon":"web","nodes":["DOM","Элементы","События"]},{"heading":"API","subtitle":"API обеспечивает обмен данными между клиентом и сервером.","detail":"REST • JSON • HTTPS","icon":"network","nodes":["REST","JSON","HTTPS"]},{"heading":"Проверка","subtitle":"Тестирование проверяет доступность, безопасность и производительность сайта.","detail":"Тесты • a11y • метрики","icon":"shield","nodes":["Тесты","A11y","Метрики"]},{"heading":"Публикация","subtitle":"Публикация включает хостинг, домен, мониторинг и поддержку.","detail":"Хостинг • домен • обновления","icon":"network","nodes":["Хостинг","Домен","Мониторинг"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+    (() => {
+  "use strict";
+  function roundedRect(ctx,x,y,w,h,r) {
+    const radius=Math.min(r,w/2,h/2);
+    ctx.beginPath();ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+  }
+  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
+    const words=String(text||"").split(/\s+/),lines=[];let line="";
+    for(const word of words){const test=line?line+" "+word:word;
+      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
+    if(line)lines.push(line);
+    const visible=lines.slice(0,maxLines);
+    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
+      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
+      visible[visible.length-1]=last+"…";}
+    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
+  }
+  function glyph(ctx,type,x,y,size,accent,soft) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
+    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
+    if(type==="database"){
+      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
+    }else if(type==="network"){
+      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
+      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }else if(type==="shield"||type==="check"){
+      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
+    }else if(type==="lock"){
+      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
+    }else if(type==="web"){
+      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
+      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
+    }else if(type==="code"){
+      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
+    }else if(type==="phone"){
+      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
+    }else if(type==="train"||type==="rail"){
+      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
+      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="game"){
+      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
+    }else if(type==="robot"){
+      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
+    }else if(type==="drone"){
+      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
+      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="mail"){
+      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
+    }else if(type==="eye"){
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function chip(ctx,x,y,w,h,label,palette){
+    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
+    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
+    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
+    ctx.fillText(value,x+w/2,y+h/2);
+  }
+  function draw(ctx,frame){
+    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
+    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
+    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
+    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
+    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
+    ctx.save();
+    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
+    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
+    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
+    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
+    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
+    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
+    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
+    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
+    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
+    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
+    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
+    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
+    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
+    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
+    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
+    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
+    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
+    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
+    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
+    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
+    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
+    ctx.restore();
+  }
+  window.AppScene={draw};
+})();
+    (() => {
+  "use strict";
+
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
+
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton")
+  };
+
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
+
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    return;
+  }
+
+  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
+    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+    return;
+  }
+
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
+
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
+
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null
+  };
+
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
+
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
+
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (cssWidth <= 0 || cssHeight <= 0) return;
+
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
+
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
+
+    drawFrame();
+  }
+
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
+
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+    if (state.transition) {
+      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    drawTo(ctx, state.currentStep, 1);
+  }
+
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
+
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
+
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
+
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
+        });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
+
+    updateControls();
+  }
+
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
+
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
+
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
+
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+      }
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    ) return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
+      }
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
+      }
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
+      }
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
           )
-            return;
-          state.phase = "transition";
-          state.step += 1;
-          state.stepT = 0;
-          state.playing = true;
-          onStepChange();
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
+      }
+      return;
+    }
 
-        function setPlaying() {
-          if (
-            state.mode === "step" &&
-            (state.phase !== "transition" ||
-              state.stepT >= (FREEZE_AT[state.step] || ENTER_DUR))
-          )
-            return;
-          state.playing = !state.playing;
-          renderControls();
-        }
+    if (isInteractiveTarget(event.target)) return;
 
-        function setSpeed(v) {
-          if (v !== 0.5 && v !== 1 && v !== 2) return;
-          state.speed = v;
-        }
+    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+      return;
+    }
 
-        function reset() {
-          state.mode = "auto";
-          state.step = 1;
-          state.stepT = 0;
-          state.phase = "idle";
-          state.playing = true;
-          onStepChange();
-        }
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
 
-        function applyLayout() {
-          const desk = mqDesk.matches;
-          document.body.classList.toggle("v916", state.video);
-          if (state.video) {
-            els.frame.classList.add("on");
-            els.frameInner.insertBefore(els.canvas, els.frameOverlay);
-            els.frameOverlay.insertBefore(els.subs, els.framePanel);
-            els.framePanel.appendChild(els.panel);
-          } else {
-            els.frame.classList.remove("on");
-            els.wrap.insertBefore(els.canvas, els.frame);
-            if (desk) {
-              els.subSlotDesk.appendChild(els.subs);
-              els.panelSlotDesk.appendChild(els.panel);
-            } else {
-              els.subSlotMobile.appendChild(els.subs);
-              els.panelSlotMobile.appendChild(els.panel);
-            }
-          }
-          if (desk) {
-            els.sidebar.insertBefore(els.titleWrap, els.sidebar.firstChild);
-          } else {
-            els.app.insertBefore(els.titleWrap, els.stage);
-          }
-          resize();
-        }
+    if (event.key === "ArrowRight") {
+      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+        event.preventDefault();
+        nextStep();
+      }
+      return;
+    }
 
-        function toggleVideoMode() {
-          state.video = !state.video;
-          applyLayout();
-          renderControls();
-        }
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
 
-        function resize() {
-          if (state.video) {
-            const r = els.wrap.getBoundingClientRect();
-            let fh = r.height;
-            let fw = (fh * 9) / 16;
-            if (fw > r.width) {
-              fw = r.width;
-              fh = (fw * 16) / 9;
-            }
-            els.frameInner.style.width = Math.max(60, Math.floor(fw)) + "px";
-            els.frameInner.style.height = Math.max(106, Math.floor(fh)) + "px";
-          }
-          const host = els.canvas.parentElement;
-          if (!host) return;
-          const rect = host.getBoundingClientRect();
-          cssW = Math.max(1, Math.round(rect.width));
-          cssH = Math.max(1, Math.round(rect.height));
-          const dpr = clamp(window.devicePixelRatio || 1, 1, 3);
-          els.canvas.width = Math.round(cssW * dpr);
-          els.canvas.height = Math.round(cssH * dpr);
-          if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          computeScene();
-        }
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
 
-        function toggleControls() {
-          state.controlsHidden = !state.controlsHidden;
-          document.body.classList.toggle(
-            "controls-hidden",
-            state.controlsHidden,
-          );
-        }
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
+  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
 
-        function openSettings() {
-          if (settings) settings.open();
-        }
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
 
-        function closeSettings() {
-          if (settings) settings.close();
-        }
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
 
-        function handleInput(event) {
-          if (event.defaultPrevented) return;
-          const t = event.target;
-          if (
-            t &&
-            (t.tagName === "INPUT" ||
-              t.tagName === "TEXTAREA" ||
-              t.tagName === "SELECT" ||
-              t.isContentEditable)
-          )
-            return;
-          const key = event.key;
-          if (key === " " || event.code === "Space") {
-            toggleControls();
-            event.preventDefault();
-          } else if (key === "ArrowRight") {
-            if (
-              state.mode === "step" &&
-              state.phase !== "transition" &&
-              state.step < STEP_COUNT
-            ) {
-              onStep();
-              event.preventDefault();
-            }
-          } else if (key === "r" || key === "R" || key === "к" || key === "К") {
-            reset();
-            event.preventDefault();
-          } else if (key === "s" || key === "S" || key === "ы" || key === "Ы") {
-            setMode(state.mode === "auto" ? "step" : "auto");
-            event.preventDefault();
-          } else if (key === "v" || key === "V" || key === "м" || key === "М") {
-            toggleVideoMode();
-            event.preventDefault();
-          } else if (key === "Escape") {
-            closeSettings();
-          }
-        }
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
+  }
 
-        function showFatal(err) {
-          const f = document.getElementById("fatal");
-          if (f) f.classList.add("on");
-          if (window.console && console.error)
-            console.error("Init failed:", err);
-        }
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
 
-        function init() {
-          const ids = [
-            "app",
-            "stage",
-            "canvasWrap",
-            "scene",
-            "frame",
-            "frameInner",
-            "frameOverlay",
-            "framePanel",
-            "subSlotMobile",
-            "panelSlotMobile",
-            "sidebar",
-            "subSlotDesk",
-            "panelSlotDesk",
-            "titleWrap",
-            "subs",
-            "panel",
-            "btnPlay",
-            "btnGear",
-            "icPlay",
-            "icPause",
-            "mAuto",
-            "mStepBtn",
-            "mNext",
-            "mNine",
-          ];
-          ids.forEach(function (id) {
-            els[id] = document.getElementById(id);
-          });
-          els.wrap = els.canvasWrap;
-          els.canvas = els.scene;
-          if (!els.canvas || !els.wrap || !els.app)
-            throw new Error("DOM elements missing");
-          ctx = els.canvas.getContext("2d");
-          if (!ctx) throw new Error("Canvas 2D context unavailable");
-
-          settings = SettingsModal.init();
-
-          els.speedBtns = Array.prototype.slice.call(
-            document.querySelectorAll("[data-speed]"),
-          );
-
-          els.btnPlay.addEventListener("click", function () {
-            setPlaying();
-          });
-
-          const mw = document.getElementById("modalWrap");
-          mw.addEventListener("settings:mode", function (ev) {
-            setMode(ev.detail.mode);
-          });
-          mw.addEventListener("settings:next-step", function () {
-            onStep();
-          });
-          mw.addEventListener("settings:speed", function (ev) {
-            setSpeed(Number(ev.detail.value));
-          });
-          mw.addEventListener("settings:video-mode", function (ev) {
-            if (state.video !== ev.detail.enabled) toggleVideoMode();
-          });
-          mw.addEventListener("settings:reset", function () {
-            reset();
-          });
-
-          document.addEventListener("keydown", handleInput);
-
-          mqDesk = window.matchMedia("(min-width: 768px)");
-          const onMq = function () {
-            applyLayout();
-          };
-          if (mqDesk.addEventListener) mqDesk.addEventListener("change", onMq);
-          else if (mqDesk.addListener) mqDesk.addListener(onMq);
-
-          if (window.ResizeObserver) {
-            ro = new ResizeObserver(function () {
-              resize();
-            });
-            ro.observe(els.wrap);
-          }
-          window.addEventListener("resize", function () {
-            resize();
-          });
-
-          initParticles();
-          applyLayout();
-          updateSubtitles(state.step);
-          renderControls();
-          requestAnimationFrame(tick);
-          window.setTimeout(function () {
-            if (!state.started) startAuto();
-          }, 500);
-        }
-
-        try {
-          init();
-        } catch (err) {
-          showFatal(err);
-        }
-      })();
-    </script>
-  </body>
+  window.addEventListener("pagehide", () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }, { once: true });
+})();
+  </script>
+</body>
 </html>
