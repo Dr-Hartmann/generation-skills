@@ -131,7 +131,7 @@
   }
 
   function drawFrame() {
-    if (cssWidth <= 0 || cssHeight <= 0) return;
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
 
     if (state.transition) {
       const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
