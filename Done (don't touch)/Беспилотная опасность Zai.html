@@ -1,2585 +1,1164 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Беспилотная опасность</title>
-    <style>
-      :root {
-        --ui-bg: #0f0f13;
-        --ui-bg-gradient: #111118;
-        --ui-panel: #1a1a20;
-        --ui-panel-glass: rgba(26, 26, 32, 0.55);
-        --ui-modal-bg: rgba(26, 26, 32, 0.94);
-        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
-        --ui-text: #ffffff;
-        --ui-muted: #a0a0a0;
-        --ui-label: #cfcfcf;
-        --ui-accent: #2eac65;
-        --ui-accent-dark: #1e7a47;
-        --ui-accent-soft: rgba(46, 172, 101, 0.14);
-        --ui-accent-soft-hover: rgba(46, 172, 101, 0.26);
-        --ui-accent-border: rgba(46, 172, 101, 0.5);
-        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
-        --ui-accent-shadow-strong: rgba(46, 172, 101, 0.35);
-        --ui-accent-ambient-1: rgba(46, 172, 101, 0.34);
-        --ui-accent-ambient-2: rgba(30, 122, 71, 0.3);
-        --ui-accent-ambient-3: rgba(20, 80, 45, 0.38);
-        --ui-accent-halo: rgba(46, 172, 101, 0.14);
-        --ui-danger: #e5484d;
-        --ui-danger-hover-border: rgba(229, 72, 77, 0.6);
-        --ui-white-06: rgba(255, 255, 255, 0.06);
-        --ui-white-08: rgba(255, 255, 255, 0.08);
-        --ui-white-10: rgba(255, 255, 255, 0.1);
-        --ui-white-12: rgba(255, 255, 255, 0.12);
-        --ui-white-14: rgba(255, 255, 255, 0.14);
-        --ui-border-soft: rgba(255, 255, 255, 0.12);
-        --ui-border-faint: rgba(255, 255, 255, 0.08);
-        --ui-scrim-strong: rgba(0, 0, 0, 0.65);
-        --ui-surface-inset: rgba(0, 0, 0, 0.35);
-        --ui-shadow-text: rgba(0, 0, 0, 0.8);
-        --ui-ambient-blur: 90px;
-        --panel-w: clamp(320px, 30vw, 380px);
-      }
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-      body {
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow: hidden;
-        color: var(--ui-text);
-        background: var(--ui-bg);
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        overscroll-behavior: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .ambient-clip {
-        position: fixed;
-        inset: 0;
-        overflow: hidden;
-        z-index: 0;
-        pointer-events: none;
-      }
-      #ambient {
-        position: absolute;
-        inset: -10%;
-        opacity: 0;
-        transition: opacity 0.5s;
-        pointer-events: none;
-      }
-      #ambient i {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(var(--ui-ambient-blur));
-      }
-      #ambient .b1 {
-        width: 46vmin;
-        height: 46vmin;
-        left: -6%;
-        top: 8%;
-        background: var(--ui-accent-ambient-1);
-        animation: drift 9s ease-in-out infinite alternate;
-      }
-      #ambient .b2 {
-        width: 40vmin;
-        height: 40vmin;
-        right: -4%;
-        top: 38%;
-        background: var(--ui-accent-ambient-2);
-        animation: drift 11s ease-in-out infinite alternate-reverse;
-      }
-      #ambient .b3 {
-        width: 52vmin;
-        height: 52vmin;
-        left: 16%;
-        bottom: -8%;
-        background: var(--ui-accent-ambient-3);
-        animation: drift 13s ease-in-out infinite alternate;
-      }
-      @keyframes drift {
-        from {
-          transform: translate(0, 0) scale(1);
-        }
-        to {
-          transform: translate(4vmin, -5vmin) scale(1.12);
-        }
-      }
-      body.v916 #ambient {
-        opacity: 1;
-      }
-      @media (max-width: 767.98px) {
-        .ambient-clip {
-          right: calc(80px + env(safe-area-inset-right, 0px));
-        }
-      }
-      .app {
-        position: relative;
-        z-index: 1;
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        padding-right: calc(80px + env(safe-area-inset-right, 0px));
-        padding-left: calc(16px + env(safe-area-inset-left, 0px));
-      }
-      .topbar {
-        position: relative;
-        z-index: 3;
-        padding-top: calc(16px + env(safe-area-inset-top, 0px));
-      }
-      .kicker {
-        color: var(--ui-muted);
-        font-size: clamp(10px, 2.6vw, 12px);
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-      .topbar h1 {
-        margin: 3px 0 0;
-        font-size: clamp(20px, 5.2vw, 30px);
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        color: var(--ui-text);
-      }
-      .stage {
-        position: relative;
-        z-index: 1;
-        flex: 1 1 auto;
-        min-height: 0;
-        margin-top: 10px;
-      }
-      .stage-inner {
-        position: absolute;
-        inset: 0;
-      }
-      .stage-inner canvas,
-      .vframe-slot canvas {
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-      .stage-dock-slot {
-        display: none;
-      }
-      .frame-layer {
-        position: absolute;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 4;
-      }
-      body.video-mode .frame-layer {
-        display: flex;
-      }
-      .frame-layer::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.3);
-      }
-      .frame-glow {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: min(72%, 560px);
-        aspect-ratio: 1/1;
-        border-radius: 50%;
-        background: var(--ui-accent-halo);
-        filter: blur(var(--ui-ambient-blur));
-        transform: translate(-50%, -50%);
-      }
-      .vframe {
-        position: relative;
-        border-radius: 22px;
-        overflow: hidden;
-        background: var(--ui-bg);
-        border: 1px solid var(--ui-border-soft);
-        box-shadow:
-          0 0 0 1px var(--ui-white-06),
-          0 24px 80px rgba(0, 0, 0, 0.5),
-          0 0 60px var(--ui-accent-halo);
-      }
-      .vframe-slot {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-      }
-      .vframe-bottom {
-        position: absolute;
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
-        z-index: 3;
-      }
-      .frame-sub-slot,
-      .frame-dock-slot {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-      }
-      .bottomstack {
-        position: relative;
-        z-index: 3;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        margin-top: 12px;
-        margin-bottom: calc(25vh + env(safe-area-inset-bottom, 0px));
-      }
-      .sub-mobile-slot,
-      .dock-slot {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-      }
-      .panel {
-        display: none;
-      }
-      .subtitle {
-        min-height: 112px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        width: 100%;
-        max-width: 560px;
-        padding: 12px 16px;
-        border-radius: 16px;
-        background: #00000080;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        font-size: clamp(16px, 4.5vw, 22px);
-        line-height: 1.35;
-        font-weight: 700;
-        color: var(--ui-text);
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      .subtitle__inner {
-        display: block;
-        text-align: center;
-      }
-      .subtitle.show {
-        animation: subIn 0.32s ease-out forwards;
-      }
-      @keyframes subIn {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .subtitle__keyword {
-        color: var(--ui-accent);
-        font-weight: 800;
-      }
-      .dock {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px;
-        border-radius: 999px;
-        background: var(--ui-panel-glass);
-        -webkit-backdrop-filter: blur(14px);
-        backdrop-filter: blur(14px);
-        border: 1px solid var(--ui-border-soft);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-        transition:
-          opacity 0.25s,
-          transform 0.25s;
-      }
-      .app.controls-hidden .dock {
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(6px);
-      }
-      .dock .ctl {
-        width: 52px;
-        height: 52px;
-        border-radius: 999px;
-        border: none;
-        background: transparent;
-        display: grid;
-        place-items: center;
-        color: var(--ui-text);
-        cursor: pointer;
-        padding: 0;
-        transition:
-          background 0.2s,
-          transform 0.1s,
-          box-shadow 0.2s;
-      }
-      @media (hover: hover) {
-        .dock .ctl:hover {
-          background: var(--ui-white-10);
-        }
-      }
-      .dock .ctl:active {
-        transform: scale(0.95);
-      }
-      .dock .ctl:focus-visible {
-        outline: 2px solid var(--ui-accent);
-        outline-offset: 2px;
-      }
-      .ctl--play {
-        background: linear-gradient(
-          135deg,
-          var(--ui-accent),
-          var(--ui-accent-dark)
-        );
-        box-shadow: 0 4px 18px var(--ui-accent-shadow);
-      }
-      @media (hover: hover) {
-        .ctl--play:hover {
-          background: linear-gradient(
-            135deg,
-            var(--ui-accent),
-            var(--ui-accent-dark)
-          );
-        }
-      }
-      #btnPlay .ic-play {
-        display: none;
-      }
-      #btnPlay.paused .ic-play {
-        display: block;
-      }
-      #btnPlay.paused .ic-pause {
-        display: none;
-      }
-      @media (min-width: 768px) {
-        .app {
-          display: grid;
-          grid-template-columns: 1fr var(--panel-w);
-          grid-template-rows: auto minmax(0, 1fr);
-          padding: 0;
-        }
-        .topbar {
-          grid-column: 1/-1;
-          grid-row: 1;
-          padding: calc(16px + env(safe-area-inset-top, 0px)) 28px 12px 28px;
-        }
-        .stage {
-          grid-column: 1;
-          grid-row: 2;
-          margin-top: 0;
-        }
-        .stage-inner {
-          inset: 4px 20px 0 28px;
-        }
-        .bottomstack {
-          display: none;
-        }
-        .panel {
-          display: flex;
-          flex-direction: column;
-          grid-column: 2;
-          grid-row: 2;
-          margin: 0 20px 18px 4px;
-          padding: 16px;
-          border-radius: 20px;
-          background: var(--ui-panel-glass);
-          border: 1px solid var(--ui-border-faint);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          min-height: 0;
-        }
-        .panel-sub-slot {
-          display: flex;
-          width: 100%;
-          align-items: flex-start;
-        }
-        .stage-dock-slot {
-          display: flex;
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 18px;
-          justify-content: center;
-          pointer-events: none;
-          z-index: 5;
-        }
-        .stage-dock-slot .dock {
-          pointer-events: auto;
-        }
-        body.video-mode .app {
-          grid-template-columns: 1fr;
-        }
-        body.video-mode .panel {
-          display: none;
-        }
-        body.video-mode .bottomstack {
-          display: none;
-        }
-      }
-      @media (max-width: 767.98px) {
-        .panel-sub-slot {
-          display: none;
-        }
-      }
-      #modalWrap {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
-          max(16px, env(safe-area-inset-bottom, 0px));
-        background: var(--ui-modal-scrim);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-      #modalWrap.open {
-        display: flex;
-      }
-      #modalWrap.closing {
-        display: flex;
-      }
-      #modal {
-        width: min(92vw, 380px);
-        max-height: 90vh;
-        max-height: 90dvh;
-        overflow: auto;
-        color: var(--ui-text);
-        background: var(--ui-modal-bg);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 20px;
-        padding: 20px;
-        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-        outline: none;
-      }
-      #modalWrap.closing #modal {
-        animation: popOut 0.18s ease-in both;
-      }
-      @keyframes pop {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      @keyframes popOut {
-        from {
-          opacity: 1;
-          transform: scale(1);
-        }
-        to {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-      }
-      #modal button {
-        font-family: inherit;
-        color: var(--ui-text);
-        cursor: pointer;
-      }
-      #modal button:focus-visible {
-        outline: 2px solid var(--ui-accent);
-        outline-offset: 2px;
-      }
-      .modal-close {
-        display: grid;
-        place-items: center;
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        border-radius: 14px;
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-      }
-      .mhead {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-      .mhead h2 {
-        margin: 0;
-        font-size: 19px;
-        font-weight: 800;
-      }
-      .mstep {
-        color: var(--ui-muted);
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-      .seg {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .seg button {
-        flex: 1;
-        min-height: 44px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-border-soft);
-        font: inherit;
-        font-size: 14px;
-        font-weight: 800;
-        transition:
-          background 0.2s,
-          box-shadow 0.2s;
-      }
-      .seg button.active {
-        background: linear-gradient(
-          135deg,
-          var(--ui-accent),
-          var(--ui-accent-dark)
-        );
-        border-color: transparent;
-        box-shadow: 0 4px 14px var(--ui-accent-shadow);
-      }
-      #mSpeedSeg {
-        margin-bottom: 14px;
-      }
-      .mlabel-line {
-        color: var(--ui-label);
-        font-size: 14px;
-        font-weight: 700;
-        margin-bottom: 8px;
-      }
-      #mNext {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-accent-soft);
-        border: 1px solid var(--ui-accent-border);
-        font: inherit;
-        font-size: 15px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition:
-          background 0.2s,
-          opacity 0.2s;
-      }
-      #mNext:disabled {
-        opacity: 0.35;
-        cursor: not-allowed;
-      }
-      #mNext:not(:disabled):hover {
-        background: var(--ui-accent-soft-hover);
-      }
-      .mrow {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-      .mlabel {
-        flex: 1;
-        color: var(--ui-label);
-        font-size: 14px;
-        font-weight: 700;
-      }
-      .sw {
-        position: relative;
-        display: inline-block;
-        flex: 0 0 52px;
-        width: 52px;
-        height: 30px;
-      }
-      .sw input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-      }
-      .sw span {
-        position: absolute;
-        inset: 0;
-        background: var(--ui-white-12);
-        border-radius: 999px;
-        transition: background 0.25s;
-        pointer-events: none;
-      }
-      .sw span::before {
-        content: "";
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 3px;
-        background: var(--ui-text);
-        border-radius: 50%;
-        transition: transform 0.25s;
-      }
-      .sw input:checked + span {
-        background: var(--ui-accent);
-      }
-      .sw input:checked + span::before {
-        transform: translateX(22px);
-      }
-      .sw input:focus-visible + span {
-        outline: 2px solid var(--ui-text);
-        outline-offset: 3px;
-      }
-      #mReset {
-        width: 100%;
-        min-height: 46px;
-        border-radius: 12px;
-        color: var(--ui-text);
-        background: var(--ui-white-06);
-        border: 1px solid var(--ui-white-14);
-        font: inherit;
-        font-size: 14px;
-        font-weight: 800;
-        margin-bottom: 14px;
-        transition: border-color 0.2s;
-      }
-      #mReset:hover {
-        border-color: var(--ui-danger-hover-border);
-      }
-      .keys {
-        display: grid;
-        grid-template-columns: auto 1fr auto 1fr;
-        gap: 6px 10px;
-        align-items: center;
-        color: var(--ui-muted);
-        font-size: 12px;
-      }
-      .keys span {
-        justify-self: start;
-        padding: 2px 7px;
-        color: var(--ui-text);
-        background: var(--ui-white-08);
-        border: 1px solid var(--ui-border-soft);
-        border-radius: 6px;
-        font-weight: 800;
-      }
-      .keys i {
-        font-style: normal;
-      }
-      body.modal-open {
-        overflow: hidden;
-      }
-      .boot-error {
-        position: fixed;
-        left: 16px;
-        right: 16px;
-        top: 16px;
-        z-index: 50;
-        background: var(--ui-modal-bg);
-        border: 1px solid var(--ui-danger-hover-border);
-        border-radius: 14px;
-        padding: 14px;
-        color: var(--ui-text);
-        font-size: 14px;
-        font-weight: 700;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #ambient .b1,
-        #ambient .b2,
-        #ambient .b3 {
-          animation: none;
-        }
-        #modal,
-        #modalWrap.closing #modal {
-          animation: none;
-        }
-        .subtitle.show {
-          animation: none;
-          opacity: 1;
-          transform: none;
-        }
-      }
-    </style>
-  </head>
-  <body class="v916">
-    <div class="ambient-clip" aria-hidden="true">
-      <div id="ambient">
-        <i class="b1"></i><i class="b2"></i><i class="b3"></i>
-      </div>
-    </div>
-    <div class="app" id="app">
-      <header class="topbar">
-        <div class="kicker">Безопасность школьников</div>
-        <h1>Беспилотная опасность</h1>
-      </header>
-      <main class="stage" id="stage">
-        <div class="stage-inner" id="canvasNormalSlot">
-          <canvas
-            id="scene"
-            role="img"
-            aria-label="Визуализация правил безопасного поведения при обнаружении беспилотного летательного аппарата"
-          ></canvas>
-        </div>
-        <div class="stage-dock-slot" id="dockDesktopSlot"></div>
-        <div class="frame-layer" id="frameLayer" aria-hidden="true">
-          <div class="frame-glow" aria-hidden="true"></div>
-          <div class="vframe" id="vframe">
-            <div class="vframe-slot" id="canvasFrameSlot"></div>
-            <div class="vframe-bottom">
-              <div class="frame-sub-slot" id="frameSubSlot"></div>
-              <div class="frame-dock-slot" id="frameDockSlot"></div>
-            </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F13">
+  <meta name="description" content="Правила безопасного поведения школьников при предупреждении об угрозе, обнаружении беспилотника или его обломков.">
+  <meta name="color-scheme" content="dark">
+  <title>Беспилотная опасность</title>
+  <style>
+:root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app-root" id="appRoot">
+    <header class="app-header">
+      <h1 id="appTitle">Беспилотная опасность</h1>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" id="stage" aria-label="Область визуализации">
+        <div class="visual-frame" id="visualFrame">
+          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
+
+          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
+
+          <div class="control-bar" id="controlBar">
+            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
+              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </div>
-      </main>
-      <aside class="panel" id="panel">
-        <div class="panel-sub-slot" id="subPanelSlot"></div>
-      </aside>
-      <div class="bottomstack" id="bottomstack">
-        <div class="sub-mobile-slot" id="subMobileSlot">
-          <div class="subtitle" id="subtitle" aria-live="polite"></div>
-        </div>
-        <div class="dock-slot" id="dockMobileSlot">
-          <footer class="dock" id="dock">
-            <button
-              id="btnPlay"
-              class="ctl ctl--play"
-              type="button"
-              aria-label="Пауза"
-            >
-              <svg
-                class="ic ic-pause"
-                viewBox="0 0 24 24"
-                width="22"
-                height="22"
-                aria-hidden="true"
-              >
-                <path
-                  d="M8 5h3.4v14H8zM12.6 5H16v14h-3.4z"
-                  fill="currentColor"
-                />
-              </svg>
-              <svg
-                class="ic ic-play"
-                viewBox="0 0 24 24"
-                width="22"
-                height="22"
-                aria-hidden="true"
-              >
-                <path d="M8.5 5.5v13l10-6.5z" fill="currentColor" />
-              </svg>
-            </button>
-            <button
-              id="btnGear"
-              class="ctl js-gear"
-              type="button"
-              aria-label="Настройки"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="22"
-                height="22"
-                aria-hidden="true"
-              >
-                <path
-                  d="M10.3 3h3.4l.5 2.6c.7.2 1.3.6 1.9 1l2.5-.9 1.7 2.9-2 1.7c.1.4.1.8.1 1.2s0 .8-.1 1.2l2 1.7-1.7 2.9-2.5-.9c-.6.4-1.2.8-1.9 1l-.5 2.6h-3.4l-.5-2.6c-.7-.2-1.3-.6-1.9-1l-2.5.9-1.7-2.9 2-1.7c-.1-.4-.1-.8-.1-1.2s0-.8.1-1.2l-2-1.7 1.7-2.9 2.5.9c.6-.4 1.2-.8 1.9-1l.5-2.6zm1.7 6.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-          </footer>
-        </div>
-      </div>
-    </div>
-    <div id="modalWrap" aria-hidden="true">
-      <section
-        id="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-        tabindex="-1"
-      >
-        <header class="mhead">
-          <h2 id="modalTitle">Настройки</h2>
-          <button
-            class="modal-close"
-            id="mClose"
-            type="button"
-            data-modal-close
-            aria-label="Закрыть"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path
-                d="M6 6l12 12M18 6L6 18"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-        </header>
-        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
-        <div class="seg" role="group" aria-label="Режим воспроизведения">
-          <button
-            id="mAuto"
-            class="active"
-            type="button"
-            data-mode="auto"
-            aria-pressed="true"
-          >
-            AUTO
-          </button>
-          <button
-            id="mStepBtn"
-            type="button"
-            data-mode="step"
-            aria-pressed="false"
-          >
-            STEP
-          </button>
-        </div>
-        <button id="mNext" type="button" data-modal-action="next-step" disabled>
-          Следующий шаг ▶
-        </button>
-        <div class="mlabel-line" id="mSpeedLabel">Скорость</div>
-        <div
-          class="seg"
-          id="mSpeedSeg"
-          role="group"
-          aria-labelledby="mSpeedLabel"
-        >
-          <button type="button" data-speed="0.5" aria-pressed="false">
-            0.5×
-          </button>
-          <button
-            type="button"
-            data-speed="1"
-            class="active"
-            aria-pressed="true"
-          >
-            1×
-          </button>
-          <button type="button" data-speed="2" aria-pressed="false">2×</button>
-        </div>
-        <div class="mrow">
-          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
-          <label class="sw" aria-labelledby="mNineLabel">
-            <input type="checkbox" id="mNine" data-modal-toggle="video-mode" />
-            <span aria-hidden="true"></span>
-          </label>
-        </div>
-        <button id="mReset" type="button" data-modal-action="reset">
-          Reset
-        </button>
-        <div class="keys" aria-label="Горячие клавиши">
-          <span>Space</span><i>скрыть панель</i> <span>→</span
-          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
-          ><i>AUTO / STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
-          ><i>закрыть окно</i>
-        </div>
       </section>
-    </div>
-    <script>
-      (function () {
-        "use strict";
-        var W = 450,
-          H = 800,
-          STEP_COUNT = 8,
-          STEP_DUR = 5.2,
-          TRANS = 0.5,
-          SETTLE = 1.0,
-          AUTO_DELAY = 500,
-          LAST = STEP_COUNT - 1;
-        var PAL = {
-          bg: "#0F0F13",
-          accent: "#2EAC65",
-          accentDark: "#1E7A47",
-          danger: "#E5484D",
-          warning: "#FFC94D",
-          warningLight: "#FFD98A",
-          warningGlow: "#FFE9A8",
-          warningPale: "#FFF3C4",
-          successGlow: "#7FE0A8",
-          textSoft: "#E6E6EC",
-          textBright: "#F2F2F6",
-          whiteSoft: "#EFEFEF",
-          skyStar: "#9AA0B5",
-          metalDark: "#0E0E12",
-          metalBase: "#14141A",
-          metalMid: "#15151B",
-          metalPanel: "#202028",
-          metalRaised: "#26262E",
-          metalBorder: "#2A2A34",
-          metalStroke: "#3A3A44",
-          metalWire: "#3C3C46",
-          metalSecondary: "#33333D",
-          dust: "#9C948A",
-          redBright: "#FF5A5F",
-        };
-        var SUBTITLES = [
-          {
-            step: 1,
-            segments: [
-              { text: "Услышали " },
-              { text: "характерный гул", emphasis: true },
-              { text: " и увидели необычный летательный объект в небе" },
-            ],
-          },
-          {
-            step: 2,
-            segments: [
-              { text: "Сохраняйте спокойствие: " },
-              { text: "не делайте самостоятельных выводов", emphasis: true },
-              { text: " об опасности" },
-            ],
-          },
-          {
-            step: 3,
-            segments: [
-              { text: "Прекратите занятия на открытой местности и " },
-              { text: "перейдите в капитальное помещение", emphasis: true },
-            ],
-          },
-          {
-            step: 4,
-            segments: [
-              { text: "Выбирайте укрытие: " },
-              {
-                text: "капитальные стены, помещения без окон, внутренние коридоры",
-                emphasis: true,
-              },
-            ],
-          },
-          {
-            step: 5,
-            segments: [
-              { text: "Следуйте " },
-              { text: "официальным предупреждениям", emphasis: true },
-              { text: " и указаниям педагогов и экстренных служб" },
-            ],
-          },
-          {
-            step: 6,
-            segments: [
-              { text: "Нельзя " },
-              { text: "приближаться к обломкам", emphasis: true },
-              { text: ", трогать и снимать их на камеру" },
-            ],
-          },
-          {
-            step: 7,
-            segments: [
-              { text: "Сообщите об угрозе по номеру " },
-              { text: "112", emphasis: true },
-              { text: ": место, время и ситуацию" },
-            ],
-          },
-          {
-            step: 8,
-            segments: [
-              { text: "Возвращайтесь к обычным делам " },
-              {
-                text: "только после официального сигнала отбоя",
-                emphasis: true,
-              },
-            ],
-          },
-        ];
-        var state = {
-          mode: "auto",
-          isPlaying: false,
-          started: false,
-          currentStep: 0,
-          prevStep: -1,
-          speed: 1,
-          videoMode: false,
-          stepElapsed: 0,
-          clock: 0,
-        };
-        var view = { scale: 1, ox: 0, oy: 0, dpr: 1, cw: 0, ch: 0 };
-        var els = {};
-        var modalApi = null;
-        var mqDesktop = null;
-        var nextDisabledCache = null;
-        function clamp01(v) {
-          return v < 0 ? 0 : v > 1 ? 1 : v;
-        }
-        function easeOut(v) {
-          var x = clamp01(v);
-          return 1 - Math.pow(1 - x, 3);
-        }
-        function easeInOut(v) {
-          var x = clamp01(v);
-          return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-        }
-        function lerp(a, b, p) {
-          return a + (b - a) * p;
-        }
-        function E(t, delay, dur) {
-          return easeOut((t - delay) / dur);
-        }
-        function rr(c, x, y, w, h, r) {
-          r = Math.min(r, w / 2, h / 2);
-          c.beginPath();
-          c.moveTo(x + r, y);
-          c.arcTo(x + w, y, x + w, y + h, r);
-          c.arcTo(x + w, y + h, x, y + h, r);
-          c.arcTo(x, y + h, x, y, r);
-          c.arcTo(x, y, x + w, y, r);
-          c.closePath();
-        }
-        function withAlpha(c, a, fn) {
-          var p = c.globalAlpha;
-          c.globalAlpha = Math.max(0, Math.min(1, p * a));
-          fn();
-          c.globalAlpha = p;
-        }
-        function fail(msg) {
-          if (window.console && console.error) console.error(msg);
-          try {
-            var d = document.createElement("div");
-            d.className = "boot-error";
-            d.textContent = "Не удалось запустить приложение: " + msg;
-            document.body.appendChild(d);
-          } catch (e) {}
-        }
-        function initSettingsModal() {
-          var overlay = document.getElementById("modalWrap");
-          var dialog = document.getElementById("modal");
-          if (!overlay || !dialog) {
-            fail("окно настроек не найдено");
-            return null;
-          }
-          var openers = Array.prototype.slice.call(
-            document.querySelectorAll(".js-gear"),
-          );
-          var closers = Array.prototype.slice.call(
-            overlay.querySelectorAll("[data-modal-close]"),
-          );
-          var prevFocus = null,
-            closeTimer = 0;
-          function finishClose() {
-            overlay.classList.remove("open", "closing");
-            overlay.setAttribute("aria-hidden", "true");
-            document.body.classList.remove("modal-open");
-            if (prevFocus && prevFocus.focus) prevFocus.focus();
-          }
-          function open() {
-            if (overlay.classList.contains("open")) return;
-            clearTimeout(closeTimer);
-            overlay.classList.remove("closing");
-            prevFocus = document.activeElement;
-            overlay.classList.add("open");
-            overlay.setAttribute("aria-hidden", "false");
-            document.body.classList.add("modal-open");
-            dialog.focus();
-          }
-          function close() {
-            if (
-              !overlay.classList.contains("open") ||
-              overlay.classList.contains("closing")
-            )
-              return;
-            var reduce =
-              window.matchMedia &&
-              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            if (reduce) {
-              finishClose();
-              return;
-            }
-            overlay.classList.add("closing");
-            closeTimer = setTimeout(finishClose, 180);
-          }
-          function toggle() {
-            overlay.classList.contains("open") ? close() : open();
-          }
-          openers.forEach(function (b) {
-            b.addEventListener("click", toggle);
-          });
-          closers.forEach(function (b) {
-            b.addEventListener("click", close);
-          });
-          overlay.addEventListener("click", function (e) {
-            if (e.target === overlay) close();
-          });
-          document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape" && overlay.classList.contains("open"))
-              close();
-          });
-          overlay.querySelectorAll("[data-mode]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              overlay.querySelectorAll("[data-mode]").forEach(function (it) {
-                var act = it === btn;
-                it.classList.toggle("active", act);
-                it.setAttribute("aria-pressed", String(act));
-              });
-              overlay.dispatchEvent(
-                new CustomEvent("settings:mode", {
-                  detail: { mode: btn.dataset.mode },
-                }),
-              );
-            });
-          });
-          var nextBtn = overlay.querySelector(
-            '[data-modal-action="next-step"]',
-          );
-          if (nextBtn)
-            nextBtn.addEventListener("click", function () {
-              overlay.dispatchEvent(new CustomEvent("settings:next-step"));
-            });
-          overlay
-            .querySelectorAll("#mSpeedSeg [data-speed]")
-            .forEach(function (btn) {
-              btn.addEventListener("click", function () {
-                overlay.dispatchEvent(
-                  new CustomEvent("settings:speed", {
-                    detail: { value: Number(btn.dataset.speed) },
-                  }),
-                );
-              });
-            });
-          var nine = overlay.querySelector('[data-modal-toggle="video-mode"]');
-          if (nine)
-            nine.addEventListener("change", function () {
-              overlay.dispatchEvent(
-                new CustomEvent("settings:video-mode", {
-                  detail: { enabled: nine.checked },
-                }),
-              );
-            });
-          overlay
-            .querySelectorAll('[data-modal-action="reset"]')
-            .forEach(function (btn) {
-              btn.addEventListener("click", function () {
-                overlay.dispatchEvent(new CustomEvent("settings:reset"));
-              });
-            });
-          return {
-            open: open,
-            close: close,
-            toggle: toggle,
-            setStepText: function (txt) {
-              var el = overlay.querySelector("#mStepTxt");
-              if (el) el.textContent = txt;
-            },
-          };
-        }
-        function move(el, slot) {
-          if (el && slot && el.parentNode !== slot) slot.appendChild(el);
-        }
-        function placeChrome() {
-          var desktop = mqDesktop && mqDesktop.matches;
-          var video = state.videoMode;
-          document.body.classList.toggle("video-mode", video);
-          els.frameLayer.setAttribute("aria-hidden", video ? "false" : "true");
-          if (video) {
-            move(els.scene, els.canvasFrameSlot);
-            move(els.subtitle, els.frameSubSlot);
-            move(els.dock, els.frameDockSlot);
-          } else if (desktop) {
-            move(els.scene, els.canvasNormalSlot);
-            move(els.subtitle, els.subPanelSlot);
-            move(els.dock, els.dockDesktopSlot);
-          } else {
-            move(els.scene, els.canvasNormalSlot);
-            move(els.subtitle, els.subMobileSlot);
-            move(els.dock, els.dockMobileSlot);
-          }
-          resize();
-        }
-        function resize() {
-          if (state.videoMode) {
-            var aw = els.frameLayer.clientWidth,
-              ah = els.frameLayer.clientHeight;
-            if (aw > 10 && ah > 10) {
-              var fw = Math.min(aw, (ah * 9) / 16),
-                fh = (fw * 16) / 9;
-              els.vframe.style.width = Math.floor(fw) + "px";
-              els.vframe.style.height = Math.floor(fh) + "px";
-            }
-          }
-          var parent = els.scene.parentNode;
-          if (!parent) return;
-          var cw = parent.clientWidth,
-            ch = parent.clientHeight;
-          if (cw < 2 || ch < 2) return;
-          var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
-          var bw = Math.round(cw * dpr),
-            bh = Math.round(ch * dpr);
-          if (els.scene.width !== bw || els.scene.height !== bh) {
-            els.scene.width = bw;
-            els.scene.height = bh;
-          }
-          view.cw = cw;
-          view.ch = ch;
-          view.dpr = dpr;
-          view.scale = Math.min(cw / W, ch / H);
-          view.ox = (cw - W * view.scale) / 2;
-          view.oy = (ch - H * view.scale) / 2;
-        }
-        function updateSubtitles(n) {
-          var box = els.subtitle;
-          while (box.firstChild) box.removeChild(box.firstChild);
-          var data = SUBTITLES[n - 1];
-          if (!data) return;
-          var inner = document.createElement("span");
-          inner.className = "subtitle__inner";
-          data.segments.forEach(function (seg) {
-            if (seg.emphasis) {
-              var s = document.createElement("span");
-              s.className = "subtitle__keyword";
-              s.textContent = seg.text;
-              inner.appendChild(s);
-            } else {
-              inner.appendChild(document.createTextNode(seg.text));
-            }
-          });
-          box.appendChild(inner);
-          box.classList.remove("show");
-          void box.offsetWidth;
-          box.classList.add("show");
-        }
-        function renderControls() {
-          var paused = !state.isPlaying;
-          els.btnPlay.classList.toggle("paused", paused);
-          els.btnPlay.setAttribute(
-            "aria-label",
-            paused ? "Воспроизвести" : "Пауза",
-          );
-        }
-        function syncModalUI() {
-          if (modalApi)
-            modalApi.setStepText(
-              "Шаг " + (state.currentStep + 1) + " / " + STEP_COUNT,
-            );
-          var bAuto = document.getElementById("mAuto"),
-            bStep = document.getElementById("mStepBtn");
-          if (bAuto) {
-            bAuto.classList.toggle("active", state.mode === "auto");
-            bAuto.setAttribute("aria-pressed", String(state.mode === "auto"));
-          }
-          if (bStep) {
-            bStep.classList.toggle("active", state.mode === "step");
-            bStep.setAttribute("aria-pressed", String(state.mode === "step"));
-          }
-          var nb = document.getElementById("mNext");
-          var dis = !(
-            state.mode === "step" &&
-            state.currentStep < LAST &&
-            state.stepElapsed >= SETTLE
-          );
-          nextDisabledCache = dis;
-          if (nb) nb.disabled = dis;
-          var seg = document.querySelectorAll("#mSpeedSeg [data-speed]");
-          for (var i = 0; i < seg.length; i++) {
-            var on = Number(seg[i].getAttribute("data-speed")) === state.speed;
-            seg[i].classList.toggle("active", on);
-            seg[i].setAttribute("aria-pressed", String(on));
-          }
-          var nine = document.getElementById("mNine");
-          if (nine) nine.checked = state.videoMode;
-        }
-        function goToStep(idx) {
-          state.prevStep = state.currentStep;
-          state.currentStep = idx;
-          state.stepElapsed = 0;
-          updateSubtitles(idx + 1);
-          syncModalUI();
-        }
-        function startAuto() {
-          state.started = true;
-          state.isPlaying = true;
-          renderControls();
-        }
-        function togglePlay() {
-          state.isPlaying = !state.isPlaying;
-          renderControls();
-        }
-        function setMode(mode) {
-          if (mode !== "auto" && mode !== "step") return;
-          if (state.mode === mode) {
-            syncModalUI();
-            return;
-          }
-          state.mode = mode;
-          if (mode === "step")
-            state.stepElapsed = Math.max(state.stepElapsed, SETTLE);
-          syncModalUI();
-        }
-        function onStep() {
-          if (state.mode !== "step") return;
-          if (state.currentStep >= LAST) return;
-          if (state.stepElapsed < SETTLE) return;
-          goToStep(state.currentStep + 1);
-        }
-        function setSpeed(v) {
-          if (v !== 0.5 && v !== 1 && v !== 2) return;
-          state.speed = v;
-          syncModalUI();
-        }
-        function setVideoMode(on) {
-          state.videoMode = !!on;
-          placeChrome();
-          syncModalUI();
-        }
-        function toggleVideoMode() {
-          setVideoMode(!state.videoMode);
-        }
-        function resetApp() {
-          state.mode = "auto";
-          state.currentStep = 0;
-          state.prevStep = -1;
-          state.stepElapsed = 0;
-          state.isPlaying = true;
-          updateSubtitles(1);
-          syncModalUI();
-          renderControls();
-        }
-        function handleInput(e) {
-          var t = e.target;
-          if (
-            t &&
-            t.tagName &&
-            (t.tagName === "INPUT" ||
-              t.tagName === "TEXTAREA" ||
-              t.tagName === "SELECT" ||
-              t.isContentEditable)
+
+      <aside class="details-panel" id="detailsPanel">
+        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
+        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
+        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
+      </div>
+
+      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
+
+      <div class="setting-row">
+        <label for="speedSelect">Скорость</label>
+        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
+      </div>
+
+      <div class="setting-row">
+        <label for="portraitToggle">Вертикальная рамка 9:16</label>
+        <input id="portraitToggle" type="checkbox">
+      </div>
+
+      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
+
+      <div class="keyboard-help" aria-label="Горячие клавиши">
+        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+        <span><kbd>→</kbd> Следующий шаг в STEP</span>
+        <span><kbd>R</kbd> Сброс</span>
+        <span><kbd>S</kbd> AUTO / STEP</span>
+        <span><kbd>V</kbd> Рамка 9:16</span>
+        <span><kbd>Esc</kbd> Закрыть настройки</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const APP_CONFIG = {"steps":[{"heading":"Распознавание","subtitle":"Необычный объект или официальное сообщение — повод соблюдать осторожность.","detail":"Наблюдение • оповещение • взрослые","icon":"drone","nodes":["Объект","Оповещение","Взрослые"]},{"heading":"Дистанция","subtitle":"Не приближайся к аппарату, обломкам и подозрительным предметам.","detail":"Не подходить • не трогать • не перемещать","icon":"shield","nodes":["Дистанция","Обломки","Предметы"]},{"heading":"Остановка","subtitle":"Прекрати занятия на открытом месте и слушай взрослых.","detail":"Спокойствие • остановка • указания","icon":"shield","nodes":["Остановка","Спокойствие","Указания"]},{"heading":"Укрытие","subtitle":"Перейди в предусмотренное безопасное помещение, если путь безопасен.","detail":"Помещение • план школы • помощь","icon":"shield","nodes":["Помещение","Безопасность","Маршрут"]},{"heading":"В школе","subtitle":"В школе двигайся организованно вместе с педагогом.","detail":"Педагог • группа • порядок","icon":"network","nodes":["Педагог","Группа","Порядок"]},{"heading":"Ожидание","subtitle":"В укрытии держись подальше от окон и жди указаний.","detail":"Внутренняя зона • ожидание • инструкции","icon":"shield","nodes":["Окна","Укрытие","Ожидание"]},{"heading":"Сообщение","subtitle":"Сообщи взрослому или службам только из безопасного места.","detail":"112 • место • время","icon":"phone","nodes":["112","Место","Время"]},{"heading":"Отмена угрозы","subtitle":"Покидай укрытие после официального разрешения ответственных служб.","detail":"Официальный сигнал • разрешение • возвращение","icon":"check","nodes":["Отбой","Разрешение","Возврат"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+    (() => {
+  "use strict";
+  function roundedRect(ctx,x,y,w,h,r) {
+    const radius=Math.min(r,w/2,h/2);
+    ctx.beginPath();ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+  }
+  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
+    const words=String(text||"").split(/\s+/),lines=[];let line="";
+    for(const word of words){const test=line?line+" "+word:word;
+      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
+    if(line)lines.push(line);
+    const visible=lines.slice(0,maxLines);
+    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
+      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
+      visible[visible.length-1]=last+"…";}
+    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
+  }
+  function glyph(ctx,type,x,y,size,accent,soft) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
+    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
+    if(type==="database"){
+      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
+    }else if(type==="network"){
+      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
+      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }else if(type==="shield"||type==="check"){
+      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
+    }else if(type==="lock"){
+      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
+    }else if(type==="web"){
+      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
+      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
+    }else if(type==="code"){
+      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
+    }else if(type==="phone"){
+      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
+    }else if(type==="train"||type==="rail"){
+      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
+      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="game"){
+      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
+    }else if(type==="robot"){
+      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
+    }else if(type==="drone"){
+      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
+      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="mail"){
+      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
+    }else if(type==="eye"){
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function chip(ctx,x,y,w,h,label,palette){
+    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
+    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
+    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
+    ctx.fillText(value,x+w/2,y+h/2);
+  }
+  function draw(ctx,frame){
+    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
+    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
+    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
+    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
+    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
+    ctx.save();
+    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
+    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
+    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
+    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
+    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
+    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
+    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
+    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
+    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
+    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
+    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
+    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
+    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
+    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
+    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
+    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
+    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
+    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
+    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
+    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
+    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
+    ctx.restore();
+  }
+  window.AppScene={draw};
+})();
+    (() => {
+  "use strict";
+
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
+
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton")
+  };
+
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
+
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    return;
+  }
+
+  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
+    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+    return;
+  }
+
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
+
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
+
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null
+  };
+
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
+
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
+
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (cssWidth <= 0 || cssHeight <= 0) return;
+
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
+
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
+
+    drawFrame();
+  }
+
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
+
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+    if (state.transition) {
+      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    drawTo(ctx, state.currentStep, 1);
+  }
+
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
+
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
+
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
+
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
+        });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
+
+    updateControls();
+  }
+
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
+
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
+
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
+
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+      }
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    ) return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
+      }
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
+      }
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
+      }
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
           )
-            return;
-          if (e.code === "Space") {
-            if (t && t.tagName === "BUTTON") return;
-            e.preventDefault();
-            els.app.classList.toggle("controls-hidden");
-            return;
-          }
-          if (e.code === "ArrowRight") {
-            if (state.mode === "step" && state.started) {
-              e.preventDefault();
-              onStep();
-            }
-            return;
-          }
-          if (e.code === "KeyR") {
-            resetApp();
-            return;
-          }
-          if (e.code === "KeyS") {
-            setMode(state.mode === "auto" ? "step" : "auto");
-            return;
-          }
-          if (e.code === "KeyV") {
-            toggleVideoMode();
-            return;
-          }
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
-        function bindSettings() {
-          var m = els.modalWrap;
-          m.addEventListener("settings:mode", function (e) {
-            setMode(e.detail.mode);
-          });
-          m.addEventListener("settings:next-step", onStep);
-          m.addEventListener("settings:speed", function (e) {
-            setSpeed(e.detail.value);
-          });
-          m.addEventListener("settings:video-mode", function (e) {
-            setVideoMode(e.detail.enabled);
-          });
-          m.addEventListener("settings:reset", resetApp);
-        }
-        var lastTs = 0;
-        function frame(ts) {
-          var dt = lastTs ? Math.min(ts - lastTs, 100) : 0;
-          lastTs = ts;
-          if (state.isPlaying) update((dt * state.speed) / 1000);
-          draw();
-          requestAnimationFrame(frame);
-        }
-        function update(dt) {
-          state.clock += dt;
-          state.stepElapsed += dt;
-          if (state.mode === "auto" && state.stepElapsed >= STEP_DUR) {
-            goToStep((state.currentStep + 1) % STEP_COUNT);
-            return;
-          }
-          if (state.mode === "step") {
-            var dis = !(
-              state.stepElapsed >= SETTLE && state.currentStep < LAST
-            );
-            if (dis !== nextDisabledCache) {
-              nextDisabledCache = dis;
-              var nb = document.getElementById("mNext");
-              if (nb) nb.disabled = dis;
-            }
-          }
-        }
-        function init() {
-          var ids = [
-            "app",
-            "stage",
-            "canvasNormalSlot",
-            "canvasFrameSlot",
-            "frameLayer",
-            "vframe",
-            "subPanelSlot",
-            "subMobileSlot",
-            "frameSubSlot",
-            "frameDockSlot",
-            "dockDesktopSlot",
-            "dockMobileSlot",
-            "subtitle",
-            "dock",
-            "btnPlay",
-            "btnGear",
-            "modalWrap",
-            "scene",
-          ];
-          for (var i = 0; i < ids.length; i++) {
-            var el = document.getElementById(ids[i]);
-            if (!el) {
-              fail("не найден элемент #" + ids[i]);
-              return;
-            }
-            els[ids[i]] = el;
-          }
-          els.ctx = els.scene.getContext("2d");
-          if (!els.ctx) {
-            fail("canvas 2d недоступен");
-            return;
-          }
-          mqDesktop = window.matchMedia("(min-width: 768px)");
-          if (mqDesktop.addEventListener)
-            mqDesktop.addEventListener("change", placeChrome);
-          else if (mqDesktop.addListener) mqDesktop.addListener(placeChrome);
-          els.btnPlay.addEventListener("click", togglePlay);
-          modalApi = initSettingsModal();
-          if (!modalApi) return;
-          bindSettings();
-          buildCityCache();
-          placeChrome();
-          updateSubtitles(1);
-          renderControls();
-          window.addEventListener("keydown", handleInput);
-          if (window.ResizeObserver) {
-            var ro = new ResizeObserver(resize);
-            ro.observe(els.stage);
-            ro.observe(els.vframe);
-          }
-          window.addEventListener("resize", resize);
-          resize();
-          requestAnimationFrame(frame);
-          setTimeout(function () {
-            if (!state.started) startAuto();
-          }, AUTO_DELAY);
-        }
-        if (document.readyState === "loading")
-          document.addEventListener("DOMContentLoaded", init);
-        else init();
-        var STARS = [];
-        (function () {
-          var s = 42;
-          function rnd() {
-            s = (s * 16807) % 2147483647;
-            return s / 2147483647;
-          }
-          for (var i = 0; i < 70; i++)
-            STARS.push({
-              x: -220 + rnd() * 880,
-              y: 10 + rnd() * 470,
-              r: 0.7 + rnd() * 1.1,
-              p: rnd() * 6.283,
-            });
-        })();
-        var SKYLINE = [],
-          FRONT = [];
-        (function () {
-          var s = 99;
-          function rnd() {
-            s = (s * 48271) % 2147483647;
-            return s / 2147483647;
-          }
-          var x = -220;
-          while (x < 640) {
-            var w = 46 + rnd() * 40,
-              h = 120 + rnd() * 210;
-            SKYLINE.push({ x: x, w: w, h: h, seed: rnd() });
-            x += w + 6 + rnd() * 14;
-          }
-          var s2 = 7;
-          function rnd2() {
-            s2 = (s2 * 16807) % 2147483647;
-            return s2 / 2147483647;
-          }
-          var x2 = 176;
-          while (x2 < 680) {
-            var w2 = 54 + rnd2() * 50,
-              h2 = 70 + rnd2() * 150;
-            FRONT.push({ x: x2, w: w2, h: h2, seed: rnd2() });
-            x2 += w2 + 10 + rnd2() * 18;
-          }
-        })();
-        var LAMPS = [{ x: 238 }, { x: 418 }];
-        var cityCache = null;
-        function buildCityCache() {
-          var off = document.createElement("canvas");
-          off.width = 920;
-          off.height = 800;
-          var c = off.getContext("2d");
-          if (!c) return;
-          c.translate(220, 0);
-          SKYLINE.forEach(function (b) {
-            c.fillStyle = PAL.metalMid;
-            c.fillRect(b.x, 640 - b.h, b.w, b.h);
-            for (var wy = 640 - b.h + 10; wy < 618; wy += 16) {
-              for (var wx = b.x + 5; wx < b.x + b.w - 9; wx += 11) {
-                c.fillStyle = "rgba(0,0,0,.28)";
-                c.fillRect(wx, wy, 5, 7);
-              }
-            }
-          });
-          FRONT.forEach(function (b) {
-            c.fillStyle = PAL.metalPanel;
-            c.fillRect(b.x, 640 - b.h, b.w, b.h);
-            c.strokeStyle = PAL.metalBorder;
-            c.lineWidth = 1;
-            c.strokeRect(b.x + 0.5, 639.5 - b.h, b.w - 1, b.h - 1);
-            for (var wy = 640 - b.h + 12; wy < 618; wy += 17) {
-              for (var wx = b.x + 7; wx < b.x + b.w - 11; wx += 13) {
-                c.fillStyle = "rgba(0,0,0,.3)";
-                c.fillRect(wx, wy, 6, 8);
-              }
-            }
-          });
-          c.fillStyle = PAL.metalMid;
-          c.fillRect(-220, 640, 920, 26);
-          c.fillStyle = "rgba(0,0,0,.3)";
-          c.fillRect(-220, 666, 920, 3);
-          var rg = c.createLinearGradient(0, 669, 0, 800);
-          rg.addColorStop(0, "#1A1A20");
-          rg.addColorStop(1, PAL.metalDark);
-          c.fillStyle = rg;
-          c.fillRect(-220, 669, 920, 131);
-          c.strokeStyle = "rgba(60,60,70,.8)";
-          c.lineWidth = 4;
-          c.setLineDash([26, 22]);
-          c.beginPath();
-          c.moveTo(-220, 742);
-          c.lineTo(700, 742);
-          c.stroke();
-          c.setLineDash([]);
-          LAMPS.forEach(function (l) {
-            c.strokeStyle = PAL.metalWire;
-            c.lineWidth = 3.5;
-            c.beginPath();
-            c.moveTo(l.x, 666);
-            c.lineTo(l.x, 598);
-            c.lineTo(l.x + 14, 598);
-            c.stroke();
-            var g = c.createRadialGradient(l.x + 14, 596, 2, l.x + 14, 596, 30);
-            g.addColorStop(0, "rgba(255,217,138,.4)");
-            g.addColorStop(1, "rgba(255,217,138,0)");
-            c.fillStyle = g;
-            c.fillRect(l.x - 18, 566, 66, 66);
-            c.beginPath();
-            c.arc(l.x + 14, 596, 5, 0, 6.283);
-            c.fillStyle = PAL.warningLight;
-            c.fill();
-            c.beginPath();
-            c.ellipse(l.x + 14, 690, 55, 16, 0, 0, 6.283);
-            c.fillStyle = "rgba(255,201,77,.05)";
-            c.fill();
-          });
-          cityCache = off;
-        }
-        function drawBackdrop(c, x0, x1) {
-          var g = c.createLinearGradient(0, 0, 0, 800);
-          g.addColorStop(0, PAL.metalBase);
-          g.addColorStop(1, PAL.metalDark);
-          c.fillStyle = g;
-          c.fillRect(x0, 0, x1 - x0, 800);
-          var rg = c.createRadialGradient(90, 120, 10, 90, 120, 300);
-          rg.addColorStop(0, "rgba(46,172,101,.1)");
-          rg.addColorStop(1, "rgba(46,172,101,0)");
-          c.fillStyle = rg;
-          c.fillRect(x0, 0, x1 - x0, 620);
-          var rg2 = c.createRadialGradient(392, 96, 8, 392, 96, 180);
-          rg2.addColorStop(0, "rgba(239,239,239,.1)");
-          rg2.addColorStop(1, "rgba(239,239,239,0)");
-          c.fillStyle = rg2;
-          c.fillRect(x0, 0, x1 - x0, 480);
-          c.fillStyle = PAL.skyStar;
-          for (var i = 0; i < STARS.length; i++) {
-            var st = STARS[i];
-            if (st.x < x0 - 4 || st.x > x1 + 4) continue;
-            c.globalAlpha =
-              0.2 + 0.4 * Math.abs(Math.sin(state.clock * 0.7 + st.p));
-            c.beginPath();
-            c.arc(st.x, st.y, st.r, 0, 6.283);
-            c.fill();
-          }
-          c.globalAlpha = 1;
-          c.beginPath();
-          c.arc(392, 96, 23, 0, 6.283);
-          c.fillStyle = "rgba(239,239,239,.85)";
-          c.fill();
-          if (cityCache) c.drawImage(cityCache, -220, 0);
-          c.fillStyle = "rgba(255,201,77,.1)";
-          SKYLINE.forEach(function (b) {
-            for (var wy = 640 - b.h + 10; wy < 618; wy += 16) {
-              for (var wx = b.x + 5; wx < b.x + b.w - 9; wx += 11) {
-                if ((wx * 7 + wy * 13 + Math.round(b.seed * 100)) % 97 < 16) {
-                  c.globalAlpha = 0.1 + 0.05 * Math.sin(state.clock * 0.8 + wx);
-                  c.fillRect(wx, wy, 5, 7);
-                }
-              }
-            }
-          });
-          c.globalAlpha = 1;
-          c.fillStyle = "rgba(255,201,77,.14)";
-          FRONT.forEach(function (b) {
-            for (var wy = 640 - b.h + 12; wy < 618; wy += 17) {
-              for (var wx = b.x + 7; wx < b.x + b.w - 11; wx += 13) {
-                if ((wx * 11 + wy * 17 + Math.round(b.seed * 100)) % 89 < 14) {
-                  c.globalAlpha =
-                    0.14 + 0.06 * Math.sin(state.clock * 0.9 + wy);
-                  c.fillRect(wx, wy, 6, 8);
-                }
-              }
-            }
-          });
-          c.globalAlpha = 1;
-        }
-        function drawSoundArcs(c, x, y, k, a, danger) {
-          if (a <= 0.02) return;
-          for (var i = 0; i < 3; i++) {
-            var r = (k * 72 + i * 38) % 115;
-            var al = (1 - r / 115) * 0.45 * a;
-            if (al <= 0.02) continue;
-            c.beginPath();
-            c.arc(x, y, r + 8, -2.55, -0.55);
-            c.strokeStyle =
-              (danger ? "rgba(229,72,77," : "rgba(239,239,239,") +
-              al.toFixed(3) +
-              ")";
-            c.lineWidth = 2;
-            c.stroke();
-          }
-        }
-        function drawRings(c, x, y, k, prefix, a, maxR) {
-          if (a <= 0.02) return;
-          for (var i = 0; i < 3; i++) {
-            var r = (k * 55 + i * 42) % maxR;
-            var al = (1 - r / maxR) * 0.5 * a;
-            if (al <= 0.02) continue;
-            c.beginPath();
-            c.arc(x, y, 10 + r, 0, 6.283);
-            c.strokeStyle = prefix + al.toFixed(3) + ")";
-            c.lineWidth = 2.2;
-            c.stroke();
-          }
-        }
-        function drawBeam(c, x, y, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            c.beginPath();
-            c.moveTo(x - 4, y + 14);
-            c.lineTo(x - 34, 660);
-            c.lineTo(x + 34, 660);
-            c.lineTo(x + 4, y + 14);
-            c.closePath();
-            c.fillStyle = "rgba(255,243,196,.1)";
-            c.fill();
-          });
-        }
-        function drawDrone(c, x, y, o) {
-          o = o || {};
-          var a = o.alpha == null ? 1 : o.alpha;
-          if (a <= 0.01) return;
-          var k = o.clock || 0;
-          withAlpha(c, a, function () {
-            c.save();
-            c.translate(x, y);
-            c.scale(o.scale || 1, o.scale || 1);
-            c.translate(0, Math.sin(k * 2.1) * 4);
-            if (o.danger) {
-              var g = c.createRadialGradient(0, 0, 4, 0, 0, 48);
-              g.addColorStop(0, "rgba(229,72,77,.2)");
-              g.addColorStop(1, "rgba(229,72,77,0)");
-              c.fillStyle = g;
-              c.fillRect(-48, -48, 96, 96);
-            }
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 3.4;
-            c.lineCap = "round";
-            var R = 30;
-            c.beginPath();
-            c.moveTo(-9, -4);
-            c.lineTo(-R, -9);
-            c.moveTo(9, -4);
-            c.lineTo(R, -9);
-            c.moveTo(-9, 4);
-            c.lineTo(-R, 9);
-            c.moveTo(9, 4);
-            c.lineTo(R, 9);
-            c.stroke();
-            var pts = [
-              [R, -9],
-              [-R, -9],
-              [R, 9],
-              [-R, 9],
-            ];
-            for (var i = 0; i < 4; i++) {
-              c.save();
-              c.translate(pts[i][0], pts[i][1]);
-              c.fillStyle = "rgba(239,239,239,.12)";
-              c.beginPath();
-              c.ellipse(0, 0, 17, 4.5, 0, 0, 6.283);
-              c.fill();
-              var rot = k * (21 + i * 1.7);
-              c.strokeStyle = "rgba(239,239,239,.5)";
-              c.lineWidth = 1.6;
-              for (var j = 0; j < 2; j++) {
-                c.beginPath();
-                c.ellipse(
-                  0,
-                  0,
-                  15,
-                  3.6,
-                  0,
-                  rot + j * 3.14159,
-                  rot + j * 3.14159 + 1.1,
-                );
-                c.stroke();
-              }
-              c.restore();
-            }
-            rr(c, -23, -8, 46, 17, 8);
-            c.fillStyle = PAL.metalRaised;
-            c.fill();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 1.6;
-            c.stroke();
-            rr(c, -10, -14, 20, 7, 3);
-            c.fillStyle = PAL.metalPanel;
-            c.fill();
-            c.stroke();
-            c.beginPath();
-            c.arc(0, 14, 6, 0, 6.283);
-            c.fillStyle = PAL.metalDark;
-            c.fill();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 1.5;
-            c.stroke();
-            c.beginPath();
-            c.arc(0, 14, 2.4, 0, 6.283);
-            c.fillStyle = PAL.metalWire;
-            c.fill();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 2.4;
-            c.beginPath();
-            c.moveTo(-13, 9);
-            c.lineTo(-15, 18);
-            c.moveTo(13, 9);
-            c.lineTo(15, 18);
-            c.stroke();
-            var blink = Math.sin(k * (o.danger ? 9 : 4)) > 0;
-            c.beginPath();
-            c.arc(0, -12, 3, 0, 6.283);
-            c.fillStyle = o.danger
-              ? blink
-                ? PAL.redBright
-                : "rgba(229,72,77,.35)"
-              : blink
-                ? PAL.successGlow
-                : "rgba(127,224,168,.3)";
-            c.fill();
-            c.restore();
-          });
-        }
-        function drawPerson(c, x, y, o) {
-          o = o || {};
-          var a = o.alpha == null ? 1 : o.alpha;
-          if (a <= 0.01) return;
-          var k = o.clock || 0;
-          withAlpha(c, a, function () {
-            c.save();
-            c.translate(x, y);
-            c.scale(o.scale || 1, o.scale || 1);
-            var bodyC = PAL.metalRaised;
-            c.lineCap = "round";
-            var sw = o.walking ? Math.sin(k * 7 * (o.walkRate || 1)) * 7 : 0;
-            c.strokeStyle = bodyC;
-            c.lineWidth = 6;
-            c.beginPath();
-            c.moveTo(0, -26);
-            c.lineTo(sw, 0);
-            c.stroke();
-            c.beginPath();
-            c.moveTo(0, -26);
-            c.lineTo(-sw, 0);
-            c.stroke();
-            rr(c, -9, -52, 18, 28, 7);
-            c.fillStyle = bodyC;
-            c.fill();
-            rr(c, -13.5, -48, 5, 17, 2.5);
-            c.fillStyle = PAL.accentDark;
-            c.fill();
-            c.strokeStyle = bodyC;
-            c.lineWidth = 5;
-            if (o.phone) {
-              c.beginPath();
-              c.moveTo(-6, -44);
-              c.lineTo(-9, -58);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(6, -44);
-              c.lineTo(9, -58);
-              c.stroke();
-            } else {
-              var asw = o.walking ? -sw * 0.55 : 0;
-              c.beginPath();
-              c.moveTo(-6, -46);
-              c.lineTo(-10 + asw, -30);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(6, -46);
-              c.lineTo(10 - asw, -30);
-              c.stroke();
-            }
-            var hy = o.lookUp ? -66 : -63;
-            c.beginPath();
-            c.arc(0, hy, 8.5, 0, 6.283);
-            c.fillStyle = bodyC;
-            c.fill();
-            c.beginPath();
-            c.arc(0, hy, 8.5, Math.PI * 1.05, Math.PI * 1.95);
-            c.strokeStyle = PAL.accent;
-            c.lineWidth = 3;
-            c.stroke();
-            c.restore();
-          });
-        }
-        function drawSchool(c, k, lit) {
-          var x = 28,
-            y = 350,
-            w = 140,
-            h = 290;
-          rr(c, x - 6, y - 12, w + 12, 16, 4);
-          c.fillStyle = PAL.metalSecondary;
-          c.fill();
-          c.strokeStyle = PAL.metalBorder;
-          c.lineWidth = 1.5;
-          c.stroke();
-          rr(c, x, y, w, h, 6);
-          c.fillStyle = PAL.metalPanel;
-          c.fill();
-          c.strokeStyle = PAL.metalBorder;
-          c.lineWidth = 2;
-          c.stroke();
-          [445, 540].forEach(function (fy) {
-            c.beginPath();
-            c.moveTo(x + 4, fy);
-            c.lineTo(x + w - 4, fy);
-            c.strokeStyle = PAL.metalBorder;
-            c.lineWidth = 1.5;
-            c.stroke();
-          });
-          var cols = [x + 14, x + 56, x + 98],
-            rows = [368, 462, 556];
-          for (var ri = 0; ri < 3; ri++)
-            for (var ci = 0; ci < 3; ci++) {
-              if (ri === 2 && ci === 1) continue;
-              rr(c, cols[ci], rows[ri], 28, 34, 4);
-              c.fillStyle = PAL.metalDark;
-              c.fill();
-              c.strokeStyle = PAL.metalBorder;
-              c.lineWidth = 1.5;
-              c.stroke();
-              if ((ri * 3 + ci) % 4 === 1) {
-                c.fillStyle =
-                  "rgba(255,201,77," +
-                  (
-                    0.16 +
-                    lit * 0.15 +
-                    0.04 * Math.sin(k * 1.2 + ri + ci)
-                  ).toFixed(3) +
-                  ")";
-                c.fill();
-              }
-            }
-          rr(c, x + 56, 598, 28, 42, 3);
-          c.fillStyle = PAL.metalRaised;
-          c.fill();
-          c.strokeStyle = PAL.metalStroke;
-          c.lineWidth = 1.5;
-          c.stroke();
-          rr(c, x + 44, 566, 52, 20, 5);
-          c.fillStyle = "rgba(46,172,101,.16)";
-          c.fill();
-          c.strokeStyle = "rgba(46,172,101,.5)";
-          c.lineWidth = 1.2;
-          c.stroke();
-          c.font = "800 10px system-ui, sans-serif";
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillStyle = PAL.successGlow;
-          c.fillText("ШКОЛА", x + 70, 577);
-        }
-        function drawSchoolCutaway(c, k) {
-          var x = 28,
-            y = 350,
-            w = 140,
-            h = 290;
-          rr(c, x - 6, y - 12, w + 12, 16, 4);
-          c.fillStyle = PAL.metalSecondary;
-          c.fill();
-          c.strokeStyle = PAL.metalBorder;
-          c.lineWidth = 1.5;
-          c.stroke();
-          rr(c, x, y, w, h, 6);
-          c.fillStyle = PAL.metalBase;
-          c.fill();
-          c.strokeStyle = PAL.metalBorder;
-          c.lineWidth = 2;
-          c.stroke();
-          c.lineWidth = 5;
-          c.strokeStyle = PAL.metalSecondary;
-          rr(c, x + 3, y + 3, w - 6, h - 6, 4);
-          c.stroke();
-          [445, 540].forEach(function (fy) {
-            c.beginPath();
-            c.moveTo(x + 10, fy);
-            c.lineTo(x + w - 10, fy);
-            c.strokeStyle = PAL.metalBorder;
-            c.lineWidth = 1.5;
-            c.stroke();
-          });
-          rr(c, 80, y + 8, 36, h - 16, 5);
-          c.fillStyle = "rgba(46,172,101,.18)";
-          c.fill();
-          c.setLineDash([7, 5]);
-          c.strokeStyle = PAL.accent;
-          c.lineWidth = 1.8;
-          c.stroke();
-          c.setLineDash([]);
-          var hatch = function (wx, wy) {
-            rr(c, wx, wy, 30, 36, 4);
-            c.fillStyle = PAL.metalDark;
-            c.fill();
-            c.save();
-            c.clip();
-            c.strokeStyle = "rgba(255,201,77,.8)";
-            c.lineWidth = 3;
-            for (var i = -2; i < 6; i++) {
-              c.beginPath();
-              c.moveTo(wx - 6 + i * 9, wy + 42);
-              c.lineTo(wx + 6 + i * 9, wy - 6);
-              c.stroke();
-            }
-            c.restore();
-            rr(c, wx, wy, 30, 36, 4);
-            c.strokeStyle = "rgba(255,201,77,.7)";
-            c.lineWidth = 1.8;
-            c.stroke();
-          };
-          [366, 462, 556].forEach(function (wy) {
-            hatch(x + 12, wy);
-            hatch(x + w - 42, wy);
-          });
-          rr(c, 84, 600, 28, 40, 3);
-          c.fillStyle = PAL.accentDark;
-          c.fill();
-          c.strokeStyle = PAL.accent;
-          c.lineWidth = 1.5;
-          c.stroke();
-        }
-        function drawShield(c, x, y, r) {
-          c.beginPath();
-          c.arc(x, y, r, 0, 6.283);
-          c.fillStyle = "rgba(46,172,101,.2)";
-          c.fill();
-          c.strokeStyle = PAL.accent;
-          c.lineWidth = 2.2;
-          c.stroke();
-          c.beginPath();
-          c.moveTo(x - r * 0.45, y + r * 0.02);
-          c.lineTo(x - r * 0.08, y + r * 0.42);
-          c.lineTo(x + r * 0.5, y - r * 0.38);
-          c.strokeStyle = PAL.successGlow;
-          c.lineWidth = 3.2;
-          c.lineCap = "round";
-          c.lineJoin = "round";
-          c.stroke();
-        }
-        function drawWarn(c, x, y, s, a, k) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            var pulse = 1 + Math.sin(k * 5) * 0.05;
-            c.save();
-            c.translate(x, y);
-            c.scale(s * pulse, s * pulse);
-            c.beginPath();
-            c.moveTo(0, -19);
-            c.lineTo(18, 13);
-            c.lineTo(-18, 13);
-            c.closePath();
-            c.fillStyle = PAL.warning;
-            c.fill();
-            c.lineJoin = "round";
-            c.strokeStyle = PAL.warningLight;
-            c.lineWidth = 3;
-            c.stroke();
-            c.fillStyle = PAL.metalDark;
-            c.font = "800 19px system-ui, sans-serif";
-            c.textAlign = "center";
-            c.textBaseline = "middle";
-            c.fillText("!", 0, 6);
-            c.restore();
-          });
-        }
-        function drawDoorGlow(c, x, y, a, k) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            var r = 14 + Math.sin(k * 3) * 3;
-            c.beginPath();
-            c.arc(x, y - 20, r, 0, 6.283);
-            c.strokeStyle = "rgba(46,172,101,.55)";
-            c.lineWidth = 2.5;
-            c.stroke();
-            c.beginPath();
-            c.arc(x, y - 20, r + 10, 0, 6.283);
-            c.strokeStyle = "rgba(46,172,101,.25)";
-            c.lineWidth = 2;
-            c.stroke();
-          });
-        }
-        function drawPathArrow(c, x1, y, x2, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            c.setLineDash([11, 9]);
-            c.lineCap = "round";
-            c.strokeStyle = "rgba(46,172,101,.85)";
-            c.lineWidth = 3.2;
-            c.beginPath();
-            c.moveTo(x1, y);
-            c.lineTo(x2 + 10, y);
-            c.stroke();
-            c.setLineDash([]);
-            c.beginPath();
-            c.moveTo(x2 - 4, y);
-            c.lineTo(x2 + 10, y - 8);
-            c.lineTo(x2 + 10, y + 8);
-            c.closePath();
-            c.fillStyle = "rgba(46,172,101,.9)";
-            c.fill();
-          });
-        }
-        function drawMast(c, x, baseY, a, k) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            c.strokeStyle = PAL.metalWire;
-            c.lineWidth = 4;
-            c.lineCap = "round";
-            c.beginPath();
-            c.moveTo(x, baseY);
-            c.lineTo(x, baseY - 56);
-            c.stroke();
-            var ty = baseY - 62;
-            c.beginPath();
-            c.arc(x, ty, 7, 0, 6.283);
-            c.fillStyle = PAL.accent;
-            c.shadowColor = "rgba(46,172,101,.8)";
-            c.shadowBlur = 14;
-            c.fill();
-            c.shadowBlur = 0;
-            for (var i = 0; i < 3; i++) {
-              var r = (k * 58 + i * 34) % 100;
-              var al = (1 - r / 100) * 0.5;
-              if (al <= 0.02) continue;
-              c.beginPath();
-              c.arc(x, ty, 9 + r, 0, 6.283);
-              c.strokeStyle = "rgba(46,172,101," + al.toFixed(3) + ")";
-              c.lineWidth = 2;
-              c.stroke();
-            }
-          });
-        }
-        function drawIconChip(c, x, y, kind, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            var s = 0.8 + 0.2 * a;
-            c.save();
-            c.translate(x, y);
-            c.scale(s, s);
-            rr(c, -21, -17, 42, 34, 11);
-            c.fillStyle = "rgba(26,26,32,.8)";
-            c.fill();
-            c.strokeStyle = "rgba(255,255,255,.16)";
-            c.lineWidth = 1.4;
-            c.stroke();
-            c.strokeStyle = PAL.textSoft;
-            c.fillStyle = PAL.textSoft;
-            c.lineWidth = 2;
-            c.lineCap = "round";
-            c.lineJoin = "round";
-            if (kind === "radio") {
-              c.beginPath();
-              c.moveTo(-10, -3);
-              c.lineTo(-5, -3);
-              c.lineTo(0, -8);
-              c.lineTo(0, 8);
-              c.lineTo(-5, 3);
-              c.lineTo(-10, 3);
-              c.closePath();
-              c.fill();
-              c.beginPath();
-              c.arc(3, 0, 5.5, -1, 1);
-              c.stroke();
-              c.beginPath();
-              c.arc(3, 0, 9.5, -1.1, 1.1);
-              c.stroke();
-            } else if (kind === "tv") {
-              rr(c, -11, -6, 22, 15, 3);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(-5, -6);
-              c.lineTo(-1, -12);
-              c.moveTo(5, -6);
-              c.lineTo(1, -12);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(-3, 12);
-              c.lineTo(3, 12);
-              c.stroke();
-            } else {
-              rr(c, -5.5, -11, 11, 22, 3.5);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(-2.4, 8);
-              c.lineTo(2.4, 8);
-              c.stroke();
-            }
-            c.restore();
-          });
-        }
-        function drawForbidden(c, x, y, r, kind, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            c.save();
-            c.translate(x, y);
-            var s = 0.75 + 0.25 * a;
-            c.scale(s, s);
-            c.beginPath();
-            c.arc(0, 0, r, 0, 6.283);
-            c.fillStyle = "rgba(14,14,18,.8)";
-            c.fill();
-            c.lineWidth = 4;
-            c.strokeStyle = PAL.danger;
-            c.stroke();
-            c.strokeStyle = PAL.whiteSoft;
-            c.fillStyle = PAL.whiteSoft;
-            c.lineWidth = 2.2;
-            c.lineCap = "round";
-            if (kind === "come") {
-              c.beginPath();
-              c.arc(-7, 7, 3.4, 0, 6.283);
-              c.fill();
-              c.beginPath();
-              c.moveTo(-2, 2);
-              c.lineTo(6, -6);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(6, -6);
-              c.lineTo(1.6, -5.6);
-              c.moveTo(6, -6);
-              c.lineTo(5.6, -1.6);
-              c.stroke();
-            } else if (kind === "hand") {
-              rr(c, -7, -9, 14, 17, 5);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(-3.5, -9);
-              c.lineTo(-3.5, -13);
-              c.moveTo(0, -9);
-              c.lineTo(0, -14);
-              c.moveTo(3.5, -9);
-              c.lineTo(3.5, -13);
-              c.stroke();
-            } else {
-              rr(c, -9, -6, 18, 13, 2.5);
-              c.stroke();
-              c.beginPath();
-              c.arc(0, 0.5, 3.2, 0, 6.283);
-              c.stroke();
-              c.beginPath();
-              c.moveTo(-4, -6);
-              c.lineTo(-2.5, -9);
-              c.lineTo(2.5, -9);
-              c.lineTo(4, -6);
-              c.stroke();
-            }
-            c.beginPath();
-            c.moveTo(-r * 0.66, r * 0.66);
-            c.lineTo(r * 0.66, -r * 0.66);
-            c.strokeStyle = PAL.danger;
-            c.lineWidth = 4.6;
-            c.stroke();
-            c.restore();
-          });
-        }
-        function drawDebris(c, x, y, k, smoke) {
-          withAlpha(c, 1, function () {
-            c.save();
-            c.translate(x, y);
-            c.beginPath();
-            c.ellipse(0, 4, 46, 10, 0, 0, 6.283);
-            c.fillStyle = "rgba(14,14,18,.8)";
-            c.fill();
-            c.save();
-            c.translate(-10, -6);
-            c.rotate(0.35);
-            rr(c, -20, -7, 40, 14, 7);
-            c.fillStyle = PAL.metalRaised;
-            c.fill();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 1.5;
-            c.stroke();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 3;
-            c.beginPath();
-            c.moveTo(-6, -7);
-            c.lineTo(-14, -16);
-            c.stroke();
-            c.restore();
-            c.save();
-            c.translate(26, 2);
-            c.rotate(-0.5);
-            c.strokeStyle = PAL.metalWire;
-            c.lineWidth = 3;
-            c.beginPath();
-            c.moveTo(-12, 0);
-            c.lineTo(12, 0);
-            c.moveTo(0, -12);
-            c.lineTo(0, 12);
-            c.stroke();
-            c.restore();
-            c.save();
-            c.translate(-34, 4);
-            c.rotate(1.2);
-            c.strokeStyle = PAL.metalWire;
-            c.lineWidth = 3;
-            c.beginPath();
-            c.moveTo(-10, 0);
-            c.lineTo(10, 0);
-            c.stroke();
-            c.restore();
-            if (smoke) {
-              for (var i = 0; i < 3; i++) {
-                var ph = (k * 0.5 + i * 0.33) % 1;
-                c.beginPath();
-                c.arc(
-                  -8 + Math.sin(k + i * 2) * 6,
-                  -14 - ph * 36,
-                  4 + ph * 7,
-                  0,
-                  6.283,
-                );
-                c.fillStyle =
-                  "rgba(156,148,138," + (0.22 * (1 - ph)).toFixed(3) + ")";
-                c.fill();
-              }
-            }
-            c.restore();
-          });
-        }
-        function drawTape(c, x, y, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            var tape = function (dx, ang) {
-              c.save();
-              c.translate(dx, -4);
-              c.rotate(ang);
-              rr(c, -36, -8, 72, 16, 5);
-              c.fillStyle = PAL.warning;
-              c.fill();
-              c.save();
-              c.clip();
-              c.fillStyle = PAL.metalDark;
-              for (var i = -3; i <= 3; i++) {
-                c.save();
-                c.translate(i * 15, 0);
-                c.rotate(0.6);
-                c.fillRect(-4, -24, 8, 48);
-                c.restore();
-              }
-              c.restore();
-              rr(c, -36, -8, 72, 16, 5);
-              c.strokeStyle = PAL.metalDark;
-              c.lineWidth = 1.6;
-              c.stroke();
-              c.restore();
-            };
-            tape(-44, 0.14);
-            tape(44, -0.14);
-          });
-        }
-        function drawPhone(c, x, y, w, h, a, k) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            rr(c, x - w / 2, y - h / 2, w, h, 18);
-            c.fillStyle = PAL.metalDark;
-            c.fill();
-            c.strokeStyle = PAL.metalStroke;
-            c.lineWidth = 2.5;
-            c.stroke();
-            rr(c, x - w / 2 + 8, y - h / 2 + 9, w - 16, h - 18, 12);
-            c.fillStyle = PAL.metalBase;
-            c.fill();
-            c.strokeStyle = "rgba(46,172,101,.35)";
-            c.lineWidth = 1.5;
-            c.stroke();
-            c.fillStyle = PAL.textBright;
-            c.font = "800 46px system-ui, sans-serif";
-            c.textAlign = "center";
-            c.textBaseline = "middle";
-            c.fillText("112", x, y - 8);
-            c.beginPath();
-            c.arc(x, y + 58, 3.4, 0, 6.283);
-            c.fillStyle = "rgba(46,172,101,.9)";
-            c.fill();
-            for (var i = 0; i < 2; i++) {
-              var r = (k * 55 + i * 32) % 86;
-              var al = (1 - r / 86) * 0.5;
-              if (al <= 0.02) continue;
-              c.beginPath();
-              c.arc(x, y - h / 2, r + 6, 0, 6.283);
-              c.strokeStyle = "rgba(46,172,101," + al.toFixed(3) + ")";
-              c.lineWidth = 2;
-              c.stroke();
-            }
-          });
-        }
-        function drawChip(c, x, y, txt, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            c.font = "700 14px system-ui, sans-serif";
-            var w = c.measureText(txt).width + 26;
-            rr(c, x - w / 2, y - 15, w, 30, 15);
-            c.fillStyle = "rgba(46,172,101,.16)";
-            c.fill();
-            c.strokeStyle = "rgba(46,172,101,.5)";
-            c.lineWidth = 1.5;
-            c.stroke();
-            c.fillStyle = PAL.textSoft;
-            c.textAlign = "center";
-            c.textBaseline = "middle";
-            c.fillText(txt, x, y + 1);
-          });
-        }
-        function drawBanner(c, x, y, a) {
-          if (a <= 0.01) return;
-          withAlpha(c, a, function () {
-            var w = 236,
-              h = 54;
-            rr(c, x - w / 2, y - h / 2, w, h, 16);
-            c.fillStyle = "rgba(46,172,101,.18)";
-            c.strokeStyle = PAL.accent;
-            c.lineWidth = 2;
-            c.shadowColor = "rgba(46,172,101,.45)";
-            c.shadowBlur = 16;
-            c.fill();
-            c.stroke();
-            c.shadowBlur = 0;
-            drawShield(c, x - w / 2 + 30, y, 13);
-            c.fillStyle = PAL.textBright;
-            c.font = "800 23px system-ui, sans-serif";
-            c.textAlign = "left";
-            c.textBaseline = "middle";
-            c.fillText("ОТБОЙ", x - w / 2 + 52, y + 1);
-          });
-        }
-        function drawGlowTop(c, a) {
-          withAlpha(c, a, function () {
-            var g = c.createRadialGradient(225, 150, 10, 225, 150, 240);
-            g.addColorStop(0, "rgba(127,224,168,.16)");
-            g.addColorStop(1, "rgba(127,224,168,0)");
-            c.fillStyle = g;
-            c.fillRect(-40, 0, 530, 420);
-          });
-        }
-        function step1(c, t, k) {
-          drawSchool(c, k, 0);
-          drawPerson(c, 252, 652, { clock: k, lookUp: true });
-          var fx = easeInOut(E(t, 0.1, 1.3));
-          var dx = lerp(-70, 225, fx),
-            dy = lerp(118, 152, fx);
-          var e = E(t, 0.1, 0.7);
-          drawBeam(c, dx, dy, e * 0.9);
-          drawSoundArcs(c, dx, dy, k, e, false);
-          drawDrone(c, dx, dy, { clock: k, alpha: e });
-        }
-        function step2(c, t, k) {
-          drawSchool(c, k, 0);
-          drawPerson(c, 252, 652, { clock: k, lookUp: true });
-          var e = E(t, 0, 0.6);
-          var dy = lerp(152, 242, e);
-          drawRings(c, 225, dy, k, "rgba(229,72,77,", e, 120);
-          drawWarn(c, 252, 556, 1, E(t, 0.35, 0.5), k);
-          drawDrone(c, 225, dy, { clock: k, danger: true, alpha: e });
-        }
-        function step3(c, t, k) {
-          drawSchool(c, k, 0.25);
-          var e = E(t, 0, 0.5);
-          drawSoundArcs(c, 308, 232, k, e * 0.55, false);
-          drawDrone(c, 308, 232, { clock: k, alpha: e });
-          drawPathArrow(c, 240, 648, 134, E(t, 0.3, 0.6));
-          var wp = easeInOut(E(t, 0.25, 1.7));
-          drawPerson(c, lerp(252, 120, wp), 652, {
-            clock: k,
-            walking: true,
-            walkRate: 1.15,
-          });
-          drawDoorGlow(c, 98, 634, E(t, 0.5, 0.6), k);
-        }
-        function step4(c, t, k) {
-          var eC = easeOut(E(t, 0.05, 0.7));
-          withAlpha(c, 1 - eC, function () {
-            drawSchool(c, k, 0);
-          });
-          withAlpha(c, eC, function () {
-            drawSchoolCutaway(c, k);
-            drawPerson(c, 98, 634, { clock: k, scale: 0.8 });
-            drawShield(c, 98, 410, 12);
-          });
-          drawDrone(c, 352, 206, { clock: k, alpha: 0.5 });
-        }
-        function step5(c, t, k) {
-          drawSchool(c, k, 0.45);
-          drawPerson(c, 140, 652, { clock: k });
-          drawMast(c, 98, 340, E(t, 0, 0.5), k);
-          drawIconChip(c, 312, 296, "radio", E(t, 0.5, 0.45));
-          drawIconChip(c, 368, 272, "tv", E(t, 0.9, 0.45));
-          drawIconChip(c, 414, 300, "phone", E(t, 1.3, 0.45));
-          drawDrone(c, 398, 166, { clock: k, alpha: 0.4, scale: 0.8 });
-        }
-        function step6(c, t, k) {
-          drawSchool(c, k, 0);
-          drawPerson(c, 168, 652, { clock: k });
-          drawDebris(c, 300, 706, k, true);
-          withAlpha(c, 0.7, function () {
-            c.setLineDash([9, 7]);
-            c.strokeStyle = "rgba(229,72,77,.75)";
-            c.lineWidth = 2.5;
-            c.beginPath();
-            c.ellipse(300, 700, 100, 34, 0, 0, 6.283);
-            c.stroke();
-            c.setLineDash([]);
-          });
-          drawForbidden(c, 252, 596, 17, "come", E(t, 0.3, 0.45));
-          drawForbidden(c, 300, 578, 17, "hand", E(t, 0.8, 0.45));
-          drawForbidden(c, 348, 596, 17, "camera", E(t, 1.3, 0.45));
-        }
-        function step7(c, t, k, x0, x1) {
-          drawSchool(c, k, 0);
-          withAlpha(c, 0.5, function () {
-            c.fillStyle = "rgba(0,0,0,.55)";
-            c.fillRect(x0, 0, x1 - x0, 800);
-          });
-          var e = E(t, 0.1, 0.6);
-          drawPerson(c, 225, 700, { clock: k, phone: true, scale: 1.02 });
-          drawPhone(c, 225, 540, 118, 206, e, k);
-          drawChip(c, 344, 452, "Место", E(t, 0.7, 0.4));
-          drawChip(c, 350, 502, "Время", E(t, 1.05, 0.4));
-          drawChip(c, 346, 552, "Ситуация", E(t, 1.4, 0.4));
-        }
-        function step8(c, t, k) {
-          drawSchool(c, k, 0.8);
-          drawDebris(c, 300, 706, k, false);
-          drawTape(c, 300, 714, E(t, 0.35, 0.5));
-          var wp = easeInOut(E(t, 0.3, 1.7));
-          drawPerson(c, lerp(122, 268, wp), 652, {
-            clock: k,
-            walking: true,
-            walkRate: 0.85,
-          });
-          drawBanner(c, 225, 142, E(t, 0.1, 0.6));
-          drawGlowTop(c, E(t, 0.1, 0.8));
-        }
-        function drawStepLayer(c, n, alpha, t, k, x0, x1) {
-          if (alpha <= 0) return;
-          c.save();
-          c.globalAlpha = alpha;
-          switch (n) {
-            case 1:
-              step1(c, t, k);
-              break;
-            case 2:
-              step2(c, t, k);
-              break;
-            case 3:
-              step3(c, t, k);
-              break;
-            case 4:
-              step4(c, t, k);
-              break;
-            case 5:
-              step5(c, t, k);
-              break;
-            case 6:
-              step6(c, t, k);
-              break;
-            case 7:
-              step7(c, t, k, x0, x1);
-              break;
-            case 8:
-              step8(c, t, k);
-              break;
-          }
-          c.restore();
-        }
-        function draw() {
-          var c = els.ctx;
-          if (!c || !view.cw) return;
-          c.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
-          c.fillStyle = PAL.bg;
-          c.fillRect(0, 0, view.cw, view.ch);
-          c.translate(view.ox, view.oy);
-          c.scale(view.scale, view.scale);
-          var x0 = -view.ox / view.scale - 2,
-            x1 = (view.cw - view.ox) / view.scale + 2;
-          drawBackdrop(c, x0, x1);
-          var t = state.stepElapsed,
-            k = state.clock;
-          var fade = Math.min(t / TRANS, 1);
-          if (
-            state.prevStep >= 0 &&
-            state.prevStep !== state.currentStep &&
-            fade < 1
-          ) {
-            drawStepLayer(c, state.prevStep + 1, 1 - fade, STEP_DUR, k, x0, x1);
-          }
-          drawStepLayer(c, state.currentStep + 1, fade, t, k, x0, x1);
-          c.setTransform(1, 0, 0, 1, 0, 0);
-        }
-      })();
-    </script>
-  </body>
+      }
+      return;
+    }
+
+    if (isInteractiveTarget(event.target)) return;
+
+    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+      return;
+    }
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+        event.preventDefault();
+        nextStep();
+      }
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
+
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
+
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
+  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
+
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
+
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
+  }
+
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
+
+  window.addEventListener("pagehide", () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }, { once: true });
+})();
+  </script>
+</body>
 </html>

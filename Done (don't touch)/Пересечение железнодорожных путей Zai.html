@@ -1,1956 +1,1164 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0F0F13" />
-    <title>Пересечение железнодорожных путей</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        background: #0f0f13;
-        color: #fff;
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        overscroll-behavior: none;
-      }
-      button {
-        font-family: inherit;
-        color: #fff;
-        background: none;
-        border: none;
-        cursor: pointer;
-        touch-action: manipulation;
-        padding: 0;
-      }
-      #ambient {
-        position: fixed;
-        inset: -10%;
-        z-index: 0;
-        opacity: 0;
-        transition: opacity 0.5s;
-        pointer-events: none;
-      }
-      #ambient i {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(90px);
-      }
-      #ambient .b1 {
-        width: 46vmin;
-        height: 46vmin;
-        left: -6%;
-        top: 8%;
-        background: rgba(46, 172, 101, 0.34);
-        animation: drift 9s ease-in-out infinite alternate;
-      }
-      #ambient .b2 {
-        width: 40vmin;
-        height: 40vmin;
-        right: -4%;
-        top: 38%;
-        background: rgba(30, 122, 71, 0.3);
-        animation: drift 11s ease-in-out infinite alternate-reverse;
-      }
-      #ambient .b3 {
-        width: 52vmin;
-        height: 52vmin;
-        left: 16%;
-        bottom: -8%;
-        background: rgba(20, 80, 45, 0.38);
-        animation: drift 13s ease-in-out infinite alternate;
-      }
-      @keyframes drift {
-        from {
-          transform: translate(0, 0) scale(1);
-        }
-        to {
-          transform: translate(4vmin, -5vmin) scale(1.12);
-        }
-      }
-      body.v916 #ambient {
-        opacity: 1;
-      }
-      #app {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        display: flex;
-      }
-      #stage {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
-      }
-      #frame {
-        position: absolute;
-        inset: 0;
-      }
-      body.v916 #frame {
-        width: min(100%, calc(100vh * 9 / 16));
-        height: min(100%, calc(100vw * 16 / 9));
-        width: min(100%, calc(100dvh * 9 / 16));
-        height: min(100%, calc(100vw * 16 / 9));
-        margin: auto;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow:
-          0 0 0 1px rgba(255, 255, 255, 0.08),
-          0 0 70px rgba(46, 172, 101, 0.14);
-      }
-      #cv {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-      #overlay {
-        position: absolute;
-        inset: 0;
-        z-index: 5;
-      }
-      #overlay > * {
-        position: absolute;
-      }
-      #title {
-        top: calc(14px + env(safe-area-inset-top, 0px));
-        left: 16px;
-        right: 88px;
-        font-size: clamp(17px, 4.8vw, 26px);
-        font-weight: 800;
-        letter-spacing: 0.2px;
-        line-height: 1.25;
-        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
-        pointer-events: none;
-      }
-      #subtitle {
-        left: 16px;
-        right: 88px;
-        bottom: calc(18vh + 88px + env(safe-area-inset-bottom, 0px));
-        min-height: 58px;
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        pointer-events: none;
-      }
-      #subtitle .txt,
-      #subSide .txt {
-        width: 100%;
-        font-size: clamp(16px, 4.5vw, 22px);
-        font-weight: 700;
-        line-height: 1.32;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-      }
-      #subSide .txt {
-        font-size: 17px;
-        font-weight: 600;
-        line-height: 1.45;
-        text-shadow: none;
-      }
-      .kw {
-        color: #2eac65;
-        font-weight: 800;
-      }
-      #subtitle .kw {
-        text-shadow: 0 0 14px rgba(46, 172, 101, 0.5);
-      }
-      .anim {
-        animation: subIn 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-      }
-      @keyframes subIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      #panel {
-        left: 16px;
-        right: 88px;
-        bottom: calc(18vh + env(safe-area-inset-bottom, 0px));
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 8px;
-        background: rgba(26, 26, 32, 0.55);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 18px;
-      }
-      .play,
-      .gearb {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        display: grid;
-        place-items: center;
-      }
-      .play {
-        background: linear-gradient(135deg, #2eac65, #1e7a47);
-        box-shadow: 0 4px 18px rgba(46, 172, 101, 0.35);
-      }
-      .gearb {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      #side {
-        display: none;
-      }
-      #modalWrap {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-      #modalWrap.open {
-        display: flex;
-      }
-      #modal {
-        width: min(92vw, 380px);
-        max-height: 82vh;
-        max-height: 82dvh;
-        overflow: auto;
-        background: rgba(26, 26, 32, 0.94);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 20px;
-        padding: 20px;
-        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-      }
-      @keyframes pop {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      .mhead {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-      .mhead h2 {
-        margin: 0;
-        font-size: 19px;
-        font-weight: 800;
-      }
-      .mstep {
-        color: #a0a0a0;
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-      .seg {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .seg button {
-        flex: 1;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        font-weight: 800;
-        font-size: 14px;
-        transition: 0.2s;
-      }
-      .seg button.active {
-        background: linear-gradient(135deg, #2eac65, #1e7a47);
-        border-color: transparent;
-        box-shadow: 0 4px 14px rgba(46, 172, 101, 0.3);
-      }
-      #mNext {
-        width: 100%;
-        height: 48px;
-        border-radius: 12px;
-        background: rgba(46, 172, 101, 0.14);
-        border: 1px solid rgba(46, 172, 101, 0.5);
-        font-weight: 800;
-        font-size: 15px;
-        margin-bottom: 14px;
-        transition: 0.2s;
-      }
-      #mNext:disabled {
-        opacity: 0.35;
-      }
-      #mNext:not(:disabled):hover {
-        background: rgba(46, 172, 101, 0.26);
-      }
-      .mrow {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-      .mlabel {
-        font-size: 14px;
-        font-weight: 700;
-        color: #cfcfcf;
-        flex: 1;
-      }
-      #mSpeed {
-        flex: 1.4;
-        accent-color: #2eac65;
-      }
-      #mSpeedVal {
-        font-weight: 800;
-        font-size: 14px;
-        min-width: 34px;
-        text-align: right;
-      }
-      .sw {
-        position: relative;
-        display: inline-block;
-        width: 52px;
-        height: 30px;
-      }
-      .sw input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      .sw span {
-        position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 999px;
-        transition: 0.25s;
-      }
-      .sw span:before {
-        content: "";
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 3px;
-        background: #fff;
-        border-radius: 50%;
-        transition: 0.25s;
-      }
-      .sw input:checked + span {
-        background: #2eac65;
-      }
-      .sw input:checked + span:before {
-        transform: translateX(22px);
-      }
-      #mReset {
-        width: 100%;
-        height: 46px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        font-weight: 800;
-        font-size: 14px;
-        margin-bottom: 14px;
-        transition: 0.2s;
-      }
-      #mReset:hover {
-        border-color: rgba(229, 72, 77, 0.6);
-      }
-      .keys {
-        display: grid;
-        grid-template-columns: auto 1fr auto 1fr;
-        gap: 6px 10px;
-        font-size: 12px;
-        color: #a0a0a0;
-        align-items: center;
-      }
-      .keys span {
-        font-weight: 800;
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 6px;
-        padding: 2px 7px;
-        justify-self: start;
-      }
-      @media (min-width: 768px) {
-        #overlay {
-          display: none;
-        }
-        body.v916 #overlay {
-          display: block;
-        }
-        #side {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          width: 360px;
-          padding: 26px 24px calc(24px + env(safe-area-inset-bottom, 0px));
-          background: #1a1a20;
-          border-left: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        body.v916 #side {
-          display: none;
-        }
-        #side h1 {
-          margin: 0;
-          font-size: clamp(20px, 1.7vw, 24px);
-          font-weight: 800;
-          line-height: 1.25;
-        }
-        .chips {
-          display: flex;
-          gap: 8px;
-        }
-        .chip {
-          font-size: 12px;
-          font-weight: 800;
-          padding: 6px 12px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #cfcfcf;
-        }
-        .chip.acc {
-          background: rgba(46, 172, 101, 0.16);
-          border-color: rgba(46, 172, 101, 0.4);
-          color: #2eac65;
-        }
-        #subSide {
-          flex: 1;
-          min-height: 120px;
-          background: rgba(0, 0, 0, 0.35);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-          padding: 16px;
-          display: flex;
-          align-items: center;
-        }
-        .controls {
-          display: flex;
-          gap: 10px;
-        }
-        .controls .play,
-        .controls .gearb {
-          width: 56px;
-          height: 56px;
-          border-radius: 16px;
-        }
-        .play:hover {
-          box-shadow: 0 6px 24px rgba(46, 172, 101, 0.5);
-        }
-        .gearb:hover {
-          background: rgba(255, 255, 255, 0.12);
-        }
-        .hint {
-          font-size: 12px;
-          color: #a0a0a0;
-          font-weight: 600;
-        }
-      }
-      #panel,
-      .controls,
-      .chips,
-      .hint {
-        transition: opacity 0.3s;
-      }
-      body.ui-hidden #panel,
-      body.ui-hidden .controls,
-      body.ui-hidden .chips,
-      body.ui-hidden .hint {
-        opacity: 0;
-        pointer-events: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="ambient">
-      <i class="b1"></i><i class="b2"></i><i class="b3"></i>
-    </div>
-    <div id="app">
-      <div id="stage">
-        <div id="frame">
-          <canvas id="cv"></canvas>
-          <div id="overlay">
-            <div id="title">Пересечение железнодорожных путей</div>
-            <div id="subtitle"><div class="txt"></div></div>
-            <div id="panel">
-              <button class="play js-play" aria-label="Пуск"></button>
-              <button class="gearb js-gear" aria-label="Настройки">
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path
-                    fill="currentColor"
-                    d="M19.4 13c.04-.33.06-.66.06-1s-.02-.67-.06-1l2.1-1.63a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.73-1l-.38-2.65A.5.5 0 0 0 13.92 2h-4a.5.5 0 0 0-.5.42l-.38 2.65c-.63.26-1.2.6-1.73 1l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64L4.43 11a7.9 7.9 0 0 0 0 2l-2.1 1.63a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.31.61.22l2.49-1c.53.4 1.1.74 1.73 1l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65a7.3 7.3 0 0 0 1.73-1l2.49 1c.22.09.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64L19.4 13Zm-7.47 2.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
-                  />
-                </svg>
-              </button>
-            </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F13">
+  <meta name="description" content="Правила безопасного поведения вблизи железнодорожных путей и порядок их пересечения в разрешённых местах.">
+  <meta name="color-scheme" content="dark">
+  <title>Пересечение железнодорожных путей</title>
+  <style>
+:root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app-root" id="appRoot">
+    <header class="app-header">
+      <h1 id="appTitle">Пересечение железнодорожных путей</h1>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" id="stage" aria-label="Область визуализации">
+        <div class="visual-frame" id="visualFrame">
+          <canvas id="sceneCanvas" aria-label="Анимированная визуализация"></canvas>
+
+          <div class="subtitle subtitle-mobile" id="mobileSubtitle" aria-live="polite"></div>
+
+          <div class="control-bar" id="controlBar">
+            <button class="icon-button" id="playButton" type="button" aria-label="Пауза">
+              <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Открыть настройки" aria-haspopup="dialog" aria-controls="settingsDialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </div>
-      </div>
-      <aside id="side">
-        <h1>Пересечение железнодорожных путей</h1>
-        <div class="chips">
-          <span id="chipStep" class="chip">Шаг 1 / 8</span
-          ><span id="chipMode" class="chip acc">AUTO</span>
-        </div>
-        <div id="subSide"><div class="txt"></div></div>
-        <div class="controls">
-          <button class="play js-play" aria-label="Пуск"></button>
-          <button class="gearb js-gear" aria-label="Настройки">
-            <svg viewBox="0 0 24 24" width="22" height="22">
-              <path
-                fill="currentColor"
-                d="M19.4 13c.04-.33.06-.66.06-1s-.02-.67-.06-1l2.1-1.63a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.73-1l-.38-2.65A.5.5 0 0 0 13.92 2h-4a.5.5 0 0 0-.5.42l-.38 2.65c-.63.26-1.2.6-1.73 1l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64L4.43 11a7.9 7.9 0 0 0 0 2l-2.1 1.63a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.31.61.22l2.49-1c.53.4 1.1.74 1.73 1l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65a7.3 7.3 0 0 0 1.73-1l2.49 1c.22.09.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64L19.4 13Zm-7.47 2.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
-              />
-            </svg>
-          </button>
-        </div>
-        <div class="hint">Горячие клавиши — в настройках</div>
+      </section>
+
+      <aside class="details-panel" id="detailsPanel">
+        <div class="subtitle subtitle-desktop" id="desktopSubtitle" aria-live="polite"></div>
       </aside>
-    </div>
-    <div id="modalWrap">
-      <div id="modal">
-        <div class="mhead">
-          <h2>Настройки</h2>
-          <button class="gearb" id="mClose" aria-label="Закрыть">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <path
-                d="M6 6l12 12M18 6L6 18"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
-        <div class="seg">
-          <button id="mAuto" class="active">AUTO</button
-          ><button id="mStepBtn">STEP</button>
-        </div>
-        <button id="mNext" disabled>Следующий шаг ▶</button>
-        <div class="mrow">
-          <span class="mlabel">Скорость</span
-          ><input
-            type="range"
-            id="mSpeed"
-            min="0.5"
-            max="2"
-            step="0.5"
-            value="1"
-          /><span id="mSpeedVal">1x</span>
-        </div>
-        <div class="mrow">
-          <span class="mlabel">Режим 9:16</span
-          ><label class="sw"
-            ><input type="checkbox" id="mNine" /><span></span
-          ></label>
-        </div>
-        <button id="mReset">Reset</button>
-        <div class="keys">
-          <span>Space</span><i>скрыть панель</i><span>→</span
-          ><i>следующий шаг</i><span>R</span><i>reset</i><span>S</span
-          ><i>AUTO/STEP</i><span>V</span><i>режим 9:16</i><span>Esc</span
-          ><i>закрыть</i>
-        </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-dialog" id="settingsDialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button class="dialog-close" id="closeSettingsButton" type="button" aria-label="Закрыть настройки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+      <div class="segmented-control" role="group" aria-label="Режим воспроизведения">
+        <button id="autoModeButton" type="button" aria-pressed="true">AUTO</button>
+        <button id="stepModeButton" type="button" aria-pressed="false">STEP</button>
       </div>
-    </div>
-    <script>
-      "use strict";
-      const $ = (s) => document.querySelector(s),
-        $$ = (s) => document.querySelectorAll(s);
-      const clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-      const lerp = (a, b, t) => a + (b - a) * t;
-      const easeIO = (t) =>
-        t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-      const easeOutC = (t) => 1 - Math.pow(1 - t, 3);
-      const easeOutB = (t) => {
-        const c = 1.70158;
-        return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2);
-      };
-      const pop01 = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : easeOutB(t));
-      const rand = (a, b) => a + Math.random() * (b - a);
-      const ICON_PLAY =
-        '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
-      const ICON_PAUSE =
-        '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/></svg>';
-      const N = 8;
-      const STEPS = [
-        {
-          dur: 7,
-          html: 'Железная дорога — зона <span class="kw">повышенной опасности</span>!',
-        },
-        {
-          dur: 8,
-          html: 'Переходи только по <span class="kw">настилам, мостам и тоннелям</span>',
-        },
-        {
-          dur: 8,
-          html: '<span class="kw">Светофор, шлагбаум</span> и знак предупредят о поезде',
-        },
-        {
-          dur: 8,
-          html: 'Поезд не успеет затормозить: путь — <span class="kw">почти километр</span>',
-        },
-        {
-          dur: 8,
-          html: 'Прошёл один поезд? По соседнему пути — <span class="kw">второй</span>!',
-        },
-        {
-          dur: 7,
-          html: 'Контактная сеть под напряжением <span class="kw">27 000 вольт</span>!',
-        },
-        {
-          dur: 8,
-          html: '<span class="kw">Не лезь под вагоны</span>, не ходи по путям, <span class="kw">сними наушники</span>',
-        },
-        {
-          dur: 9,
-          html: 'Остановись, посмотри, слушай — <span class="kw">переходи быстро</span>!',
-        },
-      ];
-      const CARDS = [
-        { l: "Не ходи по путям", ic: "rails" },
-        { l: "Не лезь под вагоны", ic: "wagon" },
-        { l: "Наушники и телефон", ic: "headph" },
-      ];
-      const cv = $("#cv"),
-        ctx = cv.getContext("2d"),
-        frame = $("#frame");
-      let W = 0,
-        H = 0,
-        DPR = 1,
-        clock = 0,
-        last = 0;
-      let mode = "auto",
-        playing = false,
-        speed = 1,
-        stepIndex = 0,
-        stepT = 0,
-        settingsOpen = false,
-        v916 = false;
-      let stars = [];
-      const S = {
-        t1: { on: false, x: 0 },
-        t2: { on: false, x: 0 },
-        cross: 0,
-        sign: 0,
-        light: 0,
-        bar: 0,
-        barQ: 0,
-        lamp: "off",
-        glow: 0,
-        pulse: 0,
-        volt: 0,
-        gaugeA: 0,
-        gaugeV: 0,
-        distA: 0,
-        distV: 0,
-        cards: [0, 0, 0],
-        dim: 0,
-        danger: 0,
-        check: 0,
-        look: 0,
-        lookA: 0,
-        stop: 0,
-        horn: 0,
-        px: 0,
-        py: 0,
-        ps: 1,
-        walk: 0,
-        moving: false,
-        dust: [],
-        sparks: [],
-        glints: [],
-        dustAcc: 0,
-        sparkAcc: 0,
-        glintAcc: 0,
-      };
-      const L = {};
-      function layout() {
-        L.hz = H * 0.18;
-        L.tF = H * 0.34;
-        L.gF = H * 0.026;
-        L.tN = H * 0.5;
-        L.gN = H * 0.038;
-        L.cx = W * 0.4;
-        L.cw = Math.max(56, W * 0.17);
-        L.top = H * 0.2;
-        L.bot = H * 0.66;
-        L.signX = L.cx + L.cw * 0.5 + W * 0.075;
-        L.signY = H * 0.265;
-        L.signB = H * 0.31;
-        L.lightX = L.cx - L.cw * 0.5 - W * 0.055;
-        L.lightB = H * 0.575;
-        L.lightY = H * 0.495;
-        L.barX = L.cx + L.cw * 0.5 + W * 0.05;
-        L.barB = H * 0.56;
-        L.barP = H * 0.5;
-        L.barL = L.cw + W * 0.1;
-        L.wireY = H * 0.24;
-        L.poleT = H * 0.225;
-        L.poleB = L.tF - L.gF * 1.5;
-        L.poles = [0.05, 0.24, 0.62, 0.86].map((a) => a * W);
-        L.r1 = Math.min(W, H) * 0.08;
-        L.gx = W * 0.17;
-        L.gy = H * 0.105;
-        L.distY = H * 0.16;
-        L.distX0 = W * 0.26;
-        L.distX1 = W * 0.6;
-        L.cardW = Math.min(W * 0.46, 230);
-        L.cardX = W * 0.27;
-        L.cardY = [0.24, 0.36, 0.48];
-        L.checkY = H * 0.135;
-        L.voltX = W * 0.14;
-        L.voltY = L.wireY - H * 0.045;
-      }
-      function rr(x, y, w, h, r) {
-        r = Math.min(r, w / 2, h / 2);
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + w, y, x + w, y + h, r);
-        ctx.arcTo(x + w, y + h, x, y + h, r);
-        ctx.arcTo(x, y + h, x, y, r);
-        ctx.arcTo(x, y, x + w, y, r);
-        ctx.closePath();
-      }
-      function resize() {
-        const r = frame.getBoundingClientRect();
-        W = Math.max(1, r.width);
-        H = Math.max(1, r.height);
-        DPR = Math.min(window.devicePixelRatio || 1, 2);
-        cv.width = Math.round(W * DPR);
-        cv.height = Math.round(H * DPR);
-        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-        layout();
-      }
-      function buildStars() {
-        stars = Array.from({ length: 46 }, () => ({
-          x: Math.random(),
-          y: Math.random() * 0.26,
-          s: rand(1, 2.2),
-          p: rand(0, 6.28),
-        }));
-      }
-      function onStep(i) {
-        stepIndex = i;
-        stepT = 0;
-        S.dust.length = 0;
-        S.sparks.length = 0;
-        S.glints.length = 0;
-        S.dustAcc = 0;
-        S.sparkAcc = 0;
-        S.glintAcc = 0;
-        S.walk = 0;
-        updateSubtitles(i);
-        const t = "Шаг " + (i + 1) + " / " + N;
-        $("#chipStep").textContent = t;
-        $("#mStepTxt").textContent = t;
-      }
-      function updateSubtitles(i) {
-        const h = STEPS[i].html,
-          a = $("#subtitle .txt"),
-          b = $("#subSide .txt");
-        a.innerHTML = h;
-        b.innerHTML = h;
-        for (const el of [a, b]) {
-          el.classList.remove("anim");
-          void el.offsetWidth;
-          el.classList.add("anim");
-        }
-      }
-      function setPlaying(v) {
-        playing = v;
-        $$(".js-play").forEach((b) => {
-          b.innerHTML = v ? ICON_PAUSE : ICON_PLAY;
-          b.setAttribute("aria-label", v ? "Пауза" : "Пуск");
+
+      <button class="dialog-action" id="nextStepButton" type="button" disabled>Следующий шаг →</button>
+
+      <div class="setting-row">
+        <label for="speedSelect">Скорость</label>
+        <select id="speedSelect" aria-label="Скорость воспроизведения"></select>
+      </div>
+
+      <div class="setting-row">
+        <label for="portraitToggle">Вертикальная рамка 9:16</label>
+        <input id="portraitToggle" type="checkbox">
+      </div>
+
+      <button class="dialog-action secondary-action" id="resetButton" type="button">Сбросить</button>
+
+      <div class="keyboard-help" aria-label="Горячие клавиши">
+        <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+        <span><kbd>→</kbd> Следующий шаг в STEP</span>
+        <span><kbd>R</kbd> Сброс</span>
+        <span><kbd>S</kbd> AUTO / STEP</span>
+        <span><kbd>V</kbd> Рамка 9:16</span>
+        <span><kbd>Esc</kbd> Закрыть настройки</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const APP_CONFIG = {"steps":[{"heading":"Опасная зона","subtitle":"Железнодорожные пути являются зоной повышенной опасности.","detail":"Поезда • инфраструктура • правила","icon":"train","nodes":["Пути","Поезд","Сигналы"]},{"heading":"Переход","subtitle":"Пересекай пути только по оборудованным переходам.","detail":"Мост • тоннель • настил","icon":"train","nodes":["Мост","Тоннель","Настил"]},{"heading":"Сигналы","subtitle":"Соблюдай сигналы светофора и положение шлагбаума.","detail":"Светофор • знак • запрет","icon":"train","nodes":["Светофор","Шлагбаум","Знак"]},{"heading":"Внимание","subtitle":"Перед переходом остановись и убери отвлекающие устройства.","detail":"Остановка • наушники • телефон","icon":"shield","nodes":["Стоп","Внимание","Телефон"]},{"heading":"Проверка","subtitle":"Посмотри в обе стороны и прислушайся к сигналам.","detail":"Зрение • слух • осторожность","icon":"eye","nodes":["Взгляд","Слух","Проверка"]},{"heading":"Поезд","subtitle":"Не выходи на пути перед приближающимся поездом.","detail":"Сигнал • дистанция • ожидание","icon":"train","nodes":["Поезд","Дистанция","Ожидание"]},{"heading":"Запреты","subtitle":"Не заходи под вагоны и не стой рядом с путями.","detail":"Вагоны • путь • запрет","icon":"shield","nodes":["Вагоны","Пути","Запрет"]},{"heading":"Помощь","subtitle":"При опасности отойди в безопасное место и обратись к взрослым.","detail":"Взрослые • службы • помощь","icon":"phone","nodes":["Взрослый","Службы","Помощь"]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+    (() => {
+  "use strict";
+  function roundedRect(ctx,x,y,w,h,r) {
+    const radius=Math.min(r,w/2,h/2);
+    ctx.beginPath();ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+  }
+  function wrappedText(ctx,text,x,y,maxWidth,lineHeight,maxLines) {
+    const words=String(text||"").split(/\s+/),lines=[];let line="";
+    for(const word of words){const test=line?line+" "+word:word;
+      if(line&&ctx.measureText(test).width>maxWidth){lines.push(line);line=word;}else line=test;}
+    if(line)lines.push(line);
+    const visible=lines.slice(0,maxLines);
+    if(lines.length>maxLines&&visible.length){let last=visible[visible.length-1];
+      while(last.length&&ctx.measureText(last+"…").width>maxWidth)last=last.slice(0,-1);
+      visible[visible.length-1]=last+"…";}
+    visible.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));
+  }
+  function glyph(ctx,type,x,y,size,accent,soft) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);
+    ctx.lineWidth=3.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=accent;ctx.fillStyle=soft;
+    if(type==="database"){
+      ctx.beginPath();ctx.ellipse(0,-20,22,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-22,-20);ctx.lineTo(-22,20);ctx.ellipse(0,20,22,9,0,Math.PI,0,true);ctx.lineTo(22,-20);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,-1,22,9,0,0,Math.PI);ctx.stroke();
+    }else if(type==="network"){
+      const pts=[[0,-22],[-22,17],[22,17]];ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-22,17);ctx.lineTo(22,17);ctx.closePath();ctx.stroke();
+      for(const p of pts){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.fill();ctx.stroke();}
+      ctx.beginPath();ctx.arc(0,5,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }else if(type==="shield"||type==="check"){
+      ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(23,-18);ctx.lineTo(20,5);ctx.quadraticCurveTo(16,21,0,28);ctx.quadraticCurveTo(-16,21,-20,5);ctx.lineTo(-23,-18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-2,9);ctx.lineTo(13,-9);ctx.stroke();
+    }else if(type==="lock"){
+      roundedRect(ctx,-20,-2,40,29,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-4,13,Math.PI,0);ctx.lineTo(13,0);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,11,3,0,Math.PI*2);ctx.stroke();ctx.moveTo(0,14);ctx.lineTo(0,20);ctx.stroke();
+    }else if(type==="web"){
+      roundedRect(ctx,-27,-21,54,43,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-27,-9);ctx.lineTo(27,-9);ctx.stroke();
+      for(const px of [-19,-10,-1]){ctx.beginPath();ctx.arc(px,-15,1.8,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-13,1);ctx.lineTo(-19,7);ctx.lineTo(-13,13);ctx.moveTo(13,1);ctx.lineTo(19,7);ctx.lineTo(13,13);ctx.moveTo(5,0);ctx.lineTo(-3,14);ctx.stroke();
+    }else if(type==="code"){
+      ctx.beginPath();ctx.moveTo(-9,-22);ctx.lineTo(-25,0);ctx.lineTo(-9,22);ctx.moveTo(9,-22);ctx.lineTo(25,0);ctx.lineTo(9,22);ctx.moveTo(5,-26);ctx.lineTo(-5,26);ctx.stroke();
+    }else if(type==="phone"){
+      roundedRect(ctx,-17,-29,34,58,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-8,-20);ctx.lineTo(8,-20);ctx.moveTo(-5,21);ctx.lineTo(5,21);ctx.stroke();
+    }else if(type==="train"||type==="rail"){
+      ctx.beginPath();ctx.moveTo(-23,13);ctx.lineTo(-17,-17);ctx.lineTo(17,-17);ctx.lineTo(23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,-7);ctx.lineTo(16,-7);ctx.moveTo(-11,-17);ctx.lineTo(-11,-7);ctx.moveTo(11,-17);ctx.lineTo(11,-7);ctx.moveTo(-26,22);ctx.lineTo(26,22);ctx.moveTo(-22,28);ctx.lineTo(22,28);ctx.stroke();
+      for(const px of [-13,13]){ctx.beginPath();ctx.arc(px,14,3,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="game"){
+      ctx.beginPath();ctx.moveTo(-25,-9);ctx.quadraticCurveTo(-33,7,-25,19);ctx.quadraticCurveTo(-18,26,-8,13);ctx.lineTo(8,13);ctx.quadraticCurveTo(18,26,25,19);ctx.quadraticCurveTo(33,7,25,-9);ctx.quadraticCurveTo(18,-19,8,-12);ctx.lineTo(-8,-12);ctx.quadraticCurveTo(-18,-19,-25,-9);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(-7,0);ctx.moveTo(-12,-5);ctx.lineTo(-12,5);ctx.stroke();for(const p of [[14,-4],[21,3]]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}
+    }else if(type==="robot"){
+      ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(0,-20);ctx.stroke();ctx.beginPath();ctx.arc(0,-31,3,0,Math.PI*2);ctx.fill();
+      roundedRect(ctx,-25,-20,50,39,9);ctx.fill();ctx.stroke();for(const px of [-11,11]){ctx.beginPath();ctx.arc(px,-5,4,0,Math.PI*2);ctx.fill();}
+      ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(10,8);ctx.moveTo(-16,19);ctx.lineTo(-20,27);ctx.moveTo(16,19);ctx.lineTo(20,27);ctx.stroke();
+    }else if(type==="drone"){
+      ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-26,-13);ctx.moveTo(12,0);ctx.lineTo(26,-13);ctx.moveTo(-12,0);ctx.lineTo(-26,13);ctx.moveTo(12,0);ctx.lineTo(26,13);ctx.stroke();
+      roundedRect(ctx,-12,-7,24,14,5);ctx.fill();ctx.stroke();for(const p of [[-27,-15],[27,-15],[-27,15],[27,15]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke();}
+    }else if(type==="mail"){
+      roundedRect(ctx,-27,-19,54,39,6);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-25,-16);ctx.lineTo(0,3);ctx.lineTo(25,-16);ctx.stroke();
+    }else if(type==="eye"){
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.quadraticCurveTo(0,-28,28,0);ctx.quadraticCurveTo(0,28,-28,0);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-24,-10);ctx.lineTo(0,-25);ctx.lineTo(24,-10);ctx.lineTo(24,18);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.moveTo(-12,10);ctx.lineTo(12,10);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function chip(ctx,x,y,w,h,label,palette){
+    roundedRect(ctx,x,y,w,h,Math.min(10,h/2));ctx.fillStyle="rgba(255,255,255,.045)";ctx.fill();
+    ctx.strokeStyle=palette.border||"rgba(255,255,255,.12)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=palette.muted_text||"#A0A0A0";ctx.font="700 "+Math.max(8,Math.min(11,h*.34))+"px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";let value=String(label||"");
+    while(value.length>3&&ctx.measureText(value).width>w-10)value=value.slice(0,-2)+"…";
+    ctx.fillText(value,x+w/2,y+h/2);
+  }
+  function draw(ctx,frame){
+    const w=Math.max(1,frame.width),h=Math.max(1,frame.height),step=frame.step||{},p=frame.palette||{};
+    const accent=p.accent||"#2EAC65",text=p.text||"#FFFFFF",muted=p.muted_text||"#A0A0A0",panel=p.panel||"#1A1A20",soft=p.accent_soft||"rgba(46,172,101,.15)";
+    const narrow=w<540||h>w*1.14,pad=Math.max(9,Math.min(28,Math.min(w,h)*.055));
+    const phase=Math.max(0,Math.min(1,frame.transitionProgress==null?1:frame.transitionProgress));
+    const pulse=.5+.5*Math.sin((frame.elapsedMs||0)/650),index=Number.isInteger(frame.stepIndex)?frame.stepIndex:0,total=8;
+    ctx.save();
+    const glow=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.72);
+    glow.addColorStop(0,p.accent_glow||"rgba(46,172,101,.055)");glow.addColorStop(1,"rgba(15,15,19,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    ctx.globalAlpha=.12;ctx.strokeStyle=muted;ctx.lineWidth=1;const grid=Math.max(24,Math.min(42,Math.min(w,h)*.16));
+    for(let x=grid/2;x<w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=grid/2;y<h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const badgeY=pad+9;roundedRect(ctx,pad,badgeY-11,Math.min(w-pad*2,164),22,11);ctx.fillStyle=soft;ctx.fill();ctx.strokeStyle="rgba(46,172,101,.30)";ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=accent;ctx.font="800 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText("ОБУЧАЮЩАЯ ВИЗУАЛИЗАЦИЯ",pad+9,badgeY);
+    ctx.textAlign="right";ctx.fillStyle=muted;ctx.font="700 "+Math.max(9,Math.min(12,Math.min(w,h)*.028))+"px system-ui,sans-serif";
+    ctx.fillText(String(index+1).padStart(2,"0")+" / "+String(total).padStart(2,"0"),w-pad,badgeY);
+    const ix=narrow?w*.5:w*.285,iy=narrow?h*.335:h*.49;
+    const size=Math.max(28,Math.min(narrow?Math.min(w,h)*.28:h*.36,narrow?74:118)),ring=size*.78;
+    const halo=ctx.createRadialGradient(ix,iy,2,ix,iy,size*1.48);halo.addColorStop(0,"rgba(46,172,101,"+(.16+pulse*.055)+")");halo.addColorStop(1,"rgba(46,172,101,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ix,iy,size*1.48,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ix,iy,ring,0,Math.PI*2);ctx.fillStyle=panel;ctx.globalAlpha=.72;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(46,172,101,.42)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ix,iy,ring*1.22,-Math.PI/2,-Math.PI/2+Math.PI*2*phase);ctx.strokeStyle=accent;ctx.lineWidth=2.6;ctx.stroke();
+    for(let i=0;i<3;i++){const a=-Math.PI/2+i*Math.PI*2/3+(frame.elapsedMs||0)/9000;ctx.beginPath();ctx.arc(ix+Math.cos(a)*ring*1.36,iy+Math.sin(a)*ring*1.36,2.4+pulse*1.2,0,Math.PI*2);ctx.fillStyle=accent;ctx.fill();}
+    glyph(ctx,step.icon||"network",ix,iy,size,accent,soft);
+    const hs=Math.max(14,Math.min(narrow?22:34,Math.min(w,h)*(narrow?.09:.075)));
+    const tx=narrow?w/2:w*.53,ty=narrow?h*.575:h*.39,mw=narrow?w-pad*2:w*.42;
+    ctx.textAlign=narrow?"center":"left";ctx.textBaseline="alphabetic";ctx.fillStyle=text;ctx.font="800 "+hs+"px system-ui,sans-serif";
+    wrappedText(ctx,step.heading||"Этап",tx,ty,mw,hs*1.12,2);
+    ctx.fillStyle=muted;ctx.font="500 "+Math.max(9,Math.min(narrow?12:15,Math.min(w,h)*.04))+"px system-ui,sans-serif";
+    wrappedText(ctx,step.detail||"",tx,ty+hs*1.55,mw,Math.max(12,hs*.78),2);
+    const items=Array.isArray(step.nodes)?step.nodes.slice(0,3):[],gap=6,cy=narrow?h*.775:h*.72,ch=Math.max(22,Math.min(32,h*.075));
+    const aw=narrow?w-pad*2:w*.43,cw=Math.max(38,(aw-gap*2)/3),sx=narrow?pad:tx;
+    items.forEach((item,i)=>chip(ctx,sx+i*(cw+gap),cy,cw,ch,item,p));
+    const py=h-Math.max(12,pad*.72),pw=Math.max(30,w-pad*2);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(pad+pw,py);ctx.stroke();
+    for(let i=0;i<total;i++){const x=pad+(pw*i)/(total-1);ctx.beginPath();ctx.arc(x,py,i===index?4.3:2.7,0,Math.PI*2);ctx.fillStyle=i<=index?accent:"rgba(255,255,255,.24)";ctx.fill();}
+    ctx.restore();
+  }
+  window.AppScene={draw};
+})();
+    (() => {
+  "use strict";
+
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
+
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton")
+  };
+
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
+
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError("Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().");
+    return;
+  }
+
+  if (!Array.isArray(steps) || steps.length < timing.minSteps || steps.length > timing.maxSteps) {
+    showFatalError("Некорректная конфигурация шагов. Проверьте файл scene.json.");
+    return;
+  }
+
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
+
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
+
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null
+  };
+
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
+
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
+
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (cssWidth <= 0 || cssHeight <= 0) return;
+
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
+
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
+
+    drawFrame();
+  }
+
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
+
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+    if (state.transition) {
+      const progress = Math.min(1, state.transition.elapsedMs / timing.transitionMs);
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    drawTo(ctx, state.currentStep, 1);
+  }
+
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
+
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
+
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
+
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
         });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
+
+    updateControls();
+  }
+
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
+
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение"
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
+
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
+
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
       }
-      function setMode(m) {
-        mode = m;
-        $("#mAuto").classList.toggle("active", m === "auto");
-        $("#mStepBtn").classList.toggle("active", m === "step");
-        $("#chipMode").textContent = m.toUpperCase();
-        $("#mNext").disabled = m !== "step";
-        if (m === "step") stepT = Math.min(stepT, STEPS[stepIndex].dur);
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    ) return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
       }
-      function startAuto() {
-        setMode("auto");
-        setPlaying(true);
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
       }
-      function reset() {
-        setMode("auto");
-        setPlaying(true);
-        onStep(0);
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
       }
-      function openSettings() {
-        settingsOpen = true;
-        $("#modalWrap").classList.add("open");
-      }
-      function closeSettings() {
-        settingsOpen = false;
-        $("#modalWrap").classList.remove("open");
-      }
-      function toggleVideoMode() {
-        v916 = !v916;
-        document.body.classList.toggle("v916", v916);
-        $("#mNine").checked = v916;
-        resize();
-      }
-      function handleInput(e) {
-        const k = e.key;
-        if (e.code === "Space") {
-          e.preventDefault();
-          document.body.classList.toggle("ui-hidden");
-        } else if (k === "ArrowRight") {
-          e.preventDefault();
-          onStep((stepIndex + 1) % N);
-        } else if (k === "r" || k === "R" || k === "к" || k === "К") {
-          reset();
-        } else if (k === "s" || k === "S" || k === "ы" || k === "Ы") {
-          setMode(mode === "auto" ? "step" : "auto");
-        } else if (k === "v" || k === "V" || k === "м" || k === "М") {
-          toggleVideoMode();
-        } else if (k === "Escape") {
-          closeSettings();
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (first && last && event.shiftKey &&
+            (document.activeElement === first || document.activeElement === elements.dialog)) {
+          event.preventDefault();
+          last.focus();
+        } else if (first && last && !event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
       }
-      function personTarget(i, p) {
-        const cx = L.cx;
-        switch (i) {
-          case 0:
-            return { x: W * 0.16, y: H * 0.6, m: false };
-          case 1: {
-            const a = clamp((p - 0.42) / 0.5);
-            return {
-              x: lerp(W * 0.16, cx, a),
-              y: lerp(H * 0.6, H * 0.635, easeIO(a)),
-              m: a > 0 && a < 1,
-            };
-          }
-          case 4: {
-            const a = clamp((p - 0.06) / 0.24),
-              b = clamp((p - 0.6) / 0.22);
-            const y = lerp(
-              lerp(H * 0.635, H * 0.585, easeIO(a)),
-              H * 0.635,
-              easeIO(b),
-            );
-            return { x: cx, y, m: (a > 0 && a < 1) || (b > 0 && b < 1) };
-          }
-          case 7: {
-            const a = clamp((p - 0.34) / 0.44);
-            return {
-              x: cx,
-              y: lerp(H * 0.635, H * 0.3, easeIO(a)),
-              m: a > 0 && a < 1,
-            };
-          }
-          default:
-            return { x: cx, y: H * 0.635, m: false };
-        }
+      return;
+    }
+
+    if (isInteractiveTarget(event.target)) return;
+
+    if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
+      return;
+    }
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      if (state.mode === "step" && !state.transition && state.currentStep < steps.length - 1) {
+        event.preventDefault();
+        nextStep();
       }
-      function script(i, p, eff) {
-        S.t1.on = false;
-        S.t2.on = false;
-        S.horn = 0;
-        S.pulse = 0;
-        S.glow = 0;
-        S.look = 0;
-        S.lookA = 0;
-        S.stop = 0;
-        S.dim = 0;
-        S.danger = 0;
-        S.gaugeA = 0;
-        S.gaugeV = 0;
-        S.distA = 0;
-        S.distV = 0;
-        S.volt = 0;
-        S.check = 0;
-        S.cards = [0, 0, 0];
-        S.cross = 0;
-        S.sign = 0;
-        S.light = 0;
-        S.bar = 0;
-        S.barQ = 0;
-        S.lamp = "off";
-        switch (i) {
-          case 0: {
-            const tt = clamp((p - 0.04) / 0.88);
-            S.t1.on = tt > 0 && tt < 1;
-            S.t1.x = lerp(-W * 0.05, W + W * 0.6, tt);
-            S.pulse = 0.5 + 0.5 * Math.sin(clock * 5);
-            if (S.t1.on) S.dustAcc += eff * 16;
-            break;
-          }
-          case 1: {
-            S.cross = clamp(p / 0.3);
-            S.glow =
-              p > 0.3
-                ? (0.5 + 0.5 * Math.sin(clock * 3.2)) * clamp((p - 0.3) / 0.15)
-                : 0;
-            S.sign = pop01((p - 0.35) / 0.18);
-            S.light = pop01((p - 0.52) / 0.18);
-            S.bar = pop01((p - 0.68) / 0.18);
-            break;
-          }
-          case 2: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = easeIO(clamp((p - 0.38) / 0.24));
-            S.lamp = p > 0.08 ? "red" : "off";
-            break;
-          }
-          case 3: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = 1;
-            S.lamp = "red";
-            const tt = clamp((p - 0.22) / 0.56);
-            S.t1.on = tt > 0 && tt < 1;
-            S.t1.x = lerp(-W * 0.05, W + W * 0.6, tt);
-            S.gaugeA = Math.min(clamp(p / 0.15), clamp((1 - p) / 0.12));
-            S.gaugeV = 100 * easeOutC(clamp((p - 0.24) / 0.36));
-            S.distA = Math.min(clamp((p - 0.5) / 0.12), clamp((1 - p) / 0.1));
-            S.distV = easeOutC(clamp((p - 0.55) / 0.35));
-            if (S.t1.on) S.dustAcc += eff * 14;
-            break;
-          }
-          case 4: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = 1;
-            S.lamp = "red";
-            const tt = clamp((p - 0.12) / 0.62);
-            S.t2.on = tt > 0 && tt < 1;
-            S.t2.x = lerp(W + W * 0.05, -W * 0.52, tt);
-            S.horn = Math.sin(Math.PI * clamp((p - 0.14) / 0.3));
-            S.stop = p > 0.3 && p < 0.66 ? 0.6 + 0.4 * Math.sin(clock * 6) : 0;
-            S.danger = Math.sin(Math.PI * clamp((p - 0.3) / 0.4));
-            break;
-          }
-          case 5: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = 1 - easeIO(clamp((p - 0.05) / 0.2));
-            S.lamp = "green";
-            S.volt =
-              Math.min(clamp((p - 0.1) / 0.12), clamp((0.98 - p) / 0.1)) *
-              (0.55 + 0.45 * Math.sin(clock * 6));
-            if (S.volt > 0) S.sparkAcc += eff * 2.6;
-            break;
-          }
-          case 6: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = 0;
-            S.lamp = "green";
-            S.cards = [
-              pop01((p - 0.12) / 0.16),
-              pop01((p - 0.34) / 0.16),
-              pop01((p - 0.56) / 0.16),
-            ];
-            S.dim =
-              0.38 * clamp(Math.min((p - 0.08) / 0.12, (0.98 - p) / 0.08));
-            break;
-          }
-          case 7: {
-            S.cross = 1;
-            S.sign = 1;
-            S.light = 1;
-            S.bar = 1;
-            S.barQ = 0;
-            S.lamp = "green";
-            if (p < 0.18) {
-              S.look = 1;
-              S.lookA = Math.sin(Math.PI * clamp((p - 0.04) / 0.14));
-            } else if (p < 0.32) {
-              S.look = 2;
-              S.lookA = Math.sin(Math.PI * clamp((p - 0.18) / 0.14));
-            }
-            S.check = pop01((p - 0.8) / 0.14);
-            break;
-          }
-        }
-        const pt = personTarget(i, p);
-        S.px = pt.x;
-        S.py = pt.y;
-        S.moving = pt.m;
-        S.ps = 0.5 + 0.75 * clamp((S.py / H - 0.3) / 0.335, 0, 1);
-        if (S.moving) S.walk += eff * 2.2;
-        if (i === 7 && S.moving) S.glintAcc += eff * 9;
-      }
-      function spawnDust() {
-        if (S.dust.length > 140) return;
-        S.dust.push({
-          x: S.t1.x - rand(0, W * 0.5),
-          y: L.tF + L.gF * 0.3,
-          vx: -rand(15, 60),
-          vy: -rand(5, 25),
-          life: rand(0.6, 1.1),
-          r: rand(1.5, 4),
-        });
-      }
-      function spawnSpark() {
-        if (S.sparks.length > 40) return;
-        const l = rand(0.18, 0.3);
-        S.sparks.push({
-          x: rand(L.poles[0], L.poles[L.poles.length - 1]),
-          y: L.wireY,
-          life: l,
-          max: l,
-        });
-      }
-      function spawnGlint() {
-        if (S.glints.length > 80) return;
-        const l = rand(0.5, 0.9);
-        S.glints.push({
-          x: S.px + rand(-L.cw * 0.4, L.cw * 0.4),
-          y: S.py + rand(-8, 8),
-          vy: -rand(14, 34),
-          life: l,
-          max: l,
-          size: rand(2.5, 5),
-        });
-      }
-      function stepParticles(eff) {
-        if (eff <= 0) return;
-        let n = Math.floor(S.dustAcc);
-        if (n > 0) {
-          S.dustAcc -= n;
-          for (let k = 0; k < n; k++) if (S.t1.on) spawnDust();
-        }
-        n = Math.floor(S.sparkAcc);
-        if (n > 0) {
-          S.sparkAcc -= n;
-          for (let k = 0; k < n; k++) spawnSpark();
-        }
-        n = Math.floor(S.glintAcc);
-        if (n > 0) {
-          S.glintAcc -= n;
-          for (let k = 0; k < n; k++) spawnGlint();
-        }
-        for (const d of S.dust) {
-          d.x += d.vx * eff;
-          d.y += d.vy * eff;
-          d.vy += 10 * eff;
-          d.life -= eff;
-        }
-        for (const s of S.sparks) s.life -= eff;
-        for (const g of S.glints) {
-          g.y += g.vy * eff;
-          g.life -= eff;
-        }
-        S.dust = S.dust.filter((d) => d.life > 0);
-        S.sparks = S.sparks.filter((s) => s.life > 0);
-        S.glints = S.glints.filter((g) => g.life > 0);
-      }
-      function update(dt) {
-        clock += dt;
-        const eff = playing ? dt * speed : 0;
-        if (playing) {
-          stepT += dt * speed;
-          const dur = STEPS[stepIndex].dur;
-          if (mode === "auto") {
-            if (stepT >= dur) onStep((stepIndex + 1) % N);
-          } else if (stepT > dur) stepT = dur;
-        }
-        const p = Math.min(stepT / STEPS[stepIndex].dur, 1);
-        script(stepIndex, p, eff);
-        stepParticles(eff);
-      }
-      function drawSky() {
-        const g = ctx.createLinearGradient(0, 0, 0, H * 0.4);
-        g.addColorStop(0, "#111118");
-        g.addColorStop(1, "#0F0F13");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-        const hg = ctx.createRadialGradient(
-          W * 0.5,
-          L.hz,
-          0,
-          W * 0.5,
-          L.hz,
-          W * 0.55,
-        );
-        hg.addColorStop(0, "rgba(46,172,101,.07)");
-        hg.addColorStop(1, "rgba(46,172,101,0)");
-        ctx.fillStyle = hg;
-        ctx.fillRect(0, 0, W, H * 0.6);
-        for (const st of stars) {
-          ctx.globalAlpha =
-            0.2 + 0.3 * (0.5 + 0.5 * Math.sin(clock * 0.7 + st.p));
-          ctx.fillStyle = "#9AA0B5";
-          ctx.fillRect(st.x * W, st.y * H, st.s, st.s);
-        }
-        ctx.globalAlpha = 1;
-      }
-      function drawPoles() {
-        ctx.strokeStyle = "#2A2A34";
-        ctx.lineCap = "round";
-        for (const px of L.poles) {
-          ctx.lineWidth = 3.5;
-          ctx.beginPath();
-          ctx.moveTo(px, L.poleB);
-          ctx.lineTo(px, L.poleT);
-          ctx.stroke();
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.moveTo(px - 7, L.poleT + 4);
-          ctx.lineTo(px + 7, L.poleT + 4);
-          ctx.stroke();
-        }
-        ctx.beginPath();
-        for (let i = 0; i < L.poles.length - 1; i++) {
-          const x1 = L.poles[i],
-            x2 = L.poles[i + 1];
-          ctx.moveTo(x1, L.wireY);
-          ctx.quadraticCurveTo((x1 + x2) / 2, L.wireY + 7, x2, L.wireY);
-        }
-        ctx.strokeStyle = "#3C3C46";
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-        if (S.volt > 0) {
-          ctx.save();
-          ctx.globalAlpha = clamp(S.volt);
-          ctx.strokeStyle = "#FFC94D";
-          ctx.lineWidth = 2;
-          ctx.shadowColor = "#FFC94D";
-          ctx.shadowBlur = 14;
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-      function drawTrack(ty, g) {
-        const hb = g * 1.15;
-        ctx.fillStyle = "#15151B";
-        ctx.fillRect(-2, ty - hb, W + 4, hb * 2);
-        ctx.fillStyle = "#202028";
-        const step = Math.max(24, W * 0.035);
-        for (let x = 6; x < W; x += step)
-          ctx.fillRect(x - 2.5, ty - g * 0.85, 5, g * 1.7);
-        ctx.strokeStyle = "#4E4E5A";
-        ctx.lineWidth = Math.max(2, g * 0.1);
-        ctx.beginPath();
-        ctx.moveTo(-2, ty - g * 0.5);
-        ctx.lineTo(W + 2, ty - g * 0.5);
-        ctx.moveTo(-2, ty + g * 0.5);
-        ctx.lineTo(W + 2, ty + g * 0.5);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(0,0,0,.4)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(-2, ty + g * 0.5 + 3);
-        ctx.lineTo(W + 2, ty + g * 0.5 + 3);
-        ctx.stroke();
-      }
-      function drawCrossing() {
-        if (S.cross <= 0) return;
-        const hgt = (L.bot - L.top) * S.cross,
-          y0 = L.bot - hgt,
-          x0 = L.cx - L.cw / 2;
-        ctx.fillStyle = "#14141A";
-        ctx.fillRect(x0 - 3, y0, L.cw + 6, hgt);
-        const ph = Math.max(7, H * 0.015);
-        let idx = 0;
-        for (let y = y0 + 2; y < L.bot - 2; y += ph + 3) {
-          ctx.fillStyle = idx++ % 2 ? "#4E3E2B" : "#5C4A33";
-          ctx.fillRect(x0 + 2, y, L.cw - 4, ph);
-        }
-        ctx.strokeStyle = "rgba(110,88,55,.8)";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(x0, y0, L.cw, hgt);
-        if (S.glow > 0) {
-          ctx.save();
-          ctx.globalAlpha = S.glow;
-          ctx.strokeStyle = "#2EAC65";
-          ctx.lineWidth = 3;
-          ctx.shadowColor = "#2EAC65";
-          ctx.shadowBlur = 20;
-          ctx.strokeRect(x0, y0, L.cw, hgt);
-          ctx.restore();
-        }
-      }
-      function drawTrain(x, ty, g, bh, TL, dir) {
-        const segs = [TL * 0.36, TL * 0.29, TL * 0.29],
-          gap = TL * 0.03;
-        const bottom = ty + g * 0.5 - bh * 0.06,
-          top = bottom - bh,
-          railY = ty + g * 0.5;
-        let off = 0;
-        for (let i = 0; i < 3; i++) {
-          const w = segs[i],
-            cx = x - dir * (off + w / 2);
-          off += w + gap;
-          rr(cx - w / 2, top, w, bh, i === 0 ? 8 : 6);
-          ctx.fillStyle = i === 0 ? "#262630" : "#202028";
-          ctx.fill();
-          ctx.strokeStyle = "#3A3A44";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          ctx.fillStyle = "rgba(46,172,101,.8)";
-          ctx.fillRect(cx - w / 2 + 3, top + bh * 0.58, w - 6, 2.5);
-          const wn = i === 0 ? 2 : 3,
-            ww = Math.min(bh * 0.26, w * 0.18),
-            margin = w * 0.12;
-          const gapW = wn > 1 ? (w - 2 * margin - wn * ww) / (wn - 1) : 0;
-          ctx.fillStyle = "rgba(244,212,136,.5)";
-          for (let k = 0; k < wn; k++) {
-            if (
-              i === 0 &&
-              ((dir === 1 && k === wn - 1) || (dir === -1 && k === 0))
-            )
-              continue;
-            const wx = cx - w / 2 + margin + k * (ww + gapW);
-            rr(wx, top + bh * 0.16, ww, bh * 0.3, 3);
-            ctx.fill();
-          }
-          for (const wxo of [-w * 0.3, w * 0.3]) {
-            ctx.beginPath();
-            ctx.arc(cx + wxo, railY - bh * 0.12, bh * 0.12, 0, 7);
-            ctx.fillStyle = "#0E0E12";
-            ctx.fill();
-            ctx.strokeStyle = "#3C3C46";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-          }
-          if (i === 0) {
-            const hx = cx + dir * (w / 2 - 4),
-              hy = bottom - bh * 0.2;
-            const bx = hx + dir * bh * 1.6;
-            const gr = ctx.createLinearGradient(hx, 0, bx, 0);
-            gr.addColorStop(0, "rgba(255,240,190,.22)");
-            gr.addColorStop(1, "rgba(255,240,190,0)");
-            ctx.fillStyle = gr;
-            ctx.beginPath();
-            ctx.moveTo(hx, hy);
-            ctx.lineTo(bx, hy - bh * 0.42);
-            ctx.lineTo(bx, hy + bh * 0.42);
-            ctx.closePath();
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(hx, hy, bh * 0.09, 0, 7);
-            ctx.fillStyle = "#FFF3C4";
-            ctx.shadowColor = "#FFE9A8";
-            ctx.shadowBlur = 18;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            if (ty === L.tF) {
-              ctx.strokeStyle = "#3C3C46";
-              ctx.lineWidth = 1.5;
-              ctx.beginPath();
-              ctx.moveTo(cx - 9, top);
-              ctx.lineTo(cx, L.wireY);
-              ctx.moveTo(cx + 9, top);
-              ctx.lineTo(cx, L.wireY);
-              ctx.stroke();
-            }
-          }
-        }
-        if (bh > 0) {
-          const tailX = x - dir * TL;
-          ctx.strokeStyle = "rgba(255,255,255,.15)";
-          ctx.lineWidth = 2;
-          ctx.lineCap = "round";
-          for (let k = 0; k < 3; k++) {
-            const sx = tailX - dir * (k * bh * 0.5),
-              ex = tailX - dir * (k * bh * 0.5 + bh * 1.2);
-            ctx.beginPath();
-            ctx.moveTo(sx, ty - bh * 0.45 + k * bh * 0.3);
-            ctx.lineTo(ex, ty - bh * 0.45 + k * bh * 0.3);
-            ctx.stroke();
-          }
-        }
-      }
-      function drawSign() {
-        const s = clamp(S.sign);
-        if (s <= 0) return;
-        ctx.save();
-        ctx.translate(L.signX, L.signY);
-        ctx.scale(s, s);
-        ctx.strokeStyle = "#3A3A44";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, L.signB - L.signY);
-        ctx.lineTo(0, 10);
-        ctx.stroke();
-        const a = Math.max(14, W * 0.04);
-        ctx.beginPath();
-        ctx.moveTo(0, -a * 1.15);
-        ctx.lineTo(a, a * 0.8);
-        ctx.lineTo(-a, a * 0.8);
-        ctx.closePath();
-        ctx.fillStyle = "#F2F2F6";
-        ctx.fill();
-        ctx.strokeStyle = "#E5484D";
-        ctx.lineWidth = 3.5;
-        ctx.lineJoin = "round";
-        ctx.stroke();
-        ctx.fillStyle = "#26262E";
-        rr(-a * 0.42, -a * 0.15, a * 0.72, a * 0.42, 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(-a * 0.24, a * 0.36, 2.4, 0, 7);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(a * 0.12, a * 0.36, 2.4, 0, 7);
-        ctx.fill();
-        ctx.restore();
-      }
-      function drawLight() {
-        const s = clamp(S.light);
-        if (s <= 0) return;
-        ctx.save();
-        ctx.translate(L.lightX, L.lightY);
-        ctx.scale(s, s);
-        ctx.strokeStyle = "#3A3A44";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, L.lightB - L.lightY);
-        ctx.lineTo(0, 20);
-        ctx.stroke();
-        const w = Math.max(16, Math.min(W * 0.052, 26)),
-          h = w * 1.9;
-        rr(-w / 2, -h / 2, w, h, 5);
-        ctx.fillStyle = "#1A1A20";
-        ctx.fill();
-        ctx.strokeStyle = "#33333D";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        const blink = 0.45 + 0.55 * Math.abs(Math.sin(clock * 3.4));
-        ctx.globalAlpha = s * (S.lamp === "red" ? blink : 1);
-        ctx.beginPath();
-        ctx.arc(0, -h * 0.22, w * 0.26, 0, 7);
-        ctx.fillStyle = S.lamp === "red" ? "#E5484D" : "#3A2026";
-        ctx.shadowColor = "#E5484D";
-        ctx.shadowBlur = S.lamp === "red" ? 14 : 0;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = s;
-        ctx.beginPath();
-        ctx.arc(0, h * 0.22, w * 0.26, 0, 7);
-        ctx.fillStyle = S.lamp === "green" ? "#2EAC65" : "#16321F";
-        ctx.shadowColor = "#2EAC65";
-        ctx.shadowBlur = S.lamp === "green" ? 14 : 0;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.restore();
-      }
-      function drawBarrier() {
-        const s = clamp(S.bar);
-        if (s <= 0) return;
-        ctx.save();
-        ctx.globalAlpha = s;
-        ctx.strokeStyle = "#3A3A44";
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(L.barX, L.barB);
-        ctx.lineTo(L.barX, L.barP);
-        ctx.stroke();
-        rr(L.barX - 8, L.barB - 3, 16, 6, 2);
-        ctx.fillStyle = "#2A2A34";
-        ctx.fill();
-        ctx.save();
-        ctx.translate(L.barX, L.barP);
-        ctx.rotate((-70 * (1 - S.barQ) * Math.PI) / 180);
-        const Lg = L.barL,
-          segs = Math.ceil(Lg / 14);
-        for (let i = 0; i < segs; i++) {
-          ctx.fillStyle = i % 2 ? "#EFEFEF" : "#E5484D";
-          ctx.fillRect(-14 * (i + 1), -3.5, Math.min(14, Lg - 14 * i), 7);
-        }
-        const closed = S.barQ > 0.5;
-        ctx.beginPath();
-        ctx.arc(-Lg, 0, 5, 0, 7);
-        ctx.globalAlpha =
-          s * (closed ? 0.45 + 0.55 * Math.abs(Math.sin(clock * 4)) : 1);
-        ctx.fillStyle = closed ? "#FF5A5F" : "#7A2E32";
-        ctx.shadowColor = "#E5484D";
-        ctx.shadowBlur = closed ? 12 : 0;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.restore();
-        ctx.restore();
-      }
-      function drawPerson() {
-        const x = S.px,
-          y = S.py,
-          u = H * 0.082 * S.ps;
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,.35)";
-        ctx.beginPath();
-        ctx.ellipse(x, y + 2, u * 0.3, u * 0.075, 0, 0, 7);
-        ctx.fill();
-        const sw = S.moving ? Math.sin(S.walk * 9) : 0;
-        ctx.strokeStyle = "#E6E6EC";
-        ctx.lineCap = "round";
-        ctx.lineWidth = u * 0.11;
-        ctx.beginPath();
-        ctx.moveTo(x, y - u * 0.4);
-        ctx.lineTo(x + u * 0.18 * sw, y);
-        ctx.moveTo(x, y - u * 0.4);
-        ctx.lineTo(x - u * 0.18 * sw, y - u * 0.04 * Math.abs(sw));
-        ctx.stroke();
-        ctx.lineWidth = u * 0.09;
-        ctx.beginPath();
-        ctx.moveTo(x - u * 0.19, y - u * 0.76);
-        ctx.lineTo(x - u * 0.26, y - u * 0.52 - u * 0.06 * sw);
-        ctx.moveTo(x + u * 0.19, y - u * 0.76);
-        ctx.lineTo(x + u * 0.26, y - u * 0.52 + u * 0.06 * sw);
-        ctx.stroke();
-        rr(x - u * 0.19, y - u * 0.86, u * 0.38, u * 0.48, u * 0.1);
-        ctx.fillStyle = "#2EAC65";
-        ctx.fill();
-        ctx.strokeStyle = "#1E7A47";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x, y - u * 0.97, u * 0.13, 0, 7);
-        ctx.fillStyle = "#E6E6EC";
-        ctx.fill();
-        ctx.restore();
-      }
-      function drawGauge() {
-        const a = S.gaugeA;
-        if (a <= 0) return;
-        const x = L.gx,
-          y = L.gy,
-          r = L.r1;
-        ctx.save();
-        ctx.globalAlpha = clamp(a);
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, 7);
-        ctx.fillStyle = "rgba(20,20,26,.88)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.1)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        const a0 = Math.PI * 0.75,
-          a1 = Math.PI * 2.25;
-        ctx.beginPath();
-        ctx.arc(x, y, r * 0.78, a0, a1);
-        ctx.strokeStyle = "#26262E";
-        ctx.lineWidth = r * 0.16;
-        ctx.lineCap = "round";
-        ctx.stroke();
-        const v = clamp(S.gaugeV / 100),
-          av = a0 + (a1 - a0) * v;
-        ctx.beginPath();
-        ctx.arc(x, y, r * 0.78, a0, av);
-        ctx.strokeStyle = v > 0.7 ? "#E5484D" : "#2EAC65";
-        ctx.lineWidth = r * 0.16;
-        ctx.shadowColor = "#2EAC65";
-        ctx.shadowBlur = 12;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + Math.cos(av) * r * 0.62, y + Math.sin(av) * r * 0.62);
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, 7);
-        ctx.fillStyle = "#fff";
-        ctx.fill();
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 " + Math.round(r * 0.42) + "px system-ui,sans-serif";
-        ctx.fillText(Math.round(S.gaugeV), x, y + r * 0.55);
-        ctx.fillStyle = "#A0A0A0";
-        ctx.font = "700 " + Math.round(r * 0.2) + "px system-ui,sans-serif";
-        ctx.fillText("км/ч", x, y + r * 0.8);
-        ctx.restore();
-      }
-      function drawDist() {
-        const a = S.distA;
-        if (a <= 0) return;
-        const x0 = L.distX0,
-          x1 = L.distX1,
-          y = L.distY,
-          h = Math.max(10, H * 0.014);
-        ctx.save();
-        ctx.globalAlpha = clamp(a);
-        ctx.fillStyle = "#A0A0A0";
-        ctx.font = "700 " + Math.max(11, W * 0.03) + "px system-ui,sans-serif";
-        ctx.textAlign = "left";
-        ctx.fillText("Тормозной путь", x0, y - h - 8);
-        rr(x0, y - h / 2, x1 - x0, h, h / 2);
-        ctx.fillStyle = "#1A1A20";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,.12)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        const w = (x1 - x0 - 4) * S.distV;
-        if (w > 2) {
-          rr(x0 + 2, y - h / 2 + 2, w, h - 4, (h - 4) / 2);
-          const g = ctx.createLinearGradient(x0, 0, x1, 0);
-          g.addColorStop(0, "#E5484D");
-          g.addColorStop(1, "#FF9A62");
-          ctx.fillStyle = g;
-          ctx.shadowColor = "#E5484D";
-          ctx.shadowBlur = 10;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 " + Math.max(12, W * 0.034) + "px system-ui,sans-serif";
-        ctx.fillText("≈ " + Math.round(S.distV * 1000) + " м", x0, y + h + 18);
-        ctx.restore();
-      }
-      function drawCards() {
-        for (let i = 0; i < 3; i++) {
-          const s = S.cards[i];
-          if (s <= 0) continue;
-          const cw = L.cardW,
-            ch = cw * 0.3,
-            cx = L.cardX,
-            cy = L.cardY[i] * H;
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.scale(Math.max(0.01, s), Math.max(0.01, s));
-          ctx.translate(-cx, -cy);
-          ctx.globalAlpha = clamp(s);
-          rr(cx - cw / 2, cy - ch / 2, cw, ch, 12);
-          ctx.fillStyle = "rgba(20,20,26,.94)";
-          ctx.fill();
-          ctx.strokeStyle = "rgba(229,72,77,.55)";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          const icr = ch * 0.3,
-            ix = cx - cw / 2 + ch * 0.42,
-            iy = cy;
-          ctx.beginPath();
-          ctx.arc(ix, iy, icr, 0, 7);
-          ctx.strokeStyle = "#E5484D";
-          ctx.lineWidth = 3;
-          ctx.stroke();
-          ctx.strokeStyle = "#EFEFEF";
-          ctx.lineWidth = 2;
-          ctx.lineCap = "round";
-          if (CARDS[i].ic === "rails") {
-            ctx.beginPath();
-            ctx.moveTo(ix - 5, iy - 7);
-            ctx.lineTo(ix - 5, iy + 7);
-            ctx.moveTo(ix + 5, iy - 7);
-            ctx.lineTo(ix + 5, iy + 7);
-            ctx.stroke();
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(ix - 8, iy - 2);
-            ctx.lineTo(ix + 8, iy - 2);
-            ctx.moveTo(ix - 8, iy + 3);
-            ctx.lineTo(ix + 8, iy + 3);
-            ctx.stroke();
-          } else if (CARDS[i].ic === "wagon") {
-            rr(ix - 8, iy - 6, 16, 8, 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(ix - 4, iy + 5, 2, 0, 7);
-            ctx.fill();
-            ctx.fillStyle = "#EFEFEF";
-            ctx.beginPath();
-            ctx.arc(ix + 4, iy + 5, 2, 0, 7);
-            ctx.fill();
-          } else {
-            ctx.beginPath();
-            ctx.arc(ix, iy - 1, 6, Math.PI, 0);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(ix - 6, iy - 1);
-            ctx.lineTo(ix - 6, iy + 4);
-            ctx.moveTo(ix + 6, iy - 1);
-            ctx.lineTo(ix + 6, iy + 4);
-            ctx.stroke();
-          }
-          ctx.strokeStyle = "#E5484D";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(ix - icr * 0.72, iy + icr * 0.72);
-          ctx.lineTo(ix + icr * 0.72, iy - icr * 0.72);
-          ctx.stroke();
-          ctx.fillStyle = "#fff";
-          ctx.font =
-            "800 " + Math.max(12, ch * 0.24) + "px system-ui,sans-serif";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(CARDS[i].l, ix + icr + 10, cy);
-          ctx.restore();
-        }
-      }
-      function drawVolt() {
-        const v = S.volt;
-        if (v <= 0) return;
-        ctx.save();
-        ctx.globalAlpha = clamp(v);
-        const x = L.voltX,
-          y = L.voltY,
-          fs = Math.max(14, Math.min(W * 0.052, 20));
-        ctx.fillStyle = "#FFC94D";
-        ctx.shadowColor = "#FFC94D";
-        ctx.shadowBlur = 16;
-        ctx.beginPath();
-        ctx.moveTo(x + 6, y - 14);
-        ctx.lineTo(x - 2, y + 2);
-        ctx.lineTo(x + 3, y + 2);
-        ctx.lineTo(x - 1, y + 14);
-        ctx.lineTo(x + 8, y - 2);
-        ctx.lineTo(x + 3, y - 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.font = "800 " + fs + "px system-ui,sans-serif";
-        ctx.textAlign = "left";
-        ctx.fillText("27 000 В", x + 16, y + 6);
-        ctx.restore();
-      }
-      function drawRings() {
-        if (stepIndex !== 2) return;
-        const p = Math.min(stepT / STEPS[2].dur, 1);
-        const rings = [
-          [L.lightX, L.lightY, W * 0.065, 0.1, 0.42],
-          [L.barX, L.barP, W * 0.09, 0.44, 0.72],
-          [L.signX, L.signY, W * 0.08, 0.72, 0.97],
-        ];
-        for (const rg of rings) {
-          const t = (p - rg[3]) / (rg[4] - rg[3]);
-          if (t <= 0 || t >= 1) continue;
-          ctx.save();
-          ctx.globalAlpha = Math.sin(Math.PI * t) * 0.85;
-          ctx.strokeStyle = "#2EAC65";
-          ctx.lineWidth = 2;
-          ctx.shadowColor = "#2EAC65";
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.arc(rg[0], rg[1], rg[2] * (1 + 0.45 * t), 0, 7);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-      function drawLook() {
-        if (stepIndex !== 7 || S.lookA <= 0 || !S.look) return;
-        const u = H * 0.082 * S.ps,
-          hy = S.py - u * 1.0;
-        ctx.save();
-        ctx.globalAlpha = clamp(S.lookA);
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.shadowColor = "#fff";
-        ctx.shadowBlur = 8;
-        for (let k = 0; k < 2; k++) {
-          const off = u * (0.34 + k * 0.2);
-          if (S.look === 1) {
-            const x = S.px - off;
-            ctx.beginPath();
-            ctx.moveTo(x + 6, hy - 7);
-            ctx.lineTo(x, hy);
-            ctx.lineTo(x + 6, hy + 7);
-            ctx.stroke();
-          } else {
-            const x = S.px + off;
-            ctx.beginPath();
-            ctx.moveTo(x - 6, hy - 7);
-            ctx.lineTo(x, hy);
-            ctx.lineTo(x - 6, hy + 7);
-            ctx.stroke();
-          }
-        }
-        ctx.restore();
-      }
-      function drawStop() {
-        if (S.stop <= 0) return;
-        const u = H * 0.082 * S.ps,
-          x = S.px,
-          y = S.py - u * 1.1 - 12;
-        ctx.save();
-        ctx.globalAlpha = clamp(S.stop);
-        ctx.shadowColor = "#E5484D";
-        ctx.shadowBlur = 16;
-        ctx.fillStyle = "#E5484D";
-        ctx.beginPath();
-        ctx.moveTo(x, y - 11);
-        ctx.lineTo(x + 11, y + 8);
-        ctx.lineTo(x - 11, y + 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#fff";
-        ctx.font = "800 13px system-ui,sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("!", x, y + 5);
-        ctx.restore();
-      }
-      function drawHorn() {
-        if (S.horn <= 0 || !S.t2.on) return;
-        const fx = S.t2.x,
-          hy = L.tN - H * 0.045;
-        ctx.save();
-        ctx.globalAlpha = clamp(S.horn) * 0.8;
-        ctx.strokeStyle = "#FFD98A";
-        ctx.lineWidth = 2;
-        for (let i = 1; i <= 3; i++) {
-          ctx.beginPath();
-          ctx.arc(fx - 6, hy, i * 9, Math.PI - 0.9, Math.PI + 0.9);
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-      function drawCheck() {
-        const s = S.check;
-        if (s <= 0) return;
-        const x = L.cx,
-          y = L.checkY,
-          r = Math.min(W, H) * 0.06;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(Math.max(0.01, s), Math.max(0.01, s));
-        ctx.globalAlpha = clamp(s);
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, 7);
-        ctx.fillStyle = "rgba(46,172,101,.16)";
-        ctx.fill();
-        ctx.strokeStyle = "#2EAC65";
-        ctx.lineWidth = 3;
-        ctx.shadowColor = "#2EAC65";
-        ctx.shadowBlur = 22;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.moveTo(-r * 0.38, 0);
-        ctx.lineTo(-r * 0.1, r * 0.3);
-        ctx.lineTo(r * 0.42, -r * 0.28);
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = r * 0.16;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-        ctx.font =
-          "800 " +
-          Math.max(15, Math.min(W * 0.058, 22)) +
-          "px system-ui,sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#2EAC65";
-        ctx.shadowColor = "#2EAC65";
-        ctx.shadowBlur = 14;
-        ctx.fillText("Безопасно!", 0, r + 24);
-        ctx.restore();
-      }
-      function drawPulse() {
-        if (S.pulse <= 0) return;
-        const a = 0.05 + 0.07 * S.pulse;
-        for (const ty of [L.tF, L.tN]) {
-          const g = ty === L.tF ? L.gF : L.gN;
-          const gr = ctx.createLinearGradient(0, ty - g * 1.5, 0, ty + g * 1.5);
-          gr.addColorStop(0, "rgba(229,72,77,0)");
-          gr.addColorStop(0.5, "rgba(229,72,77," + a + ")");
-          gr.addColorStop(1, "rgba(229,72,77,0)");
-          ctx.fillStyle = gr;
-          ctx.fillRect(0, ty - g * 1.5, W, g * 3);
-        }
-      }
-      function drawDangerV() {
-        if (S.danger <= 0) return;
-        const a = 0.14 * S.danger;
-        const g = ctx.createRadialGradient(
-          W / 2,
-          H / 2,
-          Math.min(W, H) * 0.35,
-          W / 2,
-          H / 2,
-          Math.max(W, H) * 0.75,
-        );
-        g.addColorStop(0, "rgba(229,72,77,0)");
-        g.addColorStop(1, "rgba(229,72,77," + a + ")");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-      }
-      function drawParticles() {
-        for (const d of S.dust) {
-          ctx.globalAlpha = Math.min(0.38, d.life * 0.45);
-          ctx.fillStyle = "#9C948A";
-          ctx.beginPath();
-          ctx.arc(d.x, d.y, d.r, 0, 7);
-          ctx.fill();
-        }
-        for (const s of S.sparks) {
-          ctx.save();
-          ctx.globalAlpha = clamp(s.life / s.max);
-          ctx.strokeStyle = "#FFE28A";
-          ctx.lineWidth = 1.8;
-          ctx.shadowColor = "#FFC94D";
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          let px = s.x,
-            py = s.y;
-          ctx.moveTo(px, py);
-          for (let k = 0; k < 3; k++) {
-            px += rand(-4, 4);
-            py += rand(4, 8);
-            ctx.lineTo(px, py);
-          }
-          ctx.stroke();
-          ctx.restore();
-        }
-        for (const g of S.glints) {
-          ctx.save();
-          ctx.globalAlpha = clamp(g.life / g.max);
-          ctx.strokeStyle = "#7FE0A8";
-          ctx.lineWidth = 1.6;
-          ctx.shadowColor = "#2EAC65";
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.moveTo(g.x - g.size, g.y);
-          ctx.lineTo(g.x + g.size, g.y);
-          ctx.moveTo(g.x, g.y - g.size);
-          ctx.lineTo(g.x, g.y + g.size);
-          ctx.stroke();
-          ctx.restore();
-        }
-        ctx.globalAlpha = 1;
-      }
-      function drawVignette() {
-        const g = ctx.createRadialGradient(
-          W / 2,
-          H / 2,
-          Math.min(W, H) * 0.42,
-          W / 2,
-          H / 2,
-          Math.max(W, H) * 0.78,
-        );
-        g.addColorStop(0, "rgba(0,0,0,0)");
-        g.addColorStop(1, "rgba(0,0,0,.42)");
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-      }
-      function draw() {
-        ctx.clearRect(0, 0, W, H);
-        drawSky();
-        ctx.fillStyle = "#0E0E12";
-        ctx.fillRect(0, L.hz, W, H - L.hz);
-        drawPoles();
-        drawTrack(L.tF, L.gF);
-        drawTrack(L.tN, L.gN);
-        drawCrossing();
-        if (S.t1.on) drawTrain(S.t1.x, L.tF, L.gF, H * 0.065, W * 0.6, 1);
-        if (S.t2.on) drawTrain(S.t2.x, L.tN, L.gN, H * 0.075, W * 0.52, -1);
-        drawPulse();
-        drawSign();
-        drawLight();
-        drawBarrier();
-        drawPerson();
-        drawGauge();
-        drawDist();
-        drawCards();
-        drawVolt();
-        drawRings();
-        drawLook();
-        drawStop();
-        drawHorn();
-        drawCheck();
-        drawParticles();
-        drawDangerV();
-        if (S.dim > 0) {
-          ctx.fillStyle = "rgba(0,0,0," + S.dim + ")";
-          ctx.fillRect(0, 0, W, H);
-        }
-        drawVignette();
-      }
-      function loop(ts) {
-        const dt = Math.min((ts - last) / 1000 || 0, 0.05);
-        last = ts;
-        update(dt);
-        draw();
-        requestAnimationFrame(loop);
-      }
-      function bind() {
-        const ro = new ResizeObserver(resize);
-        ro.observe(frame);
-        window.addEventListener("resize", resize);
-        $$(".js-play").forEach((b) =>
-          b.addEventListener("click", () => {
-            setPlaying(!playing);
-            b.blur();
-          }),
-        );
-        $$(".js-gear").forEach((b) =>
-          b.addEventListener("click", () => {
-            settingsOpen ? closeSettings() : openSettings();
-            b.blur();
-          }),
-        );
-        $("#mClose").addEventListener("click", closeSettings);
-        $("#modalWrap").addEventListener("click", (e) => {
-          if (e.target.id === "modalWrap") closeSettings();
-        });
-        $("#mAuto").addEventListener("click", () => setMode("auto"));
-        $("#mStepBtn").addEventListener("click", () => setMode("step"));
-        $("#mNext").addEventListener("click", () =>
-          onStep((stepIndex + 1) % N),
-        );
-        $("#mSpeed").addEventListener("input", (e) => {
-          speed = +e.target.value;
-          $("#mSpeedVal").textContent = speed + "x";
-        });
-        $("#mSpeed").addEventListener("change", (e) => e.target.blur());
-        $("#mNine").addEventListener("change", (e) => {
-          if (e.target.checked !== v916) toggleVideoMode();
-        });
-        $("#mReset").addEventListener("click", reset);
-        document.addEventListener("keydown", handleInput);
-      }
-      function init() {
-        buildStars();
-        bind();
-        resize();
-        onStep(0);
-        setMode("auto");
-        setPlaying(false);
-        requestAnimationFrame(loop);
-        setTimeout(startAuto, 500);
-      }
-      init();
-    </script>
-  </body>
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
+
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
+
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) => setSpeed(event.target.value));
+  elements.portrait.addEventListener("change", (event) => setVideoMode(event.target.checked));
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
+
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
+
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError("Не удалось инициализировать визуализацию. Проверьте консоль браузера.");
+    return;
+  }
+
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
+
+  window.addEventListener("pagehide", () => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }, { once: true });
+})();
+  </script>
+</body>
 </html>

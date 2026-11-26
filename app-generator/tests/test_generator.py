@@ -72,6 +72,14 @@ class GeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one viewport"):
             validate_html(document, self.spec["meta"]["viewport"])
 
+    def test_all_done_archive_files_pass_the_canonical_validator(self) -> None:
+        archive = ROOT.parent / "Done (don't touch)"
+        html_files = sorted(archive.glob("*.html"))
+        self.assertEqual(len(html_files), 21, "Update archive coverage when its file set changes.")
+        for html_file in html_files:
+            with self.subTest(file=html_file.name):
+                validate_html(html_file.read_text(encoding="utf-8"), self.spec["meta"]["viewport"])
+
     def test_rejects_duplicate_document_and_metadata_tags(self) -> None:
         document = self.build_example()
         duplicate_head = document.replace("<head>", "<head><head>", 1)
