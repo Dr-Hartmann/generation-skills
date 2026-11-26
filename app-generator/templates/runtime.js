@@ -199,6 +199,10 @@
 
     elements.appRoot.classList.toggle("is-portrait", state.videoMode);
     elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open"))
+    );
     elements.portrait.checked = state.videoMode;
     elements.speed.value = String(state.speed);
   }
@@ -346,11 +350,12 @@
     animationFrameId = requestAnimationFrame(animationLoop);
   }
 
-  function isEditableTarget(target) {
-    if (!(target instanceof HTMLElement)) return false;
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
     return (
-      target.isContentEditable ||
-      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest("button, a, [role='button'], [role='slider'], [role='switch']") !== null
     );
   }
 
@@ -389,7 +394,7 @@
       return;
     }
 
-    if (isEditableTarget(event.target)) return;
+    if (isInteractiveTarget(event.target)) return;
 
     if (!window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)").matches) {
       return;
