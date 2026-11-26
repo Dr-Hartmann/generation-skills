@@ -18,7 +18,7 @@ TEMPLATE_DIR = ROOT / "templates"
 
 REQUIRED_IDS = {
     "appRoot", "appTitle", "stage", "visualFrame", "sceneCanvas",
-    "mobileSubtitle", "desktopSubtitle", "desktopStepIndicator",
+    "mobileSubtitle", "desktopSubtitle",
     "modalStepIndicator", "controlBar", "playButton", "playIcon",
     "settingsButton", "settingsBackdrop", "settingsDialog",
     "closeSettingsButton", "autoModeButton", "stepModeButton",
