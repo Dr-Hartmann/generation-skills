@@ -40,12 +40,12 @@
 html,
 body {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: {{ROOT_HEIGHT_FALLBACK}};
+  height: {{ROOT_HEIGHT_DYNAMIC}};
+  min-height: {{ROOT_HEIGHT_FALLBACK}};
+  min-height: {{ROOT_HEIGHT_DYNAMIC}};
   margin: 0;
-  overflow: hidden;
+  overflow: {{PAGE_OVERFLOW}};
   background: var(--app-bg);
 }
 
