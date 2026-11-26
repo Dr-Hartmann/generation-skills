@@ -1,0 +1,78 @@
+/* Requires theme.css generated from config/palette.json. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--ui-text);
+  background: var(--ui-bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+#ambient {
+  position: fixed;
+  inset: -10%;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity .5s;
+  pointer-events: none;
+}
+
+#ambient i {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--ui-ambient-blur));
+}
+
+#ambient .b1 {
+  width: 46vmin;
+  height: 46vmin;
+  left: -6%;
+  top: 8%;
+  background: var(--ui-accent-ambient-1);
+  animation: drift 9s ease-in-out infinite alternate;
+}
+
+#ambient .b2 {
+  width: 40vmin;
+  height: 40vmin;
+  right: -4%;
+  top: 38%;
+  background: var(--ui-accent-ambient-2);
+  animation: drift 11s ease-in-out infinite alternate-reverse;
+}
+
+#ambient .b3 {
+  width: 52vmin;
+  height: 52vmin;
+  left: 16%;
+  bottom: -8%;
+  background: var(--ui-accent-ambient-3);
+  animation: drift 13s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(4vmin, -5vmin) scale(1.12); }
+}
+
+body.v916 #ambient {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ambient .b1,
+  #ambient .b2,
+  #ambient .b3 {
+    animation: none;
+  }
+}

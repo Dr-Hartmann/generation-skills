@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Компьютерные сети и интернет</title>
+<style>
+:root{
+  --bg:#0F0F13;
+  --panel:#1A1A20;
+  --accent:#2EAC65;
+  --accent-shadow:#1E7A47;
+  --text:#FFFFFF;
+  --text-secondary:#A0A0A0;
+  --font:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+  -webkit-tap-highlight-color:transparent;
+}
+body{
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+button{
+  font-family:var(--font);
+  touch-action:manipulation;
+}
+.app{
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+}
+.app__title{
+  font-weight:800;
+  font-size:clamp(18px,4.5vw,26px);
+  letter-spacing:.01em;
+  padding:16px 16px 8px 16px;
+  padding-top:max(16px, env(safe-area-inset-top));
+  padding-left:max(16px, env(safe-area-inset-left));
+}
+.app__main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.viz{
+  position:relative;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+.viz__ambient{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(60% 55% at 30% 40%, rgba(46,172,101,.10), transparent 70%),
+    radial-gradient(50% 50% at 75% 70%, rgba(30,122,71,.12), transparent 70%);
+  pointer-events:none;
+}
+.viz__canvas{
+  position:absolute;
+  inset:0;
+}
+.viz__canvas canvas{
+  display:block;
+  width:100%;
+  height:100%;
+}
+.viz__mount{position:absolute;inset:0}
+.vframe{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  aspect-ratio:9/16;
+  height:100%;
+  max-width:100%;
+  display:none;
+  flex-direction:column;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(26,26,32,.6);
+  box-shadow:0 0 40px rgba(30,122,71,.35), 0 0 90px rgba(46,172,101,.12);
+  overflow:hidden;
+}
+.vframe__canvas{position:relative;flex:1;min-height:0}
+.vframe__canvas canvas{display:block;width:100%;height:100%}
+.vframe__bottom{
+  flex-shrink:0;
+  padding:8px 12px;
+  padding-bottom:max(10px, env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.subtitle{
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:clamp(16px,4.5vw,22px);
+  line-height:1.3;
+  font-weight:700;
+}
+.subtitle__keyword{color:var(--accent)}
+.subtitle--animate{animation:subIn .35s ease-out}
+@keyframes subIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-height:56px;
+}
+.controls--hidden{display:none}
+.btn{
+  min-width:48px;
+  min-height:48px;
+  width:48px;
+  height:48px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:var(--panel);
+  color:var(--text);
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.btn:hover{background:#222229;border-color:rgba(46,172,101,.5)}
+.btn:active{transform:scale(.96)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn--accent{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#08120C;
+  box-shadow:0 0 18px rgba(46,172,101,.45);
+}
+.btn--accent:hover{background:#33BD71}
+.btn svg{pointer-events:none}
+.footer{
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:8px 16px 0 16px;
+  padding-left:max(16px, env(safe-area-inset-left));
+  padding-right:16px;
+  margin-bottom:calc(25vh + env(safe-area-inset-bottom));
+}
+.sidebar{display:none}
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:50;
+}
+.modal-overlay--open{display:flex;animation:fadeIn .2s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-overlay--closing{animation:fadeOut .18s ease-in forwards}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.modal{
+  width:min(420px,100%);
+  max-height:90dvh;
+  display:flex;
+  flex-direction:column;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  box-shadow:0 12px 50px rgba(0,0,0,.6), 0 0 30px rgba(30,122,71,.2);
+  transform:scale(1);
+  animation:modalIn .22s ease-out;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-overlay--closing .modal{animation:modalOut .18s ease-in forwards}
+@keyframes modalOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.95)}}
+.modal__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 18px 10px;
+}
+.modal__title{font-weight:800;font-size:20px}
+.modal__body{
+  overflow-y:auto;
+  padding:4px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.setting{display:flex;flex-direction:column;gap:8px}
+.setting__label{
+  font-size:13px;
+  color:var(--text-secondary);
+  font-weight:700;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+}
+.step-indicator{
+  font-size:15px;
+  color:var(--text);
+  background:rgba(0,0,0,.35);
+  border-radius:10px;
+  padding:10px 12px;
+  text-align:center;
+  font-weight:700;
+}
+.segmented{
+  display:flex;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  overflow:hidden;
+}
+.segmented button{
+  flex:1;
+  min-height:48px;
+  background:transparent;
+  border:none;
+  color:var(--text-secondary);
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  transition:background .15s ease,color .15s ease;
+}
+.segmented button:hover{color:var(--text)}
+.segmented button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.segmented button.active{
+  background:var(--accent);
+  color:#08120C;
+}
+.next-btn{
+  min-height:48px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:transparent;
+  color:var(--text);
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.next-btn:hover:not(:disabled){background:rgba(46,172,101,.12);border-color:var(--accent)}
+.next-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.next-btn:disabled{opacity:.4;cursor:not-allowed}
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.toggle-label{font-weight:700;font-size:15px}
+.switch{
+  position:relative;
+  width:56px;
+  height:32px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.4);
+  cursor:pointer;
+  flex-shrink:0;
+  transition:background .18s ease,border-color .18s ease;
+}
+.switch::after{
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--text-secondary);
+  transition:transform .18s ease,background .18s ease;
+}
+.switch[aria-checked="true"]{background:var(--accent-shadow);border-color:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(24px);background:var(--accent)}
+.switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.reset-btn{
+  min-height:48px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:transparent;
+  color:var(--text);
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  transition:background .15s ease;
+}
+.reset-btn:hover{background:rgba(46,172,101,.12);border-color:var(--accent)}
+.reset-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hotkeys{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:var(--text-secondary);
+}
+.hotkeys div{display:flex;justify-content:space-between;gap:12px}
+.hotkeys kbd{
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:6px;
+  padding:2px 8px;
+  font-family:var(--font);
+  font-size:12px;
+  color:var(--text);
+}
+
+.viz-col{
+  flex:1;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.viz-col .viz{flex:1}
+@media (min-width:768px){
+  .app{flex-direction:row}
+  .app__main{
+    flex-direction:row;
+    flex:1;
+  }
+  .viz-col{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .viz-col .app__title{
+    padding-left:28px;
+    padding-top:24px;
+    font-size:clamp(20px,2vw,28px);
+  }
+  .sidebar{
+    display:flex;
+    flex-direction:column;
+    width:clamp(320px,30vw,380px);
+    flex-shrink:0;
+    background:var(--panel);
+    border-left:1px solid rgba(255,255,255,.1);
+    padding:24px 20px;
+    padding-top:max(24px, env(safe-area-inset-top));
+    padding-bottom:max(20px, env(safe-area-inset-bottom));
+    gap:16px;
+  }
+  .sidebar #sidebarControls{margin-top:auto}
+  .sidebar .subtitle{
+    flex:0 0 auto;
+    min-height:96px;
+    font-size:clamp(16px,1.4vw,20px);
+  }
+  .sidebar .controls{margin-top:auto}
+  .footer{display:none}
+  .viz-col .viz{flex:1;margin:12px 20px 20px}
+  .app{
+    padding-right:env(safe-area-inset-right);
+  }
+}
+@media (max-width:767.98px){
+  .app{
+    padding-right:calc(80px + env(safe-area-inset-right));
+  }
+}
+body:not(.desktop) .footer{display:flex}
+body.desktop .footer{display:none}
+body.frame-mode .viz__mount{display:none}
+body.frame-mode .vframe{display:flex}
+body.frame-mode .footer{display:none}
+body.frame-mode .sidebar .sidebar__subs{display:none}
+body.controls-hidden .controls{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app__main">
+    <div class="viz-col">
+      <h1 class="app__title">Компьютерные сети и интернет</h1>
+      <div class="viz" id="viz">
+        <div class="viz__ambient"></div>
+        <div class="vframe" id="vframe">
+          <div class="vframe__canvas" id="vframeCanvas"></div>
+          <div class="vframe__bottom" id="vframeBottom"></div>
+        </div>
+        <div class="viz__mount" id="canvasMount"></div>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <div class="sidebar__subs" id="sidebarSubs"></div>
+      <div id="sidebarControls"></div>
+    </aside>
+  </div>
+  <div class="footer">
+    <div id="mobileSubs"></div>
+    <div id="mobileControls"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__head">
+      <div class="modal__title" id="modalTitle">Настройки</div>
+      <button class="btn" id="closeSettingsBtn" aria-label="Закрыть настройки">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="setting">
+        <div class="setting__label">Прогресс</div>
+        <div class="step-indicator" id="stepIndicator">Шаг 1 / 8</div>
+      </div>
+      <div class="setting">
+        <div class="setting__label">Режим воспроизведения</div>
+        <div class="segmented" id="modeSegment">
+          <button id="modeAutoBtn" type="button">AUTO</button>
+          <button id="modeStepBtn" type="button">STEP</button>
+        </div>
+      </div>
+      <div class="setting">
+        <button class="next-btn" id="nextStepBtn" type="button">Следующий шаг ▶</button>
+      </div>
+      <div class="setting">
+        <div class="setting__label">Скорость</div>
+        <div class="segmented" id="speedSegment">
+          <button data-speed="0.5" type="button">0.5×</button>
+          <button data-speed="1" type="button">1×</button>
+          <button data-speed="2" type="button">2×</button>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="toggle-row">
+          <span class="toggle-label">Вертикальная рамка 9:16</span>
+          <div class="switch" id="videoModeToggle" role="switch" aria-checked="false" tabindex="0" aria-label="Режим вертикальной рамки"></div>
+        </div>
+      </div>
+      <div class="setting">
+        <button class="reset-btn" id="resetBtn" type="button">Reset</button>
+      </div>
+      <div class="setting">
+        <div class="setting__label">Горячие клавиши</div>
+        <div class="hotkeys">
+          <div><span>Скрыть / показать контролы</span><kbd>Space</kbd></div>
+          <div><span>Следующий шаг (в STEP)</span><kbd>→</kbd></div>
+          <div><span>Сброс</span><kbd>R</kbd></div>
+          <div><span>Режим AUTO / STEP</span><kbd>S</kbd></div>
+          <div><span>Вертикальная рамка</span><kbd>V</kbd></div>
+          <div><span>Закрыть настройки</span><kbd>Esc</kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const STEP_COUNT = 8;
+const AUTO_STEP_MS = 6500;
+const STEP_TRANSITION_MS = 1800;
+const SCENE_W = 1000;
+const SCENE_H = 640;
+
+const C = {
+  bg: "#0F0F13",
+  panel: "#1A1A20",
+  accent: "#2EAC65",
+  shadow: "#1E7A47",
+  text: "#FFFFFF",
+  secondary: "#A0A0A0"
+};
+
+const SUBTITLES = [
+  { step: 1, segments: [
+    { text: "Устройства соединяются " },
+    { text: "каналами связи", emphasis: true },
+    { text: " и образуют сеть" }
+  ]},
+  { step: 2, segments: [
+    { text: "Локальные сети охватывают дом, " },
+    { text: "глобальные", emphasis: true },
+    { text: " — целые континенты" }
+  ]},
+  { step: 3, segments: [
+    { text: "Маршрутизатор", emphasis: true },
+    { text: " выбирает маршрут, " },
+    { text: "коммутатор", emphasis: true },
+    { text: " соединяет локальные устройства" }
+  ]},
+  { step: 4, segments: [
+    { text: "Каждому устройству назначается уникальный " },
+    { text: "IP-адрес", emphasis: true }
+  ]},
+  { step: 5, segments: [
+    { text: "DNS-сервер", emphasis: true },
+    { text: " переводит доменное имя в " },
+    { text: "числовой адрес", emphasis: true }
+  ]},
+  { step: 6, segments: [
+    { text: "Браузер отправляет HTTP-запрос, " },
+    { text: "HTTPS", emphasis: true },
+    { text: " шифрует передачу" }
+  ]},
+  { step: 7, segments: [
+    { text: "Запрос идёт к серверу, " },
+    { text: "ответ возвращается обратно", emphasis: true }
+  ]},
+  { step: 8, segments: [
+    { text: "В публичных сетях — " },
+    { text: "VPN", emphasis: true },
+    { text: ", дома — надёжный " },
+    { text: "пароль", emphasis: true }
+  ]}
+];
+
+const state = {
+  mode: "AUTO",
+  isPlaying: false,
+  currentStep: 1,
+  speed: 1,
+  videoMode: false,
+  progress: 0,
+  controlsHidden: false,
+  settingsOpen: false
+};
+
+let canvas = null;
+let ctx = null;
+let canvasWrap = null;
+let resizeObserver = null;
+let rafId = null;
+let lastFrameTime = 0;
+let cssW = 0, cssH = 0;
+let dpr = 1;
+
+const el = {};
+
+const NODES = {
+  phone:  { x: 120, y: 205 },
+  laptop: { x: 120, y: 445 },
+  switch: { x: 335, y: 325 },
+  router: { x: 515, y: 325 },
+  dns:    { x: 700, y: 110 },
+  cloud:  { x: 700, y: 325 },
+  server: { x: 885, y: 325 }
+};
+
+const LINKS = [
+  { from: "phone",  to: "switch" },
+  { from: "laptop", to: "switch" },
+  { from: "switch", to: "router" },
+  { from: "router", to: "cloud" },
+  { from: "cloud",  to: "server" },
+  { from: "router", to: "dns" }
+];
+
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function easeOutCubic(t){ return 1 - Math.pow(1 - clamp(t,0,1), 3); }
+function smooth(t){ return clamp(t,0,1); }
+function easeInOut(t){ t = clamp(t,0,1); return t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+
+function initDom(){
+  el.viz = document.getElementById("viz");
+  el.canvasMount = document.getElementById("canvasMount");
+  el.vframe = document.getElementById("vframe");
+  el.vframeCanvas = document.getElementById("vframeCanvas");
+  el.vframeBottom = document.getElementById("vframeBottom");
+  el.sidebarSubs = document.getElementById("sidebarSubs");
+  el.sidebarControls = document.getElementById("sidebarControls");
+  el.footer = document.querySelector(".footer");
+  el.mobileSubs = document.getElementById("mobileSubs");
+  el.mobileControls = document.getElementById("mobileControls");
+  el.modalOverlay = document.getElementById("modalOverlay");
+  el.modal = document.getElementById("modal");
+  el.stepIndicator = document.getElementById("stepIndicator");
+  el.modeAutoBtn = document.getElementById("modeAutoBtn");
+  el.modeStepBtn = document.getElementById("modeStepBtn");
+  el.nextStepBtn = document.getElementById("nextStepBtn");
+  el.speedSegment = document.getElementById("speedSegment");
+  el.videoModeToggle = document.getElementById("videoModeToggle");
+  el.resetBtn = document.getElementById("resetBtn");
+  el.closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+  if(!el.viz || !el.canvasMount || !el.modalOverlay) throw new Error("dom-missing");
+
+  el.subtitle = buildSubtitleEl();
+  el.controls = buildControls();
+
+  el.sidebarSubs.appendChild(el.subtitle);
+  el.sidebarControls.appendChild(el.controls);
+  placeChrome();
+}
+
+function isDesktop(){
+  return window.matchMedia("(min-width: 768px)").matches;
+}
+
+function placeChrome(){
+  const desktop = isDesktop();
+  document.body.classList.toggle("desktop", desktop);
+  if(!desktop){
+    el.mobileSubs.appendChild(el.subtitle);
+    el.mobileControls.appendChild(el.controls);
+    el.footer.style.display = "";
+    if(!state.videoMode){
+      el.footer.style.display = "flex";
+    }
+  } else {
+    el.sidebarSubs.appendChild(el.subtitle);
+    el.sidebarControls.appendChild(el.controls);
+    el.footer.style.display = "none";
+  }
+  if(state.videoMode){
+    el.vframeBottom.appendChild(el.subtitle);
+    el.vframeBottom.appendChild(el.controls);
+  }
+}
+
+function buildSubtitleEl(){
+  const d = document.createElement("div");
+  d.className = "subtitle";
+  d.setAttribute("aria-live", "polite");
+  return d;
+}
+
+function buildControls(){
+  const d = document.createElement("div");
+  d.className = "controls";
+
+  const play = document.createElement("button");
+  play.className = "btn btn--accent";
+  play.id = "playPauseBtn";
+  play.type = "button";
+  play.innerHTML = '<svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+  const gear = document.createElement("button");
+  gear.className = "btn";
+  gear.id = "settingsBtn";
+  gear.type = "button";
+  gear.setAttribute("aria-label", "Настройки");
+  gear.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
+  d.appendChild(play);
+  d.appendChild(gear);
+
+  play.addEventListener("click", togglePlay);
+  gear.addEventListener("click", function(){
+    if(state.settingsOpen) closeSettings(); else openSettings();
+  });
+  el.playPauseBtn = play;
+  el.settingsBtn = gear;
+  return d;
+}
+
+function initCanvas(){
+  canvas = document.createElement("canvas");
+  canvasWrap = el.canvasMount;
+  canvasWrap.appendChild(canvas);
+  ctx = canvas.getContext("2d");
+  if(!ctx) throw new Error("canvas-context-missing");
+  resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(canvasWrap.parentElement);
+  window.addEventListener("resize", resize);
+  resize();
+}
+
+function resize(){
+  const host = canvas.parentElement ? canvas.parentElement : canvasWrap;
+  const hostRect = host.getBoundingClientRect();
+  cssW = Math.max(1, hostRect.width);
+  cssH = Math.max(1, hostRect.height);
+  dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width = cssW + "px";
+  canvas.style.height = cssH + "px";
+  draw();
+}
+
+function sceneTransform(){
+  const scale = Math.min(cssW / SCENE_W, cssH / SCENE_H);
+  const ox = (cssW - SCENE_W * scale) / 2;
+  const oy = (cssH - SCENE_H * scale) / 2;
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);
+  return scale;
+}
+
+function currentTransitionDur(){
+  return state.mode === "STEP" ? STEP_TRANSITION_MS : AUTO_STEP_MS;
+}
+
+function startAuto(){
+  state.mode = "AUTO";
+  state.isPlaying = true;
+  renderControls();
+}
+
+function updateSubtitles(step){
+  const data = SUBTITLES[step - 1];
+  if(!data) return;
+  el.subtitle.textContent = "";
+  const wrap = document.createElement("span");
+  wrap.style.display = "inline";
+  el.subtitle.appendChild(wrap);
+  data.segments.forEach(function(seg){
+    if(seg.emphasis){
+      const s = document.createElement("span");
+      s.className = "subtitle__keyword";
+      s.textContent = seg.text;
+      wrap.appendChild(s);
+    } else {
+      wrap.appendChild(document.createTextNode(seg.text));
+    }
+  });
+  el.subtitle.classList.remove("subtitle--animate");
+  void el.subtitle.offsetWidth;
+  el.subtitle.classList.add("subtitle--animate");
+}
+
+function setCurrentStep(step, play){
+  state.currentStep = clamp(step, 1, STEP_COUNT);
+  state.progress = 0;
+  if(state.mode === "STEP"){
+    state.isPlaying = !!play;
+  } else {
+    state.isPlaying = true;
+  }
+  updateSubtitles(state.currentStep);
+  renderControls();
+}
+
+function nextStep(){
+  if(state.mode !== "STEP") return;
+  if(state.isPlaying) return;
+  if(state.currentStep >= STEP_COUNT) return;
+  setCurrentStep(state.currentStep + 1, true);
+}
+
+function onStep(){
+  nextStep();
+}
+
+function togglePlay(){
+  if(state.mode === "STEP" && state.progress >= 1) return;
+  state.isPlaying = !state.isPlaying;
+  renderControls();
+}
+
+function setMode(mode){
+  if(mode === state.mode) return;
+  state.mode = mode;
+  if(mode === "STEP"){
+    state.isPlaying = false;
+  } else {
+    state.isPlaying = true;
+    if(state.progress >= 1){
+      state.progress = 0;
+      setCurrentStep(state.currentStep, true);
+    }
+  }
+  renderControls();
+}
+
+function setSpeed(v){
+  state.speed = v;
+  renderControls();
+}
+
+function toggleVideoMode(){
+  state.videoMode = !state.videoMode;
+  document.body.classList.toggle("frame-mode", state.videoMode);
+  if(state.videoMode){
+    el.vframeCanvas.appendChild(canvas);
+    el.vframeBottom.appendChild(el.subtitle);
+    el.vframeBottom.appendChild(el.controls);
+    el.footer.style.display = "none";
+  } else {
+    canvasWrap = el.canvasMount;
+    el.canvasMount.appendChild(canvas);
+    placeChrome();
+    el.footer.style.display = isDesktop() ? "none" : "flex";
+  }
+  el.videoModeToggle.setAttribute("aria-checked", state.videoMode ? "true" : "false");
+  resize();
+}
+
+function reset(){
+  state.mode = "AUTO";
+  state.isPlaying = true;
+  state.currentStep = 1;
+  state.progress = 0;
+  updateSubtitles(1);
+  renderControls();
+}
+
+function openSettings(){
+  state.settingsOpen = true;
+  el.modalOverlay.classList.remove("modal-overlay--closing");
+  el.modalOverlay.classList.add("modal-overlay--open");
+  renderControls();
+}
+
+function closeSettings(){
+  state.settingsOpen = false;
+  el.modalOverlay.classList.add("modal-overlay--closing");
+  const overlay = el.modalOverlay;
+  setTimeout(function(){
+    overlay.classList.remove("modal-overlay--open", "modal-overlay--closing");
+  }, 180);
+  renderControls();
+}
+
+function handleInput(event){
+  if(event.defaultPrevented) return;
+  const target = event.target;
+  if(target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+  const key = event.key;
+  if(key === " " || key === "Spacebar"){
+    state.controlsHidden = !state.controlsHidden;
+    document.body.classList.toggle("controls-hidden", state.controlsHidden);
+    event.preventDefault();
+    return;
+  }
+  if(key === "ArrowRight"){
+    if(state.mode === "STEP"){ onStep(); event.preventDefault(); }
+    return;
+  }
+  if(key === "r" || key === "R" || key === "к" || key === "К"){ reset(); return; }
+  if(key === "s" || key === "S" || key === "ы" || key === "Ы"){
+    setMode(state.mode === "AUTO" ? "STEP" : "AUTO"); return;
+  }
+  if(key === "v" || key === "V" || key === "м" || key === "М"){ toggleVideoMode(); return; }
+  if(key === "Escape"){
+    if(state.settingsOpen) closeSettings();
+    return;
+  }
+}
+
+function update(dt){
+  if(!state.isPlaying) return;
+  const dur = currentTransitionDur();
+  state.progress += (dt * state.speed) / dur;
+  if(state.mode === "AUTO"){
+    while(state.progress >= 1){
+      state.progress -= 1;
+      const next = state.currentStep >= STEP_COUNT ? 1 : state.currentStep + 1;
+      state.currentStep = next;
+      updateSubtitles(next);
+      renderControls();
+    }
+  } else {
+    if(state.progress >= 1){
+      state.progress = 1;
+      state.isPlaying = false;
+      renderControls();
+    }
+  }
+}
+
+function draw(){
+  if(!ctx) return;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sceneTransform();
+  drawBackground();
+  const p = state.progress;
+  drawStep(state.currentStep, p);
+}
+
+function drawBackground(){
+  ctx.save();
+  ctx.fillStyle = "#0F0F13";
+  ctx.fillRect(-2000, -2000, 6000, 6000);
+  ctx.strokeStyle = "rgba(255,255,255,0.035)";
+  ctx.lineWidth = 1;
+  const grid = 46;
+  ctx.beginPath();
+  for(let x = 0; x <= SCENE_W; x += grid){
+    ctx.moveTo(x, 0); ctx.lineTo(x, SCENE_H);
+  }
+  for(let y = 0; y <= SCENE_H; y += grid){
+    ctx.moveTo(0, y); ctx.lineTo(SCENE_W, y);
+  }
+  ctx.stroke();
+  const glow1 = ctx.createRadialGradient(280, 300, 20, 280, 300, 420);
+  glow1.addColorStop(0, "rgba(46,172,101,0.10)");
+  glow1.addColorStop(1, "rgba(46,172,101,0)");
+  ctx.fillStyle = glow1;
+  ctx.fillRect(0, 0, SCENE_W, SCENE_H);
+  const glow2 = ctx.createRadialGradient(760, 380, 20, 760, 380, 380);
+  glow2.addColorStop(0, "rgba(30,122,71,0.12)");
+  glow2.addColorStop(1, "rgba(30,122,71,0)");
+  ctx.fillStyle = glow2;
+  ctx.fillRect(0, 0, SCENE_W, SCENE_H);
+  ctx.restore();
+}
+
+function setGlow(color, blur){
+  ctx.shadowColor = color;
+  ctx.shadowBlur = blur;
+}
+function clearGlow(){ ctx.shadowBlur = 0; ctx.shadowColor = "transparent"; }
+
+function roundRect(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawLink(a, b, alpha, width, color){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color || "rgba(255,255,255,0.25)";
+  ctx.lineWidth = width || 3;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLinkAnimated(a, b, p, width){
+  ctx.save();
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = width || 3;
+  setGlow("rgba(46,172,101,0.8)", 12);
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(a.x + (b.x - a.x) * p, a.y + (b.y - a.y) * p);
+  ctx.stroke();
+  clearGlow();
+  ctx.restore();
+}
+
+function drawPacket(x, y, r, label){
+  ctx.save();
+  ctx.fillStyle = C.accent;
+  setGlow("rgba(46,172,101,0.9)", 18);
+  ctx.beginPath();
+  ctx.arc(x, y, r || 8, 0, Math.PI * 2);
+  ctx.fill();
+  clearGlow();
+  if(label){
+    ctx.fillStyle = C.text;
+    ctx.font = "700 13px " + "system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x, y - (r || 8) - 8);
+  }
+  ctx.restore();
+}
+
+function pill(x, y, text, opts){
+  opts = opts || {};
+  ctx.save();
+  ctx.font = "700 15px system-ui, sans-serif";
+  const w = ctx.measureText(text).width + 22;
+  const h = 28;
+  ctx.globalAlpha = opts.alpha !== undefined ? opts.alpha : 1;
+  ctx.fillStyle = opts.bg || "rgba(26,26,32,0.92)";
+  ctx.strokeStyle = opts.border || "rgba(46,172,101,0.55)";
+  ctx.lineWidth = 1.4;
+  roundRect(x - w/2, y - h/2, w, h, 9);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = opts.color || C.text;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y + 1);
+  ctx.restore();
+}
+
+function deviceBox(x, y, w, h, active, alpha){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C.panel;
+  ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.18)";
+  ctx.lineWidth = active ? 2 : 1.4;
+  if(active) setGlow("rgba(46,172,101,0.55)", 16);
+  roundRect(x - w/2, y - h/2, w, h, 12);
+  ctx.fill();
+  ctx.stroke();
+  clearGlow();
+  ctx.restore();
+}
+
+function drawPhone(n, alpha, active){
+  deviceBox(n.x, n.y, 52, 92, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "rgba(255,255,255,0.10)";
+  roundRect(n.x - 19, n.y - 34, 38, 58, 6);
+  ctx.fill();
+  ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
+  ctx.beginPath();
+  ctx.arc(n.x, n.y + 36, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.45)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(n.x - 8, n.y - 42); ctx.lineTo(n.x + 8, n.y - 42);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLaptop(n, alpha, active){
+  deviceBox(n.x, n.y, 78, 58, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "rgba(255,255,255,0.10)";
+  roundRect(n.x - 30, n.y - 22, 60, 36, 5);
+  ctx.fill();
+  ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.4)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(n.x - 36, n.y + 24); ctx.lineTo(n.x + 36, n.y + 24);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSwitchNode(n, alpha, active){
+  deviceBox(n.x, n.y, 92, 50, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  for(let i = 0; i < 4; i++){
+    ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
+    ctx.beginPath();
+    ctx.arc(n.x - 27 + i * 18, n.y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawRouterNode(n, alpha, active, t){
+  deviceBox(n.x, n.y, 92, 54, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.45)";
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(n.x - 20, n.y - 26); ctx.lineTo(n.x - 28, n.y - 48);
+  ctx.moveTo(n.x + 20, n.y - 26); ctx.lineTo(n.x + 28, n.y - 48);
+  ctx.stroke();
+  const pulse = active ? 0.55 + 0.45 * Math.sin(t * 3) : 0.35;
+  ctx.strokeStyle = active ? "rgba(46,172,101," + pulse + ")" : "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 2;
+  for(let i = 1; i <= 2; i++){
+    ctx.beginPath();
+    ctx.arc(n.x, n.y - 6, i * 11, -Math.PI * 0.8, -Math.PI * 0.2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.4)";
+  ctx.beginPath();
+  ctx.arc(n.x, n.y + 6, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCloudNode(n, alpha, active, t){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const r = 44;
+  ctx.fillStyle = C.panel;
+  ctx.strokeStyle = active ? C.accent : "rgba(255,255,255,0.2)";
+  ctx.lineWidth = active ? 2 : 1.4;
+  if(active) setGlow("rgba(46,172,101,0.5)", 18);
+  ctx.beginPath();
+  ctx.arc(n.x - 30, n.y + 6, r * 0.55, 0, Math.PI * 2);
+  ctx.arc(n.x + 26, n.y + 6, r * 0.5, 0, Math.PI * 2);
+  ctx.arc(n.x - 2, n.y - 12, r * 0.62, 0, Math.PI * 2);
+  ctx.arc(n.x, n.y + 10, r * 0.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fill();
+  ctx.stroke();
+  clearGlow();
+  const bob = Math.sin(t * 1.4) * 2;
+  ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.5)";
+  ctx.font = "800 15px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("ИНТЕРНЕТ", n.x, n.y + bob);
+  ctx.restore();
+}
+
+function drawServerNode(n, alpha, active, t){
+  deviceBox(n.x, n.y, 62, 118, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  for(let i = 0; i < 3; i++){
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    roundRect(n.x - 22, n.y - 46 + i * 32, 44, 22, 5);
+    ctx.fill();
+    ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.35)";
+    const blink = active ? (Math.sin(t * 4 + i * 1.3) > 0 ? 1 : 0.3) : 0.4;
+    ctx.globalAlpha = alpha * blink;
+    ctx.beginPath();
+    ctx.arc(n.x + 12, n.y - 35 + i * 32, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(n.x - 16, n.y - 35 + i * 32);
+    ctx.lineTo(n.x + 2, n.y - 35 + i * 32);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawDnsNode(n, alpha, active){
+  deviceBox(n.x, n.y, 86, 52, active, alpha);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = active ? C.accent : "rgba(255,255,255,0.6)";
+  ctx.font = "800 16px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("DNS", n.x, n.y + 1);
+  ctx.restore();
+}
+
+function posAlong(points, p){
+  let total = 0;
+  const segs = [];
+  for(let i = 0; i < points.length - 1; i++){
+    const dx = points[i+1].x - points[i].x;
+    const dy = points[i+1].y - points[i].y;
+    const len = Math.hypot(dx, dy);
+    segs.push(len);
+    total += len;
+  }
+  let target = clamp(p, 0, 1) * total;
+  for(let i = 0; i < segs.length; i++){
+    if(target <= segs[i] || i === segs.length - 1){
+      const f = segs[i] === 0 ? 0 : target / segs[i];
+      return {
+        x: points[i].x + (points[i+1].x - points[i].x) * f,
+        y: points[i].y + (points[i+1].y - points[i].y) * f
+      };
+    }
+    target -= segs[i];
+  }
+  return points[points.length - 1];
+}
+
+function drawPath(points, p, width){
+  let total = 0;
+  const segs = [];
+  for(let i = 0; i < points.length - 1; i++){
+    const len = Math.hypot(points[i+1].x - points[i].x, points[i+1].y - points[i].y);
+    segs.push(len);
+    total += len;
+  }
+  const target = clamp(p, 0, 1) * total;
+  ctx.save();
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = width || 3.4;
+  ctx.setLineDash([]);
+  setGlow("rgba(46,172,101,0.7)", 12);
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  let acc = 0;
+  for(let i = 0; i < segs.length; i++){
+    if(target <= acc + segs[i]){
+      const f = segs[i] === 0 ? 0 : (target - acc) / segs[i];
+      ctx.lineTo(points[i].x + (points[i+1].x - points[i].x) * f, points[i].y + (points[i+1].y - points[i].y) * f);
+      break;
+    }
+    ctx.lineTo(points[i+1].x, points[i+1].y);
+    acc += segs[i];
+  }
+  ctx.stroke();
+  clearGlow();
+  ctx.restore();
+}
+
+function drawTower(x, y, alpha){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = "rgba(255,255,255,0.5)";
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(x, y + 22); ctx.lineTo(x - 10, y - 26);
+  ctx.moveTo(x, y + 22); ctx.lineTo(x + 10, y - 26);
+  ctx.moveTo(x - 5, y + 4); ctx.lineTo(x + 5, y + 4);
+  ctx.stroke();
+  ctx.fillStyle = C.accent;
+  ctx.beginPath();
+  ctx.arc(x, y - 30, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(46,172,101,0.6)";
+  ctx.lineWidth = 2;
+  for(let i = 1; i <= 2; i++){
+    ctx.beginPath();
+    ctx.arc(x, y - 30, i * 10 + 4, -Math.PI * 0.75, -Math.PI * 0.25);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLockIcon(x, y, s, alpha, open){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C.accent;
+  setGlow("rgba(46,172,101,0.7)", 10);
+  roundRect(x - s/2, y - s/4, s, s * 0.75, 3);
+  ctx.fill();
+  clearGlow();
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  if(open){
+    ctx.arc(x, y - s/4, s * 0.3, Math.PI, Math.PI * 1.6, false);
+  } else {
+    ctx.arc(x, y - s/4, s * 0.3, Math.PI, 0, false);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawShieldIcon(x, y, s, alpha){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C.accent;
+  setGlow("rgba(46,172,101,0.7)", 14);
+  ctx.beginPath();
+  ctx.moveTo(x, y - s);
+  ctx.quadraticCurveTo(x + s * 0.9, y - s * 0.6, x + s * 0.8, y + s * 0.1);
+  ctx.quadraticCurveTo(x + s * 0.6, y + s * 0.8, x, y + s);
+  ctx.quadraticCurveTo(x - s * 0.6, y + s * 0.8, x - s * 0.8, y + s * 0.1);
+  ctx.quadraticCurveTo(x - s * 0.9, y - s * 0.6, x, y - s);
+  ctx.closePath();
+  ctx.fill();
+  clearGlow();
+  ctx.strokeStyle = "#0F0F13";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x - s * 0.32, y);
+  ctx.lineTo(x - s * 0.05, y + s * 0.3);
+  ctx.lineTo(x + s * 0.4, y - s * 0.28);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawStep(step, p){
+  const t = performance.now() / 1000;
+  const e = easeOutCubic(p);
+  const N = NODES;
+
+  const linkAlpha = step === 1 ? e : 1;
+  LINKS.forEach(function(l){
+    const a = N[l.from], b = N[l.to];
+    if(step === 1){
+      const lp = clamp(p * 1.6, 0, 1);
+      drawLink(a, b, 0.25 * e);
+      if(lp > 0 && lp < 1) drawLinkAnimated(a, b, lp);
+      else drawLink(a, b, 0.5 * e, 3, "rgba(46,172,101,0.5)");
+    } else {
+      drawLink(a, b, 0.5);
+    }
+  });
+
+  const activeRouter = step === 3 || step === 4 || step === 5 || step === 6 || step === 7 || step === 8;
+  drawPhone(N.phone, 1, step === 1 || step === 4 || step === 6);
+  drawLaptop(N.laptop, 1, step === 1 || step === 3);
+  drawSwitchNode(N.switch, 1, step === 1 || step === 3);
+  drawRouterNode(N.router, 1, activeRouter, t);
+  drawDnsNode(N.dns, 1, step === 5);
+  drawCloudNode(N.cloud, 1, step >= 2, t);
+  drawServerNode(N.server, 1, step === 6 || step === 7, t);
+
+  if(step === 1){
+    const cycle = (p * 2) % 1;
+    const points = [N.phone, N.switch, N.laptop];
+    const q = cycle < 0.5 ? cycle * 2 : 2 - cycle * 2;
+    const pos = posAlong(points, easeInOut(q));
+    drawPacket(pos.x, pos.y, 7);
+    pill(SCENE_W / 2, 60, "Данные передаются между устройствами", { alpha: e });
+  }
+
+  if(step === 2){
+    drawTower(105, 90, e);
+    pill(235, 95, "Мобильная связь", { alpha: clamp((p - 0.05) * 2.5, 0, 1) });
+    pill(N.switch.x, 120, "LAN — локальная сеть", { alpha: clamp((p - 0.2) * 2.5, 0, 1) });
+    pill(N.cloud.x, 190, "WAN — глобальная сеть", { alpha: clamp((p - 0.35) * 2.5, 0, 1) });
+    ctx.save();
+    ctx.globalAlpha = clamp((p - 0.5) * 2.5, 0, 1);
+    ctx.strokeStyle = "rgba(46,172,101,0.85)";
+    ctx.lineWidth = 2.4;
+    for(let i = 1; i <= 3; i++){
+      const r = i * 13 + 6;
+      const w = 0.55 + 0.45 * Math.sin(t * 2.5 + i);
+      ctx.strokeStyle = "rgba(46,172,101," + (w * clamp((p - 0.5) * 2.5, 0, 1)) + ")";
+      ctx.beginPath();
+      ctx.arc(N.phone.x, N.phone.y - 52, r, -Math.PI * 0.85, -Math.PI * 0.15);
+      ctx.stroke();
+    }
+    ctx.restore();
+    pill(430, 80, "Wi-Fi — без проводов", { alpha: clamp((p - 0.55) * 2.5, 0, 1) });
+  }
+
+  if(step === 3){
+    pill(N.switch.x, N.switch.y + 52, "Коммутатор", { alpha: e });
+    pill(N.router.x, N.router.y + 56, "Маршрутизатор", { alpha: clamp((p - 0.15) * 2.2, 0, 1) });
+    pill(N.server.x, N.server.y + 86, "Сервер", { alpha: clamp((p - 0.3) * 2.2, 0, 1) });
+    ctx.save();
+    ctx.globalAlpha = clamp((p - 0.45) * 2.2, 0, 1);
+    ctx.strokeStyle = C.accent;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    [N.phone, N.laptop].forEach(function(d){
+      ctx.beginPath();
+      ctx.moveTo(d.x - 34, d.y + 20);
+      ctx.lineTo(d.x + 34, d.y + 20);
+      ctx.stroke();
+    });
+    ctx.restore();
+    pill(N.phone.x, N.phone.y + 80, "Сетевой адаптер", { alpha: clamp((p - 0.55) * 2.2, 0, 1) });
+    pill(N.laptop.x, N.laptop.y + 62, "Сетевой адаптер", { alpha: clamp((p - 0.65) * 2.2, 0, 1) });
+    const dir = clamp((p - 0.25) % 0.5 / 0.5, 0, 1);
+    drawPath([N.router, N.cloud], dir, 3);
+  }
+
+  if(step === 4){
+    pill(N.phone.x, N.phone.y - 78, "192.168.1.24", { alpha: clamp((p - 0.05) * 2.2, 0, 1) });
+    pill(N.laptop.x, N.laptop.y - 62, "192.168.1.31", { alpha: clamp((p - 0.2) * 2.2, 0, 1) });
+    pill(N.router.x, N.router.y - 78, "192.168.1.1", { alpha: clamp((p - 0.35) * 2.2, 0, 1) });
+    pill(N.server.x, N.server.y - 86, "203.0.113.40", { alpha: clamp((p - 0.5) * 2.2, 0, 1) });
+    pill(N.dns.x, N.dns.y - 58, "198.51.100.53", { alpha: clamp((p - 0.65) * 2.2, 0, 1) });
+    pill(SCENE_W / 2, 60, "IP-адрес — уникальный номер в сети", { alpha: e });
+  }
+
+  if(step === 5){
+    const q1 = clamp(p / 0.4, 0, 1);
+    const q2 = clamp((p - 0.45) / 0.45, 0, 1);
+    const pathToDns = [N.phone, N.switch, N.router, N.dns];
+    drawPath(pathToDns, easeInOut(q1), 3.4);
+    if(q1 > 0 && q1 < 1){
+      const pos = posAlong(pathToDns, easeInOut(q1));
+      drawPacket(pos.x, pos.y, 8, "example.ru?");
+    }
+    if(p >= 0.42){
+      pill(N.dns.x, N.dns.y + 58, "example.ru → 93.184.216.34", { alpha: clamp((p - 0.42) * 3, 0, 1) });
+    }
+    if(q2 > 0){
+      drawPath(pathToDns.slice().reverse(), easeInOut(q2), 3.4);
+      const pos = posAlong(pathToDns.slice().reverse(), easeInOut(q2));
+      drawPacket(pos.x, pos.y, 8, "IP");
+    }
+  }
+
+  if(step === 6){
+    const q = easeInOut(clamp(p / 0.8, 0, 1));
+    const path = [N.phone, N.switch, N.router, N.cloud, N.server];
+    drawPath(path, q, 3.4);
+    if(q > 0 && q < 1){
+      const pos = posAlong(path, q);
+      drawPacket(pos.x, pos.y, 8, "HTTPS");
+    }
+    drawLockIcon(N.phone.x, N.phone.y - 62, 20, e, false);
+    drawLockIcon(N.server.x, N.server.y - 76, 20, clamp((p - 0.3) * 2.5, 0, 1), false);
+    pill(SCENE_W / 2, 60, "HTTPS шифрует данные сертификатом", { alpha: e });
+  }
+
+  if(step === 7){
+    const q1 = easeInOut(clamp(p / 0.5, 0, 1));
+    const q2 = easeInOut(clamp((p - 0.5) / 0.5, 0, 1));
+    const path = [N.phone, N.switch, N.router, N.cloud, N.server];
+    ctx.save();
+    ctx.globalAlpha = 0.25 + 0.3 * Math.sin(t * 2) * 0.5 + 0.15;
+    ctx.strokeStyle = "rgba(46,172,101,0.45)";
+    ctx.lineWidth = 12;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    path.forEach(function(pt){ ctx.lineTo(pt.x, pt.y); });
+    ctx.stroke();
+    ctx.restore();
+    if(q2 < 1){
+      drawPath(path, q1, 3.4);
+      const pos = posAlong(path, q1);
+      drawPacket(pos.x, pos.y, 8, "запрос");
+    }
+    if(p >= 0.5){
+      drawPath(path.slice().reverse(), q2, 3.4);
+      const pos = posAlong(path.slice().reverse(), q2);
+      drawPacket(pos.x, pos.y, 8, "ответ");
+    }
+    pill(SCENE_W / 2, 60, "Путь: устройство → маршрутизатор → сервер", { alpha: e });
+  }
+
+  if(step === 8){
+    ctx.save();
+    ctx.globalAlpha = 0.8 * e;
+    ctx.strokeStyle = "rgba(46,172,101,0.6)";
+    ctx.lineWidth = 14;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(N.router.x, N.router.y);
+    ctx.lineTo(N.cloud.x, N.cloud.y);
+    ctx.lineTo(N.server.x, N.server.y);
+    ctx.stroke();
+    ctx.restore();
+    pill(640, 262, "VPN-туннель", { alpha: clamp((p - 0.1) * 2.5, 0, 1) });
+    drawShieldIcon(N.phone.x, N.phone.y - 72, 16, clamp((p - 0.25) * 2.5, 0, 1));
+    drawLockIcon(N.router.x, N.router.y - 84, 18, clamp((p - 0.4) * 2.5, 0, 1), false);
+    pill(360, 170, "Публичная сеть: VPN", { alpha: clamp((p - 0.55) * 2.5, 0, 1) });
+    pill(700, 470, "Домашняя сеть: пароль WPA3", { alpha: clamp((p - 0.7) * 2.5, 0, 1) });
+    pill(SCENE_W / 2, 60, "Безопасное подключение защищает ваши данные", { alpha: e });
+  }
+}
+
+function renderControls(){
+  const playIcon = el.playPauseBtn.querySelector("#playIcon");
+  const pauseIcon = el.playPauseBtn.querySelector("#pauseIcon");
+  if(playIcon && pauseIcon){
+    const showPlay = !state.isPlaying;
+    playIcon.style.display = showPlay ? "" : "none";
+    pauseIcon.style.display = showPlay ? "none" : "";
+  }
+  el.playPauseBtn.setAttribute("aria-label", state.isPlaying ? "Пауза" : "Воспроизведение");
+  el.playPauseBtn.disabled = state.mode === "STEP" && state.progress >= 1 && !state.isPlaying;
+
+  el.modeAutoBtn.classList.toggle("active", state.mode === "AUTO");
+  el.modeStepBtn.classList.toggle("active", state.mode === "STEP");
+
+  el.stepIndicator.textContent = "Шаг " + state.currentStep + " / " + STEP_COUNT;
+
+  el.nextStepBtn.disabled = !(state.mode === "STEP" && !state.isPlaying && state.currentStep < STEP_COUNT);
+
+  el.speedSegment.querySelectorAll("button").forEach(function(b){
+    b.classList.toggle("active", parseFloat(b.dataset.speed) === state.speed);
+  });
+
+  el.videoModeToggle.setAttribute("aria-checked", state.videoMode ? "true" : "false");
+}
+
+function bindEvents(){
+  el.modeAutoBtn.addEventListener("click", function(){ setMode("AUTO"); });
+  el.modeStepBtn.addEventListener("click", function(){ setMode("STEP"); });
+  el.nextStepBtn.addEventListener("click", onStep);
+  el.resetBtn.addEventListener("click", reset);
+  el.closeSettingsBtn.addEventListener("click", closeSettings);
+  el.videoModeToggle.addEventListener("click", toggleVideoMode);
+  el.videoModeToggle.addEventListener("keydown", function(e){
+    if(e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      toggleVideoMode();
+    }
+  });
+  el.speedSegment.querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){ setSpeed(parseFloat(b.dataset.speed)); });
+  });
+  el.modalOverlay.addEventListener("pointerdown", function(e){
+    if(e.target === el.modalOverlay) closeSettings();
+  });
+  el.modal.addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+  document.addEventListener("keydown", handleInput);
+  window.matchMedia("(min-width: 768px)").addEventListener("change", function(){
+    if(!state.videoMode) placeChrome();
+  });
+}
+
+function init(){
+  initDom();
+  initCanvas();
+  bindEvents();
+  updateSubtitles(1);
+  renderControls();
+  state.isPlaying = true;
+  setTimeout(function(){
+    lastFrameTime = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }, 500);
+}
+
+function loop(now){
+  const dt = clamp(now - lastFrameTime, 0, 50);
+  lastFrameTime = now;
+  update(dt);
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+try {
+  init();
+} catch(err) {
+  console.error("Ошибка инициализации:", err);
+  const title = document.querySelector(".app__title");
+  if(title){
+    const msg = document.createElement("p");
+    msg.textContent = "Не удалось запустить визуализацию. Обновите страницу или откройте файл в другом браузере.";
+    msg.style.cssText = "color:#A0A0A0;padding:16px;font-size:15px;";
+    title.insertAdjacentElement("afterend", msg);
+  }
+}
+})();
+</script>
+</body>
+</html>
