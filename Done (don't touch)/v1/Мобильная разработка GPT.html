@@ -1,0 +1,2707 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0F0F13" />
+    <title>Мобильная разработка — интерактив</title>
+    <style>
+      :root {
+        --ui-bg: #0f0f13;
+        --ui-bg-gradient: #111118;
+        --ui-panel: #1a1a20;
+        --ui-panel-glass: rgba(26, 26, 32, 0.55);
+        --ui-modal-bg: rgba(26, 26, 32, 0.94);
+        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
+        --ui-text: #ffffff;
+        --ui-muted: #a0a0a0;
+        --ui-label: #cfcfcf;
+        --ui-accent: #2eac65;
+        --ui-accent-dark: #1e7a47;
+        --ui-accent-soft: rgba(46, 172, 101, 0.14);
+        --ui-accent-soft-hover: rgba(46, 172, 101, 0.26);
+        --ui-accent-border: rgba(46, 172, 101, 0.5);
+        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
+        --ui-accent-shadow-strong: rgba(46, 172, 101, 0.35);
+        --ui-accent-ambient-1: rgba(46, 172, 101, 0.34);
+        --ui-accent-ambient-2: rgba(30, 122, 71, 0.3);
+        --ui-accent-ambient-3: rgba(20, 80, 45, 0.38);
+        --ui-accent-halo: rgba(46, 172, 101, 0.14);
+        --ui-danger: #e5484d;
+        --ui-danger-hover-border: rgba(229, 72, 77, 0.6);
+        --ui-white-06: rgba(255, 255, 255, 0.06);
+        --ui-white-08: rgba(255, 255, 255, 0.08);
+        --ui-white-10: rgba(255, 255, 255, 0.1);
+        --ui-white-12: rgba(255, 255, 255, 0.12);
+        --ui-white-14: rgba(255, 255, 255, 0.14);
+        --ui-border-soft: rgba(255, 255, 255, 0.12);
+        --ui-border-faint: rgba(255, 255, 255, 0.08);
+        --ui-scrim-strong: rgba(0, 0, 0, 0.65);
+        --ui-surface-inset: rgba(0, 0, 0, 0.35);
+        --ui-shadow-text: rgba(0, 0, 0, 0.8);
+        --ui-ambient-blur: 90px;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        color: var(--ui-text);
+        background: var(--ui-bg);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        overscroll-behavior: none;
+      }
+
+      #ambient {
+        position: fixed;
+        inset: -10%;
+        z-index: 0;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+
+      #ambient i {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(var(--ui-ambient-blur));
+      }
+
+      #ambient .b1 {
+        width: 46vmin;
+        height: 46vmin;
+        left: -6%;
+        top: 8%;
+        background: var(--ui-accent-ambient-1);
+        animation: drift 9s ease-in-out infinite alternate;
+      }
+
+      #ambient .b2 {
+        width: 40vmin;
+        height: 40vmin;
+        right: -4%;
+        top: 38%;
+        background: var(--ui-accent-ambient-2);
+        animation: drift 11s ease-in-out infinite alternate-reverse;
+      }
+
+      #ambient .b3 {
+        width: 52vmin;
+        height: 52vmin;
+        left: 16%;
+        bottom: -8%;
+        background: var(--ui-accent-ambient-3);
+        animation: drift 13s ease-in-out infinite alternate;
+      }
+
+      @keyframes drift {
+        from {
+          transform: translate(0, 0) scale(1);
+        }
+        to {
+          transform: translate(4vmin, -5vmin) scale(1.12);
+        }
+      }
+
+      body.v916 #ambient {
+        opacity: 1;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #ambient .b1,
+        #ambient .b2,
+        #ambient .b3 {
+          animation: none;
+        }
+      }
+
+      #modalWrap {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+          max(16px, env(safe-area-inset-bottom, 0px));
+        background: var(--ui-modal-scrim);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+
+      #modalWrap.open {
+        display: flex;
+      }
+
+      #modal {
+        width: min(92vw, 380px);
+        max-height: 82vh;
+        max-height: 82dvh;
+        overflow: auto;
+        color: var(--ui-text);
+        background: var(--ui-modal-bg);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 20px;
+        padding: 20px;
+        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+        outline: none;
+      }
+
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      #modal button {
+        font-family: inherit;
+        color: var(--ui-text);
+        cursor: pointer;
+      }
+
+      .modal-close {
+        display: grid;
+        place-items: center;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+      }
+
+      .mhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+
+      .mhead h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 800;
+      }
+
+      .mstep {
+        color: var(--ui-muted);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .seg {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .seg button {
+        flex: 1;
+        min-height: 44px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .seg button.active {
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        border-color: transparent;
+        box-shadow: 0 4px 14px var(--ui-accent-shadow);
+      }
+
+      #mNext {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-accent-soft);
+        border: 1px solid var(--ui-accent-border);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+      }
+
+      #mNext:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      #mNext:not(:disabled):hover {
+        background: var(--ui-accent-soft-hover);
+      }
+
+      .mrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .mlabel {
+        flex: 1;
+        color: var(--ui-label);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      #mSpeed {
+        flex: 1.4;
+        accent-color: var(--ui-accent);
+        min-width: 80px;
+      }
+
+      #mSpeedVal {
+        min-width: 34px;
+        color: var(--ui-text);
+        text-align: right;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .sw {
+        position: relative;
+        display: inline-block;
+        flex: 0 0 52px;
+        width: 52px;
+        height: 30px;
+      }
+
+      .sw input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+
+      .sw span {
+        position: absolute;
+        inset: 0;
+        background: var(--ui-white-12);
+        border-radius: 999px;
+        transition: background 0.25s;
+        pointer-events: none;
+      }
+
+      .sw span::before {
+        content: "";
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        background: var(--ui-text);
+        border-radius: 50%;
+        transition: transform 0.25s;
+      }
+
+      .sw input:checked + span {
+        background: var(--ui-accent);
+      }
+
+      .sw input:checked + span::before {
+        transform: translateX(22px);
+      }
+
+      .sw input:focus-visible + span {
+        outline: 2px solid var(--ui-text);
+        outline-offset: 3px;
+      }
+
+      #mReset {
+        width: 100%;
+        min-height: 46px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-white-14);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition: border-color 0.2s;
+      }
+
+      #mReset:hover {
+        border-color: var(--ui-danger-hover-border);
+      }
+
+      .keys {
+        display: grid;
+        grid-template-columns: auto 1fr auto 1fr;
+        gap: 6px 10px;
+        align-items: center;
+        color: var(--ui-muted);
+        font-size: 12px;
+      }
+
+      .keys span {
+        justify-self: start;
+        padding: 2px 7px;
+        color: var(--ui-text);
+        background: var(--ui-white-08);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 6px;
+        font-weight: 800;
+      }
+
+      .keys i {
+        font-style: normal;
+      }
+
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #modal {
+          animation: none;
+        }
+      }
+
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        position: relative;
+      }
+      #app {
+        position: relative;
+        z-index: 1;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        padding: clamp(18px, 3vh, 34px) clamp(18px, 3vw, 42px);
+        display: grid;
+        place-items: stretch;
+      }
+      .frame {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-areas: "title subtitle" "visual subtitle" "visual controls";
+        column-gap: clamp(18px, 2.5vw, 36px);
+        row-gap: 0;
+      }
+      .app-header {
+        grid-area: title;
+        min-width: 0;
+        padding: 0 0 14px;
+        align-self: start;
+      }
+      .app-header h1 {
+        margin: 0;
+        color: var(--ui-text);
+        font:
+          800 clamp(21px, 2.35vw, 34px)/1.12 system-ui,
+          sans-serif;
+        letter-spacing: -0.035em;
+        text-wrap: balance;
+      }
+      .visual {
+        grid-area: visual;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        position: relative;
+      }
+      #sceneCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+      }
+      .subtitle {
+        grid-area: subtitle;
+        align-self: stretch;
+        min-width: 0;
+        min-height: 116px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        padding: clamp(20px, 2vw, 30px);
+        color: var(--ui-text);
+        background: #00000080;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--ui-border-faint);
+        border-radius: 22px;
+        font:
+          700 clamp(16px, 1.45vw, 21px)/1.45 system-ui,
+          sans-serif;
+        letter-spacing: -0.01em;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease;
+      }
+      .subtitle__keyword {
+        color: var(--ui-accent);
+        font-weight: 800;
+      }
+      .subtitle.is-changing {
+        opacity: 0.25;
+        transform: translateY(5px);
+      }
+      .controls {
+        grid-area: controls;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding-top: 18px;
+        transition: opacity 0.2s ease;
+      }
+      .controls.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .control-button {
+        appearance: none;
+        -webkit-appearance: none;
+        box-sizing: border-box;
+        width: 56px;
+        height: 56px;
+        min-width: 48px;
+        min-height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        border: 1px solid var(--ui-border-soft);
+        color: var(--ui-text);
+        background: var(--ui-panel);
+        cursor: pointer;
+        touch-action: manipulation;
+        transition:
+          transform 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease,
+          border-color 0.16s ease;
+      }
+      .control-button.primary {
+        color: var(--ui-text);
+        background: linear-gradient(
+          140deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        border-color: transparent;
+        box-shadow: 0 8px 28px var(--ui-accent-shadow);
+      }
+      .control-button:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .control-button:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+      .control-button:focus-visible,
+      #modal button:focus-visible,
+      #mSpeed:focus-visible {
+        outline: 2px solid var(--ui-text);
+        outline-offset: 3px;
+      }
+      @media (hover: hover) {
+        .control-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          border-color: var(--ui-accent-border);
+        }
+        .control-button.primary:hover:not(:disabled) {
+          box-shadow: 0 10px 32px var(--ui-accent-shadow-strong);
+        }
+      }
+      .control-button svg {
+        width: 22px;
+        height: 22px;
+        display: block;
+      }
+      .control-button .icon-play,
+      .control-button .icon-pause {
+        display: none;
+      }
+      .control-button[data-state="playing"] .icon-pause,
+      .control-button[data-state="transition-playing"] .icon-pause {
+        display: block;
+      }
+      .control-button[data-state="paused"] .icon-play,
+      .control-button[data-state="transition-paused"] .icon-play {
+        display: block;
+      }
+      .control-button[data-state="idle"] .icon-play {
+        display: block;
+      }
+      #modal {
+        max-height: 90dvh;
+      }
+      .modal-close {
+        width: 48px;
+        height: 48px;
+        flex-basis: 48px;
+      }
+      .seg button {
+        min-height: 48px;
+      }
+      #mReset {
+        min-height: 48px;
+      }
+      #mSpeed {
+        flex: 1.4;
+        min-width: 92px;
+        min-height: 42px;
+        padding: 0 10px;
+        color: var(--ui-text);
+        background: var(--ui-panel);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 10px;
+        font:
+          700 14px system-ui,
+          sans-serif;
+      }
+      #ambient {
+        pointer-events: none;
+      }
+      body.v916 #app {
+        isolation: isolate;
+      }
+      body.v916 .frame {
+        position: relative;
+        box-sizing: border-box;
+        overflow: hidden;
+        border: 1px solid var(--ui-accent-border);
+        border-radius: 26px;
+        background: var(--ui-panel-glass);
+        box-shadow:
+          0 0 38px var(--ui-accent-halo),
+          inset 0 0 28px var(--ui-white-06);
+        padding: clamp(12px, 2vw, 20px);
+      }
+      body.v916 .frame::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid var(--ui-white-08);
+        pointer-events: none;
+      }
+      body.v916 .subtitle {
+        background: var(--ui-scrim-strong);
+        border-color: var(--ui-white-10);
+      }
+      body.v916 .visual {
+        border-radius: 16px;
+      }
+      @media (max-width: 767px) {
+        #ambient {
+          display: none !important;
+        }
+        #app {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: calc(100vw - 80px - env(safe-area-inset-right, 0px));
+          height: calc(100vh - 25vh);
+          height: calc(100dvh - 25vh - env(safe-area-inset-bottom, 0px));
+          padding: max(16px, env(safe-area-inset-top, 0px)) 8px 8px
+            max(16px, env(safe-area-inset-left, 0px));
+          overflow: hidden;
+        }
+        .frame {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto minmax(0, 1fr) auto auto;
+          grid-template-areas: "title" "visual" "subtitle" "controls";
+          column-gap: 0;
+          row-gap: 0;
+        }
+        .app-header {
+          padding: 0 0 8px;
+        }
+        .app-header h1 {
+          font-size: clamp(20px, 5.5vw, 26px);
+        }
+        .visual {
+          min-height: 0;
+        }
+        .subtitle {
+          min-height: 64px;
+          max-height: 104px;
+          margin-bottom: 24px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          font-size: clamp(16px, 4.5vw, 22px);
+          line-height: 1.3;
+        }
+        .controls {
+          justify-content: center;
+          gap: 14px;
+          padding: 0;
+        }
+        .control-button {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+        }
+        #app.video-mode {
+          display: grid;
+          place-items: center;
+        }
+        #app.video-mode .frame {
+          width: min(100%, 56.25dvh);
+          height: auto;
+          max-height: 100%;
+          aspect-ratio: 9 / 16;
+        }
+        body.v916 .frame {
+          padding: 12px;
+        }
+        body.v916 .app-header {
+          padding-bottom: 6px;
+        }
+        body.v916 .subtitle {
+          margin-bottom: 12px;
+          min-height: 58px;
+          padding: 9px 11px;
+          font-size: clamp(16px, 4.5vw, 22px);
+        }
+        body.v916 .controls {
+          gap: 10px;
+        }
+        body.v916 .control-button {
+          width: 48px;
+          height: 48px;
+        }
+        #modal {
+          width: min(92vw, 380px);
+        }
+      }
+      @media (min-width: 768px) {
+        #app.video-mode {
+          display: grid;
+          place-items: center;
+        }
+        #app.video-mode .frame {
+          width: min(100%, 56.25dvh);
+          height: auto;
+          max-height: 100%;
+          aspect-ratio: 9 / 16;
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto minmax(0, 1fr) auto auto;
+          grid-template-areas: "title" "visual" "subtitle" "controls";
+          gap: 0;
+        }
+        #app.video-mode .app-header {
+          padding-bottom: 8px;
+        }
+        #app.video-mode .app-header h1 {
+          font-size: clamp(18px, 2vw, 26px);
+        }
+        #app.video-mode .subtitle {
+          min-height: 68px;
+          margin-bottom: 14px;
+          font-size: clamp(16px, 4.5vw, 22px);
+          padding: 12px;
+        }
+        #app.video-mode .controls {
+          padding: 0;
+          justify-content: center;
+          gap: 10px;
+        }
+      }
+      .sw {
+        height: 48px;
+      }
+      .sw span {
+        inset: 9px 0;
+      }
+      #app {
+        container-type: size;
+      }
+      #app.video-mode .frame {
+        width: min(100cqw, calc(100cqh * 9 / 16));
+        height: min(100cqh, calc(100cqw * 16 / 9));
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 9 / 16;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ambient" aria-hidden="true">
+      <i class="b1"></i>
+      <i class="b2"></i>
+      <i class="b3"></i>
+    </div>
+
+    <main id="app">
+      <div class="frame" id="frame">
+        <header class="app-header"><h1>Мобильная разработка</h1></header>
+        <section
+          class="visual"
+          id="visual"
+          aria-label="Анимированная схема этапа мобильной разработки"
+        >
+          <canvas
+            id="sceneCanvas"
+            aria-label="Визуализация текущего этапа мобильной разработки"
+          ></canvas>
+        </section>
+        <div
+          class="subtitle"
+          id="subtitle"
+          role="status"
+          aria-live="polite"
+        ></div>
+        <footer
+          class="controls"
+          id="controls"
+          aria-label="Управление воспроизведением"
+        >
+          <button
+            class="control-button primary"
+            id="playButton"
+            type="button"
+            data-state="playing"
+            aria-label="Приостановить воспроизведение"
+            title="Приостановить воспроизведение"
+          >
+            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5.5v13l10-6.5z" fill="currentColor" />
+            </svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 5h4v14H7zM14 5h4v14h-4z" fill="currentColor" />
+            </svg>
+          </button>
+          <button
+            class="control-button js-gear"
+            id="settingsButton"
+            type="button"
+            aria-label="Открыть настройки"
+            title="Настройки"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm8.1 4.9a8.2 8.2 0 0 0 0-2.2l1.5-1.2-1.5-2.6-1.9.7a8.5 8.5 0 0 0-1.9-1.1L16 4.7h-3l-.4 2a8.5 8.5 0 0 0-2.1 0l-.9-2h-3l-.3 2a8.5 8.5 0 0 0-1.8 1.1l-2-.7L1 9.7l1.5 1.2a8.2 8.2 0 0 0 0 2.2L1 14.3l1.5 2.6 2-.7a8.5 8.5 0 0 0 1.8 1.1l.4 2h3l.9-2a8.5 8.5 0 0 0 2.1 0l.4 2h3l.3-2a8.5 8.5 0 0 0 1.9-1.1l1.9.7 1.5-2.6-1.5-1.2Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </footer>
+      </div>
+    </main>
+
+    <div id="modalWrap" aria-hidden="true">
+      <section
+        id="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        tabindex="-1"
+      >
+        <header class="mhead">
+          <h2 id="modalTitle">Настройки</h2>
+          <button
+            class="modal-close"
+            id="mClose"
+            type="button"
+            data-modal-close
+            aria-label="Закрыть"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+
+        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
+
+        <div class="seg" role="group" aria-label="Режим воспроизведения">
+          <button
+            id="mAuto"
+            class="active"
+            type="button"
+            data-mode="auto"
+            aria-pressed="true"
+          >
+            AUTO
+          </button>
+          <button
+            id="mStepBtn"
+            type="button"
+            data-mode="step"
+            aria-pressed="false"
+          >
+            STEP
+          </button>
+        </div>
+
+        <button id="mNext" type="button" data-modal-action="next-step" disabled>
+          Следующий шаг ▶
+        </button>
+
+        <div class="mrow">
+          <label class="mlabel" for="mSpeed">Скорость</label>
+          <select id="mSpeed" aria-label="Скорость воспроизведения">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+          </select>
+          <output id="mSpeedVal" for="mSpeed">1×</output>
+        </div>
+
+        <div class="mrow">
+          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
+          <label class="sw" aria-labelledby="mNineLabel">
+            <input type="checkbox" id="mNine" data-modal-toggle="video-mode" />
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+
+        <button id="mReset" type="button" data-modal-action="reset">
+          Reset
+        </button>
+
+        <div class="keys" aria-label="Горячие клавиши">
+          <span>Space</span><i>скрыть панель</i> <span>→</span
+          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
+          ><i>AUTO/STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
+          ><i>закрыть</i>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function (global) {
+        "use strict";
+
+        function initSettingsModal(options) {
+          const config = Object.assign(
+            {
+              overlaySelector: "#modalWrap",
+              dialogSelector: "#modal",
+              openSelector: ".js-gear",
+              closeSelector: "[data-modal-close]",
+            },
+            options || {},
+          );
+
+          const overlay = document.querySelector(config.overlaySelector);
+          if (!overlay)
+            throw new Error(
+              "Settings modal overlay not found: " + config.overlaySelector,
+            );
+
+          const dialog =
+            overlay.querySelector(config.dialogSelector) ||
+            overlay.querySelector('[role="dialog"]');
+          if (!dialog) throw new Error("Settings modal dialog not found.");
+
+          const openers = Array.from(
+            document.querySelectorAll(config.openSelector),
+          );
+          const closers = Array.from(
+            overlay.querySelectorAll(config.closeSelector),
+          );
+          let previouslyFocused = null;
+
+          function open() {
+            if (overlay.classList.contains("open")) return;
+            previouslyFocused = document.activeElement;
+            overlay.classList.add("open");
+            overlay.setAttribute("aria-hidden", "false");
+            document.body.classList.add("modal-open");
+            dialog.focus();
+          }
+
+          function close() {
+            if (!overlay.classList.contains("open")) return;
+            overlay.classList.remove("open");
+            overlay.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("modal-open");
+            if (
+              previouslyFocused &&
+              typeof previouslyFocused.focus === "function"
+            ) {
+              previouslyFocused.focus();
+            }
+          }
+
+          function toggle() {
+            overlay.classList.contains("open") ? close() : open();
+          }
+
+          openers.forEach((button) => button.addEventListener("click", toggle));
+          closers.forEach((button) => button.addEventListener("click", close));
+
+          overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) close();
+          });
+
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && overlay.classList.contains("open")) {
+              close();
+            }
+          });
+
+          overlay.querySelectorAll("[data-mode]").forEach((button) => {
+            button.addEventListener("click", () => {
+              const mode = button.dataset.mode;
+              overlay.querySelectorAll("[data-mode]").forEach((item) => {
+                const active = item === button;
+                item.classList.toggle("active", active);
+                item.setAttribute("aria-pressed", String(active));
+              });
+              const next = overlay.querySelector(
+                '[data-modal-action="next-step"]',
+              );
+              if (next) next.disabled = mode !== "step";
+              overlay.dispatchEvent(
+                new CustomEvent("settings:mode", { detail: { mode } }),
+              );
+            });
+          });
+
+          overlay
+            .querySelectorAll('[data-modal-action="next-step"]')
+            .forEach((button) => {
+              button.addEventListener("click", () => {
+                overlay.dispatchEvent(new CustomEvent("settings:next-step"));
+              });
+            });
+
+          const speed = overlay.querySelector("#mSpeed");
+          const speedValue = overlay.querySelector("#mSpeedVal");
+          if (speed) {
+            speed.addEventListener("input", () => {
+              if (speedValue) speedValue.textContent = speed.value + "x";
+              overlay.dispatchEvent(
+                new CustomEvent("settings:speed", {
+                  detail: { value: Number(speed.value) },
+                }),
+              );
+            });
+          }
+
+          const videoMode = overlay.querySelector(
+            '[data-modal-toggle="video-mode"]',
+          );
+          if (videoMode) {
+            videoMode.addEventListener("change", () => {
+              overlay.dispatchEvent(
+                new CustomEvent("settings:video-mode", {
+                  detail: { enabled: videoMode.checked },
+                }),
+              );
+            });
+          }
+
+          overlay
+            .querySelectorAll('[data-modal-action="reset"]')
+            .forEach((button) => {
+              button.addEventListener("click", () => {
+                overlay.dispatchEvent(new CustomEvent("settings:reset"));
+              });
+            });
+
+          return {
+            open,
+            close,
+            toggle,
+            setStepText(text) {
+              const target = overlay.querySelector("#mStepTxt");
+              if (target) target.textContent = text;
+            },
+            setMode(mode) {
+              const target = overlay.querySelector(
+                '[data-mode="' + mode + '"]',
+              );
+              if (target) target.click();
+            },
+            setSpeed(value) {
+              if (!speed) return;
+              speed.value = String(value);
+              speed.dispatchEvent(new Event("input", { bubbles: true }));
+            },
+            setVideoMode(enabled) {
+              if (!videoMode) return;
+              videoMode.checked = Boolean(enabled);
+              videoMode.dispatchEvent(new Event("change", { bubbles: true }));
+            },
+          };
+        }
+
+        global.SettingsModal = { init: initSettingsModal };
+      })(window);
+    </script>
+    <script>
+      (() => {
+        "use strict";
+
+        const steps = [
+          {
+            step: 1,
+            segments: [
+              {
+                text: "Ресурсы, сенсорный ввод и сеть задают ограничения мобильного устройства.",
+              },
+            ],
+          },
+          {
+            step: 2,
+            segments: [
+              {
+                text: "Android и iOS определяют платформенные API, экосистему и правила публикации.",
+              },
+            ],
+          },
+          {
+            step: 3,
+            segments: [
+              {
+                text: "Нативный, кроссплатформенный, гибридный и веб-подходы решают разные задачи.",
+              },
+            ],
+          },
+          {
+            step: 4,
+            segments: [
+              {
+                text: "IDE, языки, SDK и фреймворки образуют инструментарий разработчика.",
+              },
+            ],
+          },
+          {
+            step: 5,
+            segments: [
+              {
+                text: "Клиент, API, сервер и кэш поддерживают обмен даже без сети.",
+              },
+            ],
+          },
+          {
+            step: 6,
+            segments: [
+              {
+                text: "UX объединяет навигацию, доступность и безопасный доступ к датчикам.",
+              },
+            ],
+          },
+          {
+            step: 7,
+            segments: [
+              {
+                text: "Локальные базы, облако и уведомления обеспечивают хранение и синхронизацию.",
+              },
+            ],
+          },
+          {
+            step: 8,
+            segments: [
+              {
+                text: "Тестирование, защита, публикация и мониторинг сопровождают жизненный цикл.",
+              },
+            ],
+          },
+        ];
+
+        const AUTO_STEP_MS = 4200;
+        const STEP_TRANSITION_MS = 1100;
+        const state = {
+          mode: "auto",
+          isPlaying: true,
+          currentStep: 0,
+          speed: 1,
+          videoMode: false,
+          elapsed: 0,
+          isTransitioning: false,
+          autoStarted: false,
+          controlsHidden: false,
+          clock: 0,
+          lastFrame: 0,
+        };
+
+        const el = {};
+        let ctx = null;
+        let width = 0;
+        let height = 0;
+        let logicalWidth = 900;
+        let logicalHeight = 600;
+        let dpr = 1;
+        let observer = null;
+        let modal = null;
+        let palette = null;
+
+        function getToken(name, fallback) {
+          const value = getComputedStyle(document.documentElement)
+            .getPropertyValue(name)
+            .trim();
+          return value || fallback;
+        }
+
+        function hexRgba(color, alpha) {
+          if (!color || color[0] !== "#")
+            return color || `rgba(255,255,255,${alpha})`;
+          let value = color.slice(1);
+          if (value.length === 3)
+            value = value
+              .split("")
+              .map((part) => part + part)
+              .join("");
+          const number = parseInt(value, 16);
+          return `rgba(${(number >> 16) & 255},${(number >> 8) & 255},${number & 255},${alpha})`;
+        }
+
+        function initPalette() {
+          palette = {
+            bg: getToken("--ui-bg", "#0F0F13"),
+            panel: getToken("--ui-panel", "#1A1A20"),
+            accent: getToken("--ui-accent", "#2EAC65"),
+            accentDark: getToken("--ui-accent-dark", "#1E7A47"),
+            text: getToken("--ui-text", "#FFFFFF"),
+            muted: getToken("--ui-muted", "#A0A0A0"),
+            border: getToken("--ui-border-soft", "rgba(255,255,255,.12)"),
+            grid: getToken("--ui-white-06", "rgba(255,255,255,.06)"),
+          };
+        }
+
+        function roundedRect(x, y, w, h, r, fill, stroke, lineWidth = 2) {
+          const radius = Math.min(r, w / 2, h / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + radius, y);
+          ctx.arcTo(x + w, y, x + w, y + h, radius);
+          ctx.arcTo(x + w, y + h, x, y + h, radius);
+          ctx.arcTo(x, y + h, x, y, radius);
+          ctx.arcTo(x, y, x + w, y, radius);
+          ctx.closePath();
+          if (fill) {
+            ctx.fillStyle = fill;
+            ctx.fill();
+          }
+          if (stroke) {
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+          }
+        }
+
+        function line(
+          x1,
+          y1,
+          x2,
+          y2,
+          color = palette.border,
+          lineWidth = 3,
+          dash = [],
+        ) {
+          ctx.beginPath();
+          ctx.setLineDash(dash);
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = lineWidth;
+          ctx.lineCap = "round";
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        function arrow(x1, y1, x2, y2, progress = 1, color = palette.accent) {
+          if (progress < 0.12) return;
+          const x = x1 + (x2 - x1) * Math.max(0, Math.min(1, progress));
+          const y = y1 + (y2 - y1) * Math.max(0, Math.min(1, progress));
+          line(x1, y1, x, y, color, 4);
+          if (progress > 0.88) {
+            const a = Math.atan2(y2 - y1, x2 - x1);
+            ctx.save();
+            ctx.translate(x2, y2);
+            ctx.rotate(a);
+            ctx.beginPath();
+            ctx.moveTo(-13, -8);
+            ctx.lineTo(0, 0);
+            ctx.lineTo(-13, 8);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        function label(
+          text,
+          x,
+          y,
+          size = 20,
+          color = palette.text,
+          weight = 700,
+          align = "center",
+        ) {
+          ctx.save();
+          ctx.fillStyle = color;
+          ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+          ctx.textAlign = align;
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, x, y);
+          ctx.restore();
+        }
+
+        function chip(
+          x,
+          y,
+          w,
+          h,
+          title,
+          detail = "",
+          accent = true,
+          size = 19,
+        ) {
+          roundedRect(
+            x,
+            y,
+            w,
+            h,
+            16,
+            palette.panel,
+            accent ? hexRgba(palette.accent, 0.55) : palette.border,
+            2,
+          );
+          label(
+            title,
+            x + w / 2,
+            y + (detail ? h * 0.38 : h * 0.52),
+            size,
+            accent ? palette.accent : palette.text,
+            800,
+          );
+          if (detail)
+            label(
+              detail,
+              x + w / 2,
+              y + h * 0.7,
+              Math.max(13, size * 0.68),
+              palette.muted,
+              600,
+            );
+        }
+
+        function phone(
+          x,
+          y,
+          w,
+          h,
+          title,
+          detail = "",
+          accent = palette.accent,
+        ) {
+          roundedRect(
+            x,
+            y,
+            w,
+            h,
+            Math.min(32, w * 0.14),
+            palette.panel,
+            hexRgba(palette.text, 0.5),
+            4,
+          );
+          roundedRect(
+            x + 10,
+            y + 12,
+            w - 20,
+            h - 24,
+            Math.min(24, w * 0.1),
+            palette.bg,
+            hexRgba(accent, 0.32),
+            2,
+          );
+          roundedRect(
+            x + w * 0.36,
+            y + 18,
+            w * 0.28,
+            7,
+            4,
+            hexRgba(palette.text, 0.35),
+            null,
+          );
+          label(
+            title,
+            x + w / 2,
+            y + h * 0.25,
+            Math.max(16, w * 0.09),
+            palette.text,
+            800,
+          );
+          if (detail)
+            label(
+              detail,
+              x + w / 2,
+              y + h * 0.34,
+              Math.max(11, w * 0.055),
+              palette.muted,
+              600,
+            );
+          const innerX = x + w * 0.16;
+          const innerW = w * 0.68;
+          const startY = y + h * 0.46;
+          for (let i = 0; i < 3; i++) {
+            roundedRect(
+              innerX,
+              startY + i * h * 0.13,
+              innerW,
+              h * 0.075,
+              7,
+              i === 0 ? hexRgba(accent, 0.24) : hexRgba(palette.text, 0.07),
+              i === 0 ? hexRgba(accent, 0.55) : null,
+              1.5,
+            );
+          }
+          roundedRect(
+            x + w * 0.39,
+            y + h - 24,
+            w * 0.22,
+            4,
+            3,
+            hexRgba(palette.text, 0.32),
+            null,
+          );
+        }
+
+        function circleIcon(x, y, r, title, detail = "") {
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = hexRgba(palette.accent, 0.12);
+          ctx.fill();
+          ctx.strokeStyle = hexRgba(palette.accent, 0.65);
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          label(
+            title,
+            x,
+            y - (detail ? 5 : 0),
+            Math.max(13, r * 0.42),
+            palette.accent,
+            800,
+          );
+          if (detail)
+            label(
+              detail,
+              x,
+              y + r * 0.43,
+              Math.max(9, r * 0.22),
+              palette.muted,
+              600,
+            );
+        }
+
+        function background(W, H) {
+          ctx.fillStyle = palette.bg;
+          ctx.fillRect(0, 0, W, H);
+          ctx.strokeStyle = hexRgba(palette.text, 0.035);
+          ctx.lineWidth = 1;
+          const gap = Math.max(34, Math.round(Math.min(W, H) / 14));
+          for (let x = gap / 2; x < W; x += gap) {
+            for (let y = gap / 2; y < H; y += gap) {
+              ctx.beginPath();
+              ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          }
+        }
+
+        function drawDeviceScene(p, portrait, W, H) {
+          if (portrait) {
+            phone(
+              W * 0.32,
+              H * 0.08,
+              W * 0.36,
+              H * 0.43,
+              "APP",
+              "мобильное устройство",
+            );
+            const y = H * 0.64;
+            chip(W * 0.06, y, W * 0.4, H * 0.12, "CPU", "вычисления", true, 19);
+            chip(
+              W * 0.54,
+              y,
+              W * 0.4,
+              H * 0.12,
+              "BAT",
+              "автономность",
+              true,
+              19,
+            );
+            chip(
+              W * 0.06,
+              H * 0.8,
+              W * 0.4,
+              H * 0.12,
+              "SENS",
+              "датчики",
+              false,
+              18,
+            );
+            chip(
+              W * 0.54,
+              H * 0.8,
+              W * 0.4,
+              H * 0.12,
+              "NET",
+              "связь",
+              false,
+              18,
+            );
+            arrow(W * 0.5, H * 0.55, W * 0.5, H * 0.62, p);
+          } else {
+            phone(
+              W * 0.39,
+              H * 0.13,
+              W * 0.22,
+              H * 0.72,
+              "APP",
+              "мобильное устройство",
+            );
+            chip(
+              W * 0.04,
+              H * 0.22,
+              W * 0.27,
+              H * 0.16,
+              "CPU",
+              "вычислительные ресурсы",
+            );
+            chip(
+              W * 0.69,
+              H * 0.22,
+              W * 0.27,
+              H * 0.16,
+              "BAT",
+              "автономное питание",
+            );
+            chip(
+              W * 0.04,
+              H * 0.62,
+              W * 0.27,
+              H * 0.16,
+              "SENS",
+              "сенсорное управление",
+              false,
+            );
+            chip(
+              W * 0.69,
+              H * 0.62,
+              W * 0.27,
+              H * 0.16,
+              "NET",
+              "сеть и подключение",
+              false,
+            );
+            arrow(W * 0.31, H * 0.3, W * 0.38, H * 0.38, p);
+            arrow(W * 0.69, H * 0.3, W * 0.62, H * 0.38, p);
+            arrow(W * 0.31, H * 0.69, W * 0.38, H * 0.64, p);
+            arrow(W * 0.69, H * 0.69, W * 0.62, H * 0.64, p);
+          }
+        }
+
+        function drawPlatformsScene(p, portrait, W, H) {
+          if (portrait) {
+            phone(
+              W * 0.12,
+              H * 0.09,
+              W * 0.31,
+              H * 0.32,
+              "Android",
+              "Kotlin / Java",
+              palette.accent,
+            );
+            phone(
+              W * 0.57,
+              H * 0.09,
+              W * 0.31,
+              H * 0.32,
+              "iOS",
+              "Swift",
+              palette.text,
+            );
+            chip(
+              W * 0.08,
+              H * 0.52,
+              W * 0.84,
+              H * 0.13,
+              "ПЛАТФОРМЕННЫЕ API",
+              "доступ к возможностям ОС",
+              true,
+              19,
+            );
+            arrow(W * 0.27, H * 0.45, W * 0.27, H * 0.51, p);
+            arrow(W * 0.73, H * 0.45, W * 0.73, H * 0.51, p);
+            chip(
+              W * 0.08,
+              H * 0.72,
+              W * 0.84,
+              H * 0.13,
+              "ЭКОСИСТЕМА",
+              "SDK • сервисы • магазины приложений",
+              false,
+              20,
+            );
+          } else {
+            phone(
+              W * 0.16,
+              H * 0.16,
+              W * 0.25,
+              H * 0.67,
+              "Android",
+              "Kotlin / Java",
+            );
+            phone(
+              W * 0.59,
+              H * 0.16,
+              W * 0.25,
+              H * 0.67,
+              "iOS",
+              "Swift",
+              palette.text,
+            );
+            chip(
+              W * 0.16,
+              H * 0.86,
+              W * 0.68,
+              H * 0.09,
+              "ПЛАТФОРМЕННЫЕ API  •  SDK  •  ЭКОСИСТЕМА",
+              "",
+              true,
+              17,
+            );
+            arrow(W * 0.43, H * 0.48, W * 0.57, H * 0.48, p);
+          }
+        }
+
+        function drawApproachesScene(p, portrait, W, H) {
+          if (portrait) {
+            const data = [
+              ["NATIVE", "отдельная платформа", "Kotlin / Swift"],
+              [
+                "CROSS-PLATFORM",
+                "общая кодовая база",
+                "Flutter / React Native",
+              ],
+              ["HYBRID", "web внутри оболочки", "веб-технологии"],
+              ["PWA / WEB", "браузер и установка", "адаптивный интерфейс"],
+            ];
+            data.forEach((item, i) => {
+              const y = H * (0.09 + i * 0.215);
+              roundedRect(
+                W * 0.07,
+                y,
+                W * 0.86,
+                H * 0.16,
+                18,
+                palette.panel,
+                i === 1 ? hexRgba(palette.accent, 0.7) : palette.border,
+                2,
+              );
+              circleIcon(W * 0.19, y + H * 0.08, H * 0.045, String(i + 1));
+              label(
+                item[0],
+                W * 0.3,
+                y + H * 0.055,
+                19,
+                i === 1 ? palette.accent : palette.text,
+                800,
+                "left",
+              );
+              label(
+                item[1],
+                W * 0.3,
+                y + H * 0.095,
+                14,
+                palette.muted,
+                600,
+                "left",
+              );
+              label(
+                item[2],
+                W * 0.3,
+                y + H * 0.135,
+                13,
+                palette.text,
+                600,
+                "left",
+              );
+            });
+          } else {
+            const columns = [
+              ["NATIVE", "одна ОС", "Kotlin / Swift"],
+              ["CROSS-PLATFORM", "общий код", "Flutter / React Native"],
+              ["PWA / HYBRID", "web + оболочка", "браузерные технологии"],
+            ];
+            columns.forEach((item, i) => {
+              const x = W * (0.035 + i * 0.32);
+              roundedRect(
+                x,
+                H * 0.22,
+                W * 0.29,
+                H * 0.6,
+                20,
+                palette.panel,
+                i === 1 ? hexRgba(palette.accent, 0.75) : palette.border,
+                2,
+              );
+              circleIcon(x + W * 0.145, H * 0.38, H * 0.075, String(i + 1));
+              label(
+                item[0],
+                x + W * 0.145,
+                H * 0.56,
+                17,
+                i === 1 ? palette.accent : palette.text,
+                800,
+              );
+              label(item[1], x + W * 0.145, H * 0.64, 16, palette.muted, 600);
+              label(item[2], x + W * 0.145, H * 0.73, 13, palette.text, 600);
+            });
+            label(
+              "Гибридное приложение  •  мобильный веб-интерфейс",
+              W * 0.5,
+              H * 0.91,
+              17,
+              palette.muted,
+              600,
+            );
+          }
+        }
+
+        function drawToolsScene(p, portrait, W, H) {
+          if (portrait) {
+            roundedRect(
+              W * 0.07,
+              H * 0.08,
+              W * 0.86,
+              H * 0.23,
+              18,
+              palette.panel,
+              hexRgba(palette.accent, 0.65),
+              2,
+            );
+            label("ANDROID STUDIO", W * 0.5, H * 0.14, 21, palette.accent, 800);
+            label(
+              "Kotlin  •  Java  •  Android SDK",
+              W * 0.5,
+              H * 0.22,
+              16,
+              palette.text,
+              600,
+            );
+            label(
+              "Эмулятор  •  Build  •  Debug",
+              W * 0.5,
+              H * 0.27,
+              14,
+              palette.muted,
+              600,
+            );
+            roundedRect(
+              W * 0.07,
+              H * 0.36,
+              W * 0.86,
+              H * 0.23,
+              18,
+              palette.panel,
+              palette.border,
+              2,
+            );
+            label("XCODE", W * 0.5, H * 0.42, 22, palette.text, 800);
+            label("Swift  •  iOS SDK", W * 0.5, H * 0.5, 16, palette.text, 600);
+            label(
+              "Симулятор  •  Профилирование",
+              W * 0.5,
+              H * 0.55,
+              14,
+              palette.muted,
+              600,
+            );
+            chip(
+              W * 0.07,
+              H * 0.66,
+              W * 0.86,
+              H * 0.11,
+              "FLUTTER  •  DART",
+              "фреймворк и язык",
+              true,
+              18,
+            );
+            chip(
+              W * 0.07,
+              H * 0.81,
+              W * 0.86,
+              H * 0.11,
+              "REACT NATIVE  •  .NET MAUI",
+              "JavaScript / TypeScript  •  C#",
+              false,
+              17,
+            );
+          } else {
+            roundedRect(
+              W * 0.05,
+              H * 0.16,
+              W * 0.41,
+              H * 0.54,
+              20,
+              palette.panel,
+              hexRgba(palette.accent, 0.65),
+              2,
+            );
+            label(
+              "ANDROID STUDIO",
+              W * 0.255,
+              H * 0.29,
+              22,
+              palette.accent,
+              800,
+            );
+            label(
+              "Kotlin  •  Java",
+              W * 0.255,
+              H * 0.42,
+              18,
+              palette.text,
+              700,
+            );
+            label(
+              "Android SDK  •  Emulator",
+              W * 0.255,
+              H * 0.51,
+              15,
+              palette.muted,
+              600,
+            );
+            label(
+              "Build  •  Debug",
+              W * 0.255,
+              H * 0.6,
+              15,
+              palette.muted,
+              600,
+            );
+            roundedRect(
+              W * 0.54,
+              H * 0.16,
+              W * 0.41,
+              H * 0.54,
+              20,
+              palette.panel,
+              palette.border,
+              2,
+            );
+            label("XCODE", W * 0.745, H * 0.29, 24, palette.text, 800);
+            label(
+              "Swift  •  iOS SDK",
+              W * 0.745,
+              H * 0.42,
+              18,
+              palette.text,
+              700,
+            );
+            label(
+              "Simulator  •  Debugger",
+              W * 0.745,
+              H * 0.51,
+              15,
+              palette.muted,
+              600,
+            );
+            label("Профилирование", W * 0.745, H * 0.6, 15, palette.muted, 600);
+            chip(
+              W * 0.08,
+              H * 0.79,
+              W * 0.84,
+              H * 0.14,
+              "FLUTTER  •  REACT NATIVE  •  .NET MAUI",
+              "Dart  •  JavaScript / TypeScript  •  C#",
+              true,
+              18,
+            );
+          }
+        }
+
+        function drawArchitectureScene(p, portrait, W, H) {
+          if (portrait) {
+            phone(
+              W * 0.35,
+              H * 0.06,
+              W * 0.3,
+              H * 0.25,
+              "CLIENT",
+              "мобильное приложение",
+            );
+            chip(
+              W * 0.12,
+              H * 0.39,
+              W * 0.76,
+              H * 0.12,
+              "REST API",
+              "запросы и ответы",
+              true,
+              21,
+            );
+            arrow(W * 0.5, H * 0.33, W * 0.5, H * 0.38, p);
+            roundedRect(
+              W * 0.12,
+              H * 0.6,
+              W * 0.76,
+              H * 0.12,
+              16,
+              palette.panel,
+              palette.border,
+              2,
+            );
+            label(
+              "СЕРВЕР  /  ОБЛАКО",
+              W * 0.5,
+              H * 0.655,
+              19,
+              palette.text,
+              800,
+            );
+            arrow(W * 0.5, H * 0.52, W * 0.5, H * 0.59, p);
+            chip(
+              W * 0.12,
+              H * 0.79,
+              W * 0.35,
+              H * 0.12,
+              "CACHE",
+              "локально",
+              false,
+              18,
+            );
+            chip(
+              W * 0.53,
+              H * 0.79,
+              W * 0.35,
+              H * 0.12,
+              "SYNC",
+              "синхронизация",
+              true,
+              18,
+            );
+            arrow(W * 0.47, H * 0.75, W * 0.32, H * 0.78, p);
+            arrow(W * 0.53, H * 0.75, W * 0.68, H * 0.78, p);
+            label("офлайн-режим", W * 0.5, H * 0.96, 14, palette.muted, 600);
+          } else {
+            phone(W * 0.04, H * 0.28, W * 0.18, H * 0.48, "APP", "client");
+            chip(
+              W * 0.3,
+              H * 0.39,
+              W * 0.19,
+              H * 0.19,
+              "REST API",
+              "запрос",
+              true,
+              19,
+            );
+            chip(
+              W * 0.69,
+              H * 0.3,
+              W * 0.27,
+              H * 0.19,
+              "SERVER",
+              "облачный сервис",
+              false,
+              19,
+            );
+            chip(
+              W * 0.69,
+              H * 0.57,
+              W * 0.27,
+              H * 0.16,
+              "DATABASE",
+              "данные",
+              true,
+              17,
+            );
+            chip(
+              W * 0.29,
+              H * 0.72,
+              W * 0.2,
+              H * 0.14,
+              "CACHE",
+              "offline",
+              false,
+              18,
+            );
+            arrow(W * 0.22, H * 0.48, W * 0.29, H * 0.48, p);
+            arrow(W * 0.5, H * 0.48, W * 0.67, H * 0.39, p);
+            arrow(W * 0.82, H * 0.51, W * 0.82, H * 0.56, p);
+            arrow(W * 0.68, H * 0.65, W * 0.51, H * 0.76, p);
+            label(
+              "сеть  •  повторы  •  синхронизация",
+              W * 0.55,
+              H * 0.94,
+              16,
+              palette.muted,
+              600,
+            );
+          }
+        }
+
+        function drawUXScene(p, portrait, W, H) {
+          if (portrait) {
+            phone(
+              W * 0.32,
+              H * 0.06,
+              W * 0.36,
+              H * 0.43,
+              "МЕНЮ",
+              "понятная навигация",
+            );
+            circleIcon(W * 0.19, H * 0.61, H * 0.065, "GPS");
+            circleIcon(W * 0.5, H * 0.61, H * 0.065, "CAM");
+            circleIcon(W * 0.81, H * 0.61, H * 0.065, "MIC");
+            circleIcon(W * 0.19, H * 0.79, H * 0.065, "BT");
+            circleIcon(W * 0.5, H * 0.79, H * 0.065, "NFC");
+            circleIcon(W * 0.81, H * 0.79, H * 0.065, "BIO");
+            label(
+              "Material Design  •  Human Interface Guidelines",
+              W * 0.5,
+              H * 0.94,
+              14,
+              palette.muted,
+              600,
+            );
+            arrow(W * 0.5, H * 0.51, W * 0.5, H * 0.55, p);
+          } else {
+            phone(
+              W * 0.38,
+              H * 0.12,
+              W * 0.24,
+              H * 0.7,
+              "НАВИГАЦИЯ",
+              "UX / UI",
+            );
+            circleIcon(W * 0.16, H * 0.25, H * 0.09, "GPS");
+            circleIcon(W * 0.84, H * 0.25, H * 0.09, "CAM");
+            circleIcon(W * 0.16, H * 0.68, H * 0.09, "BT");
+            circleIcon(W * 0.84, H * 0.68, H * 0.09, "NFC");
+            label(
+              "акселерометр  •  гироскоп  •  микрофон  •  биометрия",
+              W * 0.5,
+              H * 0.92,
+              15,
+              palette.muted,
+              600,
+            );
+            arrow(W * 0.26, H * 0.32, W * 0.36, H * 0.4, p);
+            arrow(W * 0.74, H * 0.32, W * 0.64, H * 0.4, p);
+          }
+        }
+
+        function drawDataScene(p, portrait, W, H) {
+          if (portrait) {
+            roundedRect(
+              W * 0.08,
+              H * 0.08,
+              W * 0.84,
+              H * 0.34,
+              20,
+              palette.panel,
+              hexRgba(palette.accent, 0.6),
+              2,
+            );
+            label(
+              "ЛОКАЛЬНОЕ ХРАНЕНИЕ",
+              W * 0.5,
+              H * 0.15,
+              19,
+              palette.accent,
+              800,
+            );
+            chip(
+              W * 0.15,
+              H * 0.22,
+              W * 0.7,
+              H * 0.08,
+              "FILES  •  SQLITE",
+              "",
+              false,
+              17,
+            );
+            chip(
+              W * 0.15,
+              H * 0.32,
+              W * 0.7,
+              H * 0.08,
+              "ROOM  •  CORE DATA",
+              "",
+              false,
+              17,
+            );
+            arrow(W * 0.5, H * 0.44, W * 0.5, H * 0.53, p);
+            roundedRect(
+              W * 0.08,
+              H * 0.57,
+              W * 0.84,
+              H * 0.26,
+              20,
+              palette.panel,
+              palette.border,
+              2,
+            );
+            label("ВНЕШНИЕ СЕРВИСЫ", W * 0.5, H * 0.64, 19, palette.text, 800);
+            chip(
+              W * 0.15,
+              H * 0.7,
+              W * 0.7,
+              H * 0.09,
+              "CLOUD API  •  PUSH",
+              "",
+              true,
+              17,
+            );
+            label(
+              "фоновые задачи  •  синхронизация",
+              W * 0.5,
+              H * 0.91,
+              14,
+              palette.muted,
+              600,
+            );
+          } else {
+            roundedRect(
+              W * 0.05,
+              H * 0.18,
+              W * 0.41,
+              H * 0.58,
+              20,
+              palette.panel,
+              hexRgba(palette.accent, 0.6),
+              2,
+            );
+            label("ЛОКАЛЬНО", W * 0.255, H * 0.3, 23, palette.accent, 800);
+            chip(
+              W * 0.1,
+              H * 0.4,
+              W * 0.31,
+              H * 0.12,
+              "FILES  •  SQLITE",
+              "",
+              false,
+              17,
+            );
+            chip(
+              W * 0.1,
+              H * 0.56,
+              W * 0.31,
+              H * 0.12,
+              "ROOM  •  CORE DATA",
+              "",
+              false,
+              16,
+            );
+            roundedRect(
+              W * 0.54,
+              H * 0.18,
+              W * 0.41,
+              H * 0.58,
+              20,
+              palette.panel,
+              palette.border,
+              2,
+            );
+            label("ОБЛАКО", W * 0.745, H * 0.3, 23, palette.text, 800);
+            chip(
+              W * 0.59,
+              H * 0.4,
+              W * 0.31,
+              H * 0.12,
+              "REMOTE DB  •  API",
+              "",
+              true,
+              16,
+            );
+            chip(
+              W * 0.59,
+              H * 0.56,
+              W * 0.31,
+              H * 0.12,
+              "PUSH  •  BACKGROUND",
+              "",
+              false,
+              15,
+            );
+            arrow(W * 0.47, H * 0.48, W * 0.53, H * 0.48, p);
+            label(
+              "локальные данные  ↔  синхронизация",
+              W * 0.5,
+              H * 0.9,
+              16,
+              palette.muted,
+              600,
+            );
+          }
+        }
+
+        function drawReleaseScene(p, portrait, W, H) {
+          if (portrait) {
+            roundedRect(
+              W * 0.08,
+              H * 0.07,
+              W * 0.84,
+              H * 0.23,
+              18,
+              palette.panel,
+              hexRgba(palette.accent, 0.65),
+              2,
+            );
+            label("ТЕСТИРОВАНИЕ", W * 0.5, H * 0.13, 20, palette.accent, 800);
+            label(
+              "Unit  •  Integration  •  UI",
+              W * 0.5,
+              H * 0.21,
+              15,
+              palette.text,
+              600,
+            );
+            label(
+              "производительность  •  совместимость",
+              W * 0.5,
+              H * 0.26,
+              13,
+              palette.muted,
+              600,
+            );
+            arrow(W * 0.5, H * 0.32, W * 0.5, H * 0.38, p);
+            circleIcon(W * 0.5, H * 0.48, H * 0.075, "LOCK", "защита");
+            label(
+              "шифрование  •  аутентификация  •  сессии",
+              W * 0.5,
+              H * 0.56,
+              13,
+              palette.muted,
+              600,
+            );
+            label(
+              "разрешения  •  согласие  •  минимум доступа",
+              W * 0.5,
+              H * 0.61,
+              13,
+              palette.muted,
+              600,
+            );
+            arrow(W * 0.5, H * 0.64, W * 0.5, H * 0.68, p);
+            chip(
+              W * 0.08,
+              H * 0.72,
+              W * 0.39,
+              H * 0.12,
+              "Google Play",
+              "Android",
+              true,
+              17,
+            );
+            chip(
+              W * 0.53,
+              H * 0.72,
+              W * 0.39,
+              H * 0.12,
+              "App Store",
+              "iOS",
+              false,
+              17,
+            );
+            label(
+              "требования  •  разработка  •  релиз  •  сопровождение",
+              W * 0.5,
+              H * 0.92,
+              13,
+              palette.muted,
+              600,
+            );
+          } else {
+            chip(
+              W * 0.04,
+              H * 0.18,
+              W * 0.27,
+              H * 0.17,
+              "UNIT",
+              "модульное",
+              true,
+              19,
+            );
+            chip(
+              W * 0.04,
+              H * 0.42,
+              W * 0.27,
+              H * 0.17,
+              "UI / INTEGRATION",
+              "интерфейс и связи",
+              false,
+              16,
+            );
+            chip(
+              W * 0.04,
+              H * 0.66,
+              W * 0.27,
+              H * 0.17,
+              "PERFORMANCE",
+              "совместимость",
+              true,
+              16,
+            );
+            circleIcon(W * 0.5, H * 0.49, H * 0.16, "LOCK", "шифрование");
+            chip(
+              W * 0.69,
+              H * 0.22,
+              W * 0.27,
+              H * 0.18,
+              "Google Play",
+              "Android",
+              true,
+              19,
+            );
+            chip(
+              W * 0.69,
+              H * 0.52,
+              W * 0.27,
+              H * 0.18,
+              "App Store",
+              "iOS",
+              false,
+              19,
+            );
+            arrow(W * 0.32, H * 0.5, W * 0.36, H * 0.5, p);
+            arrow(W * 0.64, H * 0.5, W * 0.68, H * 0.5, p);
+            label(
+              "требования  →  разработка  →  релиз  →  сопровождение",
+              W * 0.5,
+              H * 0.93,
+              15,
+              palette.muted,
+              600,
+            );
+          }
+        }
+
+        const sceneDrawers = [
+          drawDeviceScene,
+          drawPlatformsScene,
+          drawApproachesScene,
+          drawToolsScene,
+          drawArchitectureScene,
+          drawUXScene,
+          drawDataScene,
+          drawReleaseScene,
+        ];
+
+        function draw() {
+          if (!ctx || !el.canvas) return;
+          const rect = el.canvas.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const portrait = rect.height >= rect.width;
+          logicalWidth = portrait ? 600 : 900;
+          logicalHeight = portrait ? 900 : 600;
+          width = rect.width;
+          height = rect.height;
+          dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+          const scale = Math.min(width / logicalWidth, height / logicalHeight);
+          const offsetX = (width - logicalWidth * scale) / 2;
+          const offsetY = (height - logicalHeight * scale) / 2;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, width, height);
+          ctx.save();
+          ctx.translate(offsetX, offsetY);
+          ctx.scale(scale, scale);
+          background(logicalWidth, logicalHeight);
+          const progress =
+            state.mode === "auto"
+              ? Math.min(1, state.elapsed / AUTO_STEP_MS)
+              : state.isTransitioning
+                ? Math.min(1, state.elapsed / STEP_TRANSITION_MS)
+                : 1;
+          sceneDrawers[state.currentStep](
+            ease(progress),
+            portrait,
+            logicalWidth,
+            logicalHeight,
+          );
+          ctx.restore();
+        }
+
+        function ease(value) {
+          const t = Math.max(0, Math.min(1, value));
+          return t * t * (3 - 2 * t);
+        }
+
+        function updateSubtitles(stepIndex) {
+          const item = steps[stepIndex];
+          if (!item || !el.subtitle) return;
+          el.subtitle.classList.add("is-changing");
+          requestAnimationFrame(() => {
+            el.subtitle.replaceChildren();
+            item.segments.forEach((segment) => {
+              const span = document.createElement("span");
+              if (segment.emphasis) span.className = "subtitle__keyword";
+              span.textContent = segment.text;
+              el.subtitle.appendChild(span);
+            });
+            requestAnimationFrame(() =>
+              el.subtitle.classList.remove("is-changing"),
+            );
+          });
+          if (modal) modal.setStepText(`Шаг ${item.step} / ${steps.length}`);
+        }
+
+        function renderControls() {
+          if (modal) {
+            modal.setStepText(`Шаг ${state.currentStep + 1} / ${steps.length}`);
+            const next = document.getElementById("mNext");
+            if (next)
+              next.disabled =
+                state.mode !== "step" ||
+                state.isTransitioning ||
+                state.currentStep === steps.length - 1;
+            const speed = document.getElementById("mSpeed");
+            if (speed && Number(speed.value) !== state.speed)
+              speed.value = String(state.speed);
+            const video = document.getElementById("mNine");
+            if (video) video.checked = state.videoMode;
+          }
+          const play = el.play;
+          if (play) {
+            let mode = "idle";
+            let labelText =
+              "В режиме STEP переход запускается кнопкой «Следующий шаг»";
+            if (state.mode === "auto") {
+              mode = state.isPlaying ? "playing" : "paused";
+              labelText = state.isPlaying
+                ? "Приостановить воспроизведение"
+                : "Продолжить воспроизведение";
+            } else if (state.isTransitioning) {
+              mode = state.isPlaying
+                ? "transition-playing"
+                : "transition-paused";
+              labelText = state.isPlaying
+                ? "Приостановить переход"
+                : "Продолжить переход";
+            }
+            play.dataset.state = mode;
+            play.setAttribute("aria-label", labelText);
+            play.title = labelText;
+            play.disabled = state.mode === "step" && !state.isTransitioning;
+          }
+          el.controls.classList.toggle("is-hidden", state.controlsHidden);
+          el.frame.classList.toggle("video-mode", state.videoMode);
+          el.app.classList.toggle("video-mode", state.videoMode);
+          document.body.classList.toggle("v916", state.videoMode);
+        }
+
+        function setPlaying(value) {
+          if (state.mode === "step" && !state.isTransitioning) return;
+          state.isPlaying = Boolean(value);
+          renderControls();
+        }
+
+        function togglePlaying() {
+          if (state.mode === "step" && !state.isTransitioning) return;
+          setPlaying(!state.isPlaying);
+        }
+
+        function startAuto() {
+          state.mode = "auto";
+          state.isPlaying = true;
+          state.isTransitioning = false;
+          state.elapsed = 0;
+          renderControls();
+        }
+
+        function setMode(mode) {
+          if (mode !== "auto" && mode !== "step") return;
+          if (state.mode === mode) return;
+          state.mode = mode;
+          state.elapsed = 0;
+          state.isTransitioning = false;
+          if (mode === "auto") {
+            state.isPlaying = true;
+          } else {
+            state.isPlaying = false;
+          }
+          renderControls();
+        }
+
+        function onStep() {
+          if (state.currentStep < steps.length - 1) state.currentStep += 1;
+          else if (state.mode === "auto") state.currentStep = 0;
+          state.elapsed = 0;
+          state.isTransitioning = true;
+          state.isPlaying = true;
+          updateSubtitles(state.currentStep);
+          renderControls();
+        }
+
+        function nextStep() {
+          if (
+            state.mode !== "step" ||
+            state.isTransitioning ||
+            state.currentStep >= steps.length - 1
+          )
+            return;
+          onStep();
+        }
+
+        function reset() {
+          state.mode = "auto";
+          state.currentStep = 0;
+          state.elapsed = 0;
+          state.isTransitioning = false;
+          state.isPlaying = true;
+          updateSubtitles(0);
+          renderControls();
+        }
+
+        function setSpeed(value) {
+          const allowed = [0.5, 1, 2];
+          const nearest = allowed.reduce(
+            (best, item) =>
+              Math.abs(item - value) < Math.abs(best - value) ? item : best,
+            allowed[0],
+          );
+          state.speed = nearest;
+          renderControls();
+        }
+
+        function toggleVideoMode() {
+          state.videoMode = !state.videoMode;
+          renderControls();
+          requestAnimationFrame(resize);
+        }
+
+        function openSettings() {
+          if (modal) modal.open();
+        }
+
+        function closeSettings() {
+          if (modal) modal.close();
+        }
+
+        function resize() {
+          const rect = el.visual.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return;
+          const ratio = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+          const targetWidth = Math.round(rect.width * ratio);
+          const targetHeight = Math.round(rect.height * ratio);
+          if (
+            el.canvas.width !== targetWidth ||
+            el.canvas.height !== targetHeight
+          ) {
+            el.canvas.width = targetWidth;
+            el.canvas.height = targetHeight;
+          }
+          draw();
+        }
+
+        function update(dt) {
+          if (state.isPlaying && state.autoStarted) {
+            const delta = dt * state.speed;
+            state.elapsed += delta;
+            if (state.mode === "auto") {
+              while (state.elapsed >= AUTO_STEP_MS) {
+                state.elapsed -= AUTO_STEP_MS;
+                state.currentStep = (state.currentStep + 1) % steps.length;
+                updateSubtitles(state.currentStep);
+              }
+            } else if (
+              state.isTransitioning &&
+              state.elapsed >= STEP_TRANSITION_MS
+            ) {
+              state.elapsed = STEP_TRANSITION_MS;
+              state.isTransitioning = false;
+              state.isPlaying = false;
+              renderControls();
+            }
+          }
+        }
+
+        function handleInput(event) {
+          const target = event.target;
+          const editing =
+            target &&
+            (target.isContentEditable ||
+              target.closest(
+                'input, textarea, select, [contenteditable="true"]',
+              ));
+          if (editing) return;
+          if (event.key === "Escape") {
+            closeSettings();
+            return;
+          }
+          if (window.matchMedia("(max-width: 767px)").matches) return;
+          const key = event.key.toLowerCase();
+          if (event.code === "Space") {
+            event.preventDefault();
+            state.controlsHidden = !state.controlsHidden;
+            renderControls();
+          } else if (event.key === "ArrowRight") {
+            if (state.mode === "step") {
+              event.preventDefault();
+              nextStep();
+            }
+          } else if (key === "r") {
+            reset();
+          } else if (key === "s") {
+            setMode(state.mode === "auto" ? "step" : "auto");
+          } else if (key === "v") {
+            toggleVideoMode();
+          }
+        }
+
+        function animationFrame(timestamp) {
+          if (!state.lastFrame) state.lastFrame = timestamp;
+          const dt = Math.min(64, Math.max(0, timestamp - state.lastFrame));
+          state.lastFrame = timestamp;
+          update(dt);
+          draw();
+          requestAnimationFrame(animationFrame);
+        }
+
+        function init() {
+          el.app = document.getElementById("app");
+          el.frame = document.getElementById("frame");
+          el.visual = document.getElementById("visual");
+          el.canvas = document.getElementById("sceneCanvas");
+          el.subtitle = document.getElementById("subtitle");
+          el.controls = document.getElementById("controls");
+          el.play = document.getElementById("playButton");
+          el.settings = document.getElementById("settingsButton");
+
+          if (
+            !el.app ||
+            !el.frame ||
+            !el.visual ||
+            !el.canvas ||
+            !el.subtitle ||
+            !el.controls ||
+            !el.play ||
+            !el.settings
+          ) {
+            console.error(
+              "Не удалось инициализировать интерфейс мобильной разработки: отсутствуют обязательные элементы.",
+            );
+            return;
+          }
+          ctx = el.canvas.getContext("2d");
+          if (!ctx) {
+            el.subtitle.textContent =
+              "Canvas недоступен в этом браузере. Обновите браузер для просмотра визуализации.";
+            console.error("CanvasRenderingContext2D недоступен.");
+            return;
+          }
+          initPalette();
+          modal = window.SettingsModal.init();
+          const overlay = document.getElementById("modalWrap");
+          overlay.addEventListener("settings:mode", (event) =>
+            setMode(event.detail.mode),
+          );
+          overlay.addEventListener("settings:next-step", nextStep);
+          overlay.addEventListener("settings:speed", (event) =>
+            setSpeed(event.detail.value),
+          );
+          overlay.addEventListener("settings:video-mode", (event) => {
+            if (Boolean(event.detail.enabled) !== state.videoMode)
+              toggleVideoMode();
+          });
+          overlay.addEventListener("settings:reset", reset);
+
+          el.play.addEventListener("click", togglePlaying);
+          el.settings.addEventListener("click", openSettings);
+          document.addEventListener("keydown", handleInput);
+          window.addEventListener("resize", resize, { passive: true });
+          if ("ResizeObserver" in window) {
+            observer = new ResizeObserver(resize);
+            observer.observe(el.visual);
+          }
+
+          updateSubtitles(0);
+          renderControls();
+          resize();
+          requestAnimationFrame(animationFrame);
+          window.setTimeout(() => {
+            state.autoStarted = true;
+            state.isPlaying = true;
+            renderControls();
+          }, 500);
+        }
+
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", init, { once: true });
+        else init();
+      })();
+    </script>
+  </body>
+</html>

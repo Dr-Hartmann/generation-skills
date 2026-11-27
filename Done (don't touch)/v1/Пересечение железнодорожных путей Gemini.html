@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Пересечение железнодорожных путей</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --accent-dark: #1e7a47;
+        --text: #ffffff;
+        --muted: #a0a0a0;
+        --danger: #ff4757;
+        --warn: #ffa502;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        touch-action: manipulation;
+      }
+
+      #ambient-bg {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        background:
+          radial-gradient(
+            circle at 25% 30%,
+            rgba(46, 172, 101, 0.28),
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 75% 70%,
+            rgba(30, 122, 71, 0.32),
+            transparent 55%
+          ),
+          #09090c;
+        filter: blur(36px);
+        z-index: 0;
+      }
+
+      body.video-mode #ambient-bg {
+        opacity: 1;
+      }
+
+      #app {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(84px, calc(80px + env(safe-area-inset-right)));
+        padding-bottom: max(18vh, env(safe-area-inset-bottom));
+        transition: all 0.3s ease;
+      }
+
+      #main-stage {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      #header {
+        flex-shrink: 0;
+        margin-bottom: 10px;
+        z-index: 3;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+      }
+
+      #header h1 {
+        margin: 0;
+        font-size: clamp(18px, 4.8vw, 26px);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+      }
+
+      #header .badge {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: clamp(11px, 3vw, 13px);
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      #canvas-wrap {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #131319;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      #subtitles-slot-mobile {
+        flex-shrink: 0;
+        margin-top: 12px;
+        margin-bottom: 24px;
+        z-index: 3;
+      }
+
+      .subtitle-box {
+        min-height: clamp(68px, 11vh, 92px);
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #00000080;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(46, 172, 101, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: clamp(16px, 4.5vw, 22px);
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--text);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+
+      .subtitle-text {
+        animation: subIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      .subtitle-text span {
+        color: var(--accent);
+        text-shadow: 0 0 14px rgba(46, 172, 101, 0.45);
+      }
+
+      @keyframes subIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #bottom-bar {
+        flex-shrink: 0;
+        height: 56px;
+        padding: 0 10px;
+        border-radius: 16px;
+        background: rgba(26, 26, 32, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        z-index: 4;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+      }
+
+      .ctrl-btn {
+        min-width: 48px;
+        height: 48px;
+        padding: 0 16px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          transform 0.15s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .ctrl-btn:active {
+        transform: scale(0.95);
+      }
+
+      .ctrl-btn.primary {
+        background: var(--accent);
+        color: #08140d;
+        box-shadow: 0 0 18px rgba(46, 172, 101, 0.45);
+      }
+
+      #side-panel {
+        display: none;
+      }
+
+      body.ui-hidden #header,
+      body.ui-hidden #bottom-bar {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+      }
+
+      @media (min-width: 768px) {
+        #app {
+          flex-direction: row;
+          padding: 24px;
+          gap: 24px;
+        }
+
+        #main-stage {
+          flex: 1;
+        }
+
+        #subtitles-slot-mobile {
+          display: none;
+        }
+
+        #side-panel {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          width: 350px;
+          flex-shrink: 0;
+          background: var(--panel);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 24px;
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        #side-panel .panel-top {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        #side-panel .panel-label {
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--muted);
+        }
+
+        #side-panel .subtitle-box {
+          min-height: 150px;
+          font-size: 20px;
+        }
+
+        #side-panel .legend {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          font-size: 13px;
+          color: var(--muted);
+          font-weight: 700;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        #bottom-bar {
+          margin-top: 16px;
+        }
+
+        .ctrl-btn:hover {
+          background: rgba(255, 255, 255, 0.14);
+        }
+
+        .ctrl-btn.primary:hover {
+          background: #35c272;
+          box-shadow: 0 0 24px rgba(46, 172, 101, 0.65);
+        }
+      }
+
+      body.video-mode #app {
+        flex-direction: column;
+        width: min(100vw, calc(100dvh * 9 / 16));
+        height: min(100dvh, calc(100vw * 16 / 9));
+        margin: auto;
+        padding: 18px 16px 20px 16px;
+        border-radius: 28px;
+        background: var(--bg);
+        border: 2px solid rgba(46, 172, 101, 0.35);
+        box-shadow:
+          0 0 60px rgba(0, 0, 0, 0.85),
+          0 0 30px rgba(46, 172, 101, 0.18);
+      }
+
+      body.video-mode #side-panel {
+        display: none !important;
+      }
+
+      body.video-mode #subtitles-slot-mobile {
+        display: block !important;
+        margin-top: 12px;
+        margin-bottom: 14px;
+      }
+
+      body.video-mode .subtitle-box {
+        min-height: 76px;
+        font-size: 17px;
+      }
+
+      body.video-mode #bottom-bar {
+        margin-top: 0;
+      }
+
+      #modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 8, 12, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+
+      #modal-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #settings-modal {
+        width: 100%;
+        max-width: 400px;
+        background: rgba(26, 26, 32, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+        transform: scale(0.95);
+        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      #modal-backdrop.open #settings-modal {
+        transform: scale(1);
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .modal-head h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .step-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(46, 172, 101, 0.16);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .modal-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 12px 14px;
+        border-radius: 14px;
+      }
+
+      .modal-row label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .seg-group {
+        display: flex;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 3px;
+        border-radius: 10px;
+        gap: 4px;
+      }
+
+      .seg-btn {
+        min-height: 36px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .seg-btn.active {
+        background: var(--accent);
+        color: #08140d;
+      }
+
+      .modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .modal-actions .ctrl-btn {
+        width: 100%;
+        font-size: 14px;
+      }
+
+      .ctrl-btn:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .hotkeys-box {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.25);
+        padding: 10px 12px;
+        border-radius: 12px;
+      }
+
+      .hotkeys-box b {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ambient-bg"></div>
+
+    <div id="app">
+      <div id="main-stage">
+        <header id="header">
+          <h1>Пересечение ж/д путей</h1>
+          <div class="badge" id="step-badge">Шаг 1 / 8</div>
+        </header>
+
+        <div id="canvas-wrap">
+          <canvas id="scene"></canvas>
+        </div>
+
+        <div id="subtitles-slot-mobile">
+          <div class="subtitle-box">
+            <div class="subtitle-text" id="subtitle-mobile"></div>
+          </div>
+        </div>
+
+        <div id="bottom-bar">
+          <button
+            class="ctrl-btn primary"
+            id="btn-play"
+            aria-label="Пауза или старт"
+          >
+            ⏸ Пауза
+          </button>
+          <button class="ctrl-btn" id="btn-settings" aria-label="Настройки">
+            ⚙
+          </button>
+        </div>
+      </div>
+
+      <aside id="side-panel">
+        <div class="panel-top">
+          <div class="panel-label">Пояснение</div>
+          <div class="subtitle-box">
+            <div class="subtitle-text" id="subtitle-desktop"></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <span
+              class="dot"
+              style="background: #2eac65; box-shadow: 0 0 8px #2eac65"
+            ></span
+            >Безопасная зона и маршрут
+          </div>
+          <div class="legend-item">
+            <span class="dot" style="background: #ffa502"></span>Зона
+            повышенного внимания
+          </div>
+          <div class="legend-item">
+            <span class="dot" style="background: #ff4757"></span>Смертельно
+            опасная зона
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div id="modal-backdrop" role="dialog" aria-modal="true">
+      <div id="settings-modal">
+        <div class="modal-head">
+          <h2>Настройки</h2>
+          <span class="step-pill" id="modal-step-indicator">Шаг 1 / 8</span>
+          <button
+            class="ctrl-btn"
+            id="btn-close-modal"
+            style="min-width: 48px; padding: 0"
+            aria-label="Закрыть"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="modal-row">
+          <label>Режим показа</label>
+          <div class="seg-group">
+            <button class="seg-btn active" id="mode-auto">AUTO</button>
+            <button class="seg-btn" id="mode-step">STEP</button>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <label>Скорость</label>
+          <div class="seg-group">
+            <button class="seg-btn speed-btn" data-speed="0.5">0.5x</button>
+            <button class="seg-btn speed-btn active" data-speed="1">1x</button>
+            <button class="seg-btn speed-btn" data-speed="2">2x</button>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <label>Режим 9:16 (запись)</label>
+          <button class="seg-btn" id="btn-video-mode">Выкл</button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="ctrl-btn primary" id="btn-next-step" disabled>
+            Следующий шаг ▶
+          </button>
+          <button class="ctrl-btn" id="btn-reset">Reset ↺</button>
+        </div>
+
+        <div class="hotkeys-box">
+          <b>Горячие клавиши:</b> Space — скрыть UI • → — шаг • S — AUTO/STEP •
+          V — 9:16 • R — сброс • Esc — закрыть
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SUBTITLES = [
+        {
+          step: 1,
+          text: "Однопутные, многопутные и <span>скоростные магистрали</span> таят разную скорость и опасность.",
+        },
+        {
+          step: 2,
+          text: "В контактной сети <span>27 500 вольт</span> — дуга бьёт даже на расстоянии.",
+        },
+        {
+          step: 3,
+          text: "Переходите только по <span>мостам, тоннелям</span> или оборудованным настилам со светофором.",
+        },
+        {
+          step: 4,
+          text: "Перед переходом снимите <span>наушники и капюшон</span>, уберите экран телефона.",
+        },
+        {
+          step: 5,
+          text: "Идите строго <span>перпендикулярно путям</span> и никогда не наступайте на рельсы.",
+        },
+        {
+          step: 6,
+          text: "Пропустив поезд, проверьте: по <span>соседнему пути</span> может мчаться встречный.",
+        },
+        {
+          step: 7,
+          text: "Запрещено подлезать <span>под вагоны</span> — состав трогается без предупреждения.",
+        },
+        {
+          step: 8,
+          text: "Красный сигнал и <span>опущенный шлагбаум</span> — абсолютный запрет выхода на пути.",
+        },
+      ];
+
+      const state = {
+        step: 1,
+        totalSteps: SUBTITLES.length,
+        stepElapsed: 0,
+        stepDuration: 4.4,
+        globalTime: 0,
+        isPlaying: false,
+        mode: "AUTO",
+        speed: 1,
+        videoMode: false,
+        settingsOpen: false,
+        width: 0,
+        height: 0,
+        dpr: 1,
+        particles: [],
+        pulsePing: 0,
+      };
+
+      const els = {
+        canvas: document.getElementById("scene"),
+        wrap: document.getElementById("canvas-wrap"),
+        subMobile: document.getElementById("subtitle-mobile"),
+        subDesktop: document.getElementById("subtitle-desktop"),
+        stepBadge: document.getElementById("step-badge"),
+        modalStep: document.getElementById("modal-step-indicator"),
+        btnPlay: document.getElementById("btn-play"),
+        btnSettings: document.getElementById("btn-settings"),
+        modalBackdrop: document.getElementById("modal-backdrop"),
+        btnCloseModal: document.getElementById("btn-close-modal"),
+        modeAuto: document.getElementById("mode-auto"),
+        modeStep: document.getElementById("mode-step"),
+        btnNextStep: document.getElementById("btn-next-step"),
+        btnReset: document.getElementById("btn-reset"),
+        btnVideoMode: document.getElementById("btn-video-mode"),
+        speedBtns: document.querySelectorAll(".speed-btn"),
+      };
+
+      const ctx = els.canvas.getContext("2d");
+      let lastTs = 0;
+
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+      }
+
+      function easeInOutSine(t) {
+        return -(Math.cos(Math.PI * Math.min(1, Math.max(0, t))) - 1) / 2;
+      }
+
+      function spawnParticles(x, y, color, count = 14) {
+        for (let i = 0; i < count; i++) {
+          const ang = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+          const spd = 30 + Math.random() * 80;
+          state.particles.push({
+            x,
+            y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 1,
+            decay: 1.2 + Math.random() * 0.8,
+            size: 2 + Math.random() * 2.5,
+            color,
+          });
+        }
+      }
+
+      function resize() {
+        const rect = els.wrap.getBoundingClientRect();
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        state.width = Math.max(1, rect.width);
+        state.height = Math.max(1, rect.height);
+        els.canvas.width = Math.round(state.width * state.dpr);
+        els.canvas.height = Math.round(state.height * state.dpr);
+      }
+
+      function updateSubtitles(step) {
+        const item = SUBTITLES[step - 1] || SUBTITLES[0];
+        [els.subMobile, els.subDesktop].forEach((el) => {
+          el.classList.remove("subtitle-text");
+          void el.offsetWidth;
+          el.innerHTML = item.text;
+          el.classList.add("subtitle-text");
+        });
+        const label = `Шаг ${step} / ${state.totalSteps}`;
+        els.stepBadge.textContent = label;
+        els.modalStep.textContent = label;
+      }
+
+      function syncUI() {
+        els.btnPlay.innerHTML = state.isPlaying ? "⏸ Пауза" : "▶ Старт";
+        els.modeAuto.classList.toggle("active", state.mode === "AUTO");
+        els.modeStep.classList.toggle("active", state.mode === "STEP");
+        els.btnNextStep.disabled = state.mode !== "STEP";
+        els.btnVideoMode.textContent = state.videoMode ? "Вкл" : "Выкл";
+        els.btnVideoMode.classList.toggle("active", state.videoMode);
+        els.speedBtns.forEach((btn) => {
+          btn.classList.toggle(
+            "active",
+            parseFloat(btn.dataset.speed) === state.speed,
+          );
+        });
+      }
+
+      function startAuto() {
+        state.mode = "AUTO";
+        state.isPlaying = true;
+        syncUI();
+      }
+
+      function onStep(dir = 1) {
+        state.step += dir;
+        if (state.step > state.totalSteps) state.step = 1;
+        if (state.step < 1) state.step = state.totalSteps;
+        state.stepElapsed = 0;
+        state.pulsePing = 1;
+        updateSubtitles(state.step);
+        spawnParticles(state.width * 0.5, state.height * 0.5, "#2EAC65", 16);
+      }
+
+      function resetAll() {
+        state.step = 1;
+        state.stepElapsed = 0;
+        state.globalTime = 0;
+        state.particles = [];
+        updateSubtitles(1);
+        startAuto();
+      }
+
+      function openSettings() {
+        state.settingsOpen = true;
+        els.modalBackdrop.classList.add("open");
+        syncUI();
+      }
+
+      function closeSettings() {
+        state.settingsOpen = false;
+        els.modalBackdrop.classList.remove("open");
+      }
+
+      function toggleVideoMode() {
+        state.videoMode = !state.videoMode;
+        document.body.classList.toggle("video-mode", state.videoMode);
+        syncUI();
+        setTimeout(resize, 50);
+      }
+
+      function handleInput() {
+        els.btnPlay.addEventListener("click", () => {
+          state.isPlaying = !state.isPlaying;
+          syncUI();
+        });
+
+        els.btnSettings.addEventListener("click", () => {
+          if (state.settingsOpen) closeSettings();
+          else openSettings();
+        });
+
+        els.btnCloseModal.addEventListener("click", closeSettings);
+
+        els.modalBackdrop.addEventListener("click", (e) => {
+          if (e.target === els.modalBackdrop) closeSettings();
+        });
+
+        els.modeAuto.addEventListener("click", () => {
+          state.mode = "AUTO";
+          state.isPlaying = true;
+          syncUI();
+        });
+
+        els.modeStep.addEventListener("click", () => {
+          state.mode = "STEP";
+          state.isPlaying = true;
+          syncUI();
+        });
+
+        els.btnNextStep.addEventListener("click", () => {
+          if (state.mode === "STEP") {
+            onStep(1);
+          }
+        });
+
+        els.btnReset.addEventListener("click", () => {
+          resetAll();
+        });
+
+        els.btnVideoMode.addEventListener("click", toggleVideoMode);
+
+        els.speedBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            state.speed = parseFloat(btn.dataset.speed);
+            syncUI();
+          });
+        });
+
+        els.canvas.addEventListener("click", () => {
+          state.pulsePing = 1;
+          spawnParticles(state.width * 0.5, state.height * 0.5, "#2EAC65", 12);
+          if (state.mode === "STEP") {
+            onStep(1);
+          } else {
+            state.isPlaying = !state.isPlaying;
+            syncUI();
+          }
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (e.code === "Escape") {
+            if (state.settingsOpen) closeSettings();
+          } else if (e.code === "Space") {
+            e.preventDefault();
+            document.body.classList.toggle("ui-hidden");
+          } else if (e.code === "ArrowRight") {
+            e.preventDefault();
+            onStep(1);
+          } else if (e.code === "KeyR") {
+            resetAll();
+          } else if (e.code === "KeyS") {
+            state.mode = state.mode === "AUTO" ? "STEP" : "AUTO";
+            state.isPlaying = true;
+            syncUI();
+          } else if (e.code === "KeyV") {
+            toggleVideoMode();
+          }
+        });
+      }
+
+      function update(dt) {
+        if (state.pulsePing > 0) {
+          state.pulsePing = Math.max(0, state.pulsePing - dt * 1.8);
+        }
+
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+          const p = state.particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= p.decay * dt;
+          if (p.life <= 0) state.particles.splice(i, 1);
+        }
+
+        if (!state.isPlaying) return;
+
+        const scaledDt = dt * state.speed;
+        state.globalTime += scaledDt;
+        state.stepElapsed += scaledDt;
+
+        if (state.mode === "AUTO" && state.stepElapsed >= state.stepDuration) {
+          onStep(1);
+        }
+      }
+
+      function drawTrack(y, gauge, unit, highlightRail = false) {
+        const w = state.width;
+        const sleeperW = unit * 0.032;
+        const sleeperH = gauge * 1.45;
+        const spacing = unit * 0.095;
+
+        ctx.fillStyle = "#22222B";
+        for (let x = -spacing; x < w + spacing; x += spacing) {
+          ctx.fillRect(x, y - sleeperH / 2, sleeperW, sleeperH);
+        }
+
+        ctx.lineWidth = Math.max(2.5, unit * 0.011);
+        ctx.strokeStyle = highlightRail ? "#FF4757" : "#6C7280";
+        if (highlightRail) {
+          ctx.shadowColor = "#FF4757";
+          ctx.shadowBlur = 12;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(0, y - gauge / 2);
+        ctx.lineTo(w, y - gauge / 2);
+        ctx.moveTo(0, y + gauge / 2);
+        ctx.lineTo(w, y + gauge / 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      function drawTrain(
+        x,
+        y,
+        length,
+        height,
+        dir,
+        color = "#2EAC65",
+        label = "ПОЕЗД",
+      ) {
+        ctx.save();
+        ctx.translate(x, y);
+
+        const beamGrad = ctx.createLinearGradient(
+          dir > 0 ? length / 2 : -length / 2,
+          0,
+          dir > 0 ? length / 2 + height * 2.4 : -length / 2 - height * 2.4,
+          0,
+        );
+        beamGrad.addColorStop(0, "rgba(255, 240, 180, 0.42)");
+        beamGrad.addColorStop(1, "rgba(255, 240, 180, 0)");
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        const noseX = dir > 0 ? length / 2 : -length / 2;
+        ctx.moveTo(noseX, -height * 0.3);
+        ctx.lineTo(noseX + dir * height * 2.4, -height * 1.1);
+        ctx.lineTo(noseX + dir * height * 2.4, height * 1.1);
+        ctx.lineTo(noseX, height * 0.3);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "#1E1E26";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        roundRect(ctx, -length / 2, -height / 2, length, height, 10);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = color;
+        ctx.fillRect(-length / 2 + 8, -3, length - 16, 6);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = `800 ${Math.max(10, Math.round(height * 0.28))}px system-ui`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, 0, -height * 0.22);
+
+        ctx.restore();
+      }
+
+      function drawPedestrian(x, y, unit, status = "safe", showCone = false) {
+        const r = unit * 0.048;
+        const color =
+          status === "safe"
+            ? "#2EAC65"
+            : status === "warn"
+              ? "#FFA502"
+              : "#FF4757";
+
+        if (showCone) {
+          const coneGrad = ctx.createRadialGradient(x, y, r, x, y, unit * 0.34);
+          coneGrad.addColorStop(0, "rgba(46, 172, 101, 0.35)");
+          coneGrad.addColorStop(1, "rgba(46, 172, 101, 0)");
+          ctx.fillStyle = coneGrad;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.arc(x, y, unit * 0.34, -Math.PI * 0.85, -Math.PI * 0.15);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        const pulse = (Math.sin(state.globalTime * 5) + 1) * 0.5;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.35 + pulse * 0.35;
+        ctx.beginPath();
+        ctx.arc(x, y, r * (1.45 + pulse * 0.45), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#0F0F13";
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.38, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function drawTag(x, y, text, color = "#2EAC65") {
+        ctx.save();
+        ctx.font = "800 12px system-ui";
+        const padX = 12;
+        const metrics = ctx.measureText(text);
+        const boxW = metrics.width + padX * 2;
+        const boxH = 26;
+
+        ctx.fillStyle = "rgba(15, 15, 19, 0.85)";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, x - boxW / 2, y - boxH / 2, boxW, boxH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y + 0.5);
+        ctx.restore();
+      }
+
+      function draw() {
+        ctx.save();
+        ctx.scale(state.dpr, state.dpr);
+
+        const w = state.width;
+        const h = state.height;
+        const unit = Math.min(w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const p = Math.min(1, state.stepElapsed / state.stepDuration);
+        const ease = easeOutCubic(Math.min(1, state.stepElapsed * 1.4));
+
+        ctx.fillStyle = "#121218";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+        ctx.lineWidth = 1;
+        const gridStep = unit * 0.1;
+        for (let gx = cx % gridStep; gx < w; gx += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = cy % gridStep; gy < h; gy += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+
+        const gauge = unit * 0.11;
+
+        if (state.step === 1) {
+          const spread = unit * 0.22 * ease;
+          drawTrack(cy - spread, gauge, unit);
+          drawTrack(cy, gauge, unit);
+          drawTrack(cy + spread, gauge, unit);
+
+          const speedX =
+            ((state.globalTime * unit * 0.85) % (w + unit * 0.7)) - unit * 0.35;
+          drawTrain(
+            speedX,
+            cy,
+            unit * 0.44,
+            gauge * 1.15,
+            1,
+            "#2EAC65",
+            "250 КМ/Ч",
+          );
+
+          drawTag(
+            cx,
+            cy - spread - gauge * 1.25,
+            "1 ПУТЬ • МНОГОПУТНЫЕ • СКОРОСТНЫЕ",
+            "#2EAC65",
+          );
+        } else if (state.step === 2) {
+          drawTrack(cy + unit * 0.08, gauge, unit);
+
+          const wireY = cy - unit * 0.18;
+          ctx.strokeStyle = "#FF4757";
+          ctx.lineWidth = 3;
+          ctx.shadowColor = "#FF4757";
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.moveTo(0, wireY);
+          ctx.lineTo(w, wireY);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          const arcR = unit * (0.14 + Math.sin(state.globalTime * 8) * 0.02);
+          const arcGrad = ctx.createRadialGradient(
+            cx,
+            wireY,
+            4,
+            cx,
+            wireY,
+            arcR,
+          );
+          arcGrad.addColorStop(0, "rgba(255, 71, 87, 0.55)");
+          arcGrad.addColorStop(1, "rgba(255, 71, 87, 0)");
+          ctx.fillStyle = arcGrad;
+          ctx.beginPath();
+          ctx.arc(cx, wireY, arcR, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = "#FFD32A";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx, wireY);
+          ctx.lineTo(cx - 10, wireY + arcR * 0.45);
+          ctx.lineTo(cx + 8, wireY + arcR * 0.55);
+          ctx.lineTo(cx - 4, wireY + arcR * 0.95);
+          ctx.stroke();
+
+          drawTag(
+            cx,
+            wireY - unit * 0.12,
+            "⚡ 27 500 ВОЛЬТ • НЕ ПРИБЛИЖАТЬСЯ",
+            "#FF4757",
+          );
+        } else if (state.step === 3) {
+          drawTrack(cy - unit * 0.08, gauge, unit);
+          drawTrack(cy + unit * 0.08, gauge, unit);
+
+          const deckW = unit * 0.24;
+          const deckH = unit * 0.36;
+          ctx.fillStyle = "rgba(46, 172, 101, 0.18)";
+          ctx.strokeStyle = "#2EAC65";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#2EAC65";
+          ctx.shadowBlur = 18;
+          roundRect(ctx, cx - deckW / 2, cy - deckH / 2, deckW, deckH, 10);
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = "rgba(46, 172, 101, 0.55)";
+          for (
+            let sy = cy - deckH * 0.36;
+            sy <= cy + deckH * 0.32;
+            sy += unit * 0.055
+          ) {
+            ctx.fillRect(cx - deckW * 0.34, sy, deckW * 0.68, unit * 0.022);
+          }
+
+          const pedY = cy + deckH * 0.45 - easeInOutSine(p) * deckH * 0.9;
+          drawPedestrian(cx, pedY, unit, "safe");
+          drawTag(
+            cx,
+            cy - deckH / 2 - 24,
+            "МОСТ • ТОННЕЛЬ • НАСТИЛ",
+            "#2EAC65",
+          );
+        } else if (state.step === 4) {
+          drawTrack(cy - unit * 0.12, gauge, unit);
+
+          const pedY = cy + unit * 0.22;
+          drawPedestrian(cx, pedY, unit, "safe", true);
+
+          const fadeOut = Math.max(0, 1 - ease * 1.1);
+          if (fadeOut > 0.02) {
+            ctx.save();
+            ctx.globalAlpha = fadeOut;
+            drawTag(
+              cx - unit * 0.22,
+              pedY - unit * 0.14,
+              "🎧 СНЯТЬ",
+              "#FFA502",
+            );
+            drawTag(
+              cx + unit * 0.22,
+              pedY - unit * 0.14,
+              "📱 УБРАТЬ",
+              "#FFA502",
+            );
+            ctx.restore();
+          }
+          drawTag(cx, pedY + unit * 0.14, "ОБЗОР И СЛУХ НА 100%", "#2EAC65");
+        } else if (state.step === 5) {
+          drawTrack(cy, gauge, unit, true);
+
+          const pathW = unit * 0.16;
+          const pathH = unit * 0.52;
+          ctx.fillStyle = "rgba(46, 172, 101, 0.16)";
+          ctx.strokeStyle = "#2EAC65";
+          ctx.setLineDash([8, 6]);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(cx - pathW / 2, cy - pathH / 2, pathW, pathH);
+          ctx.setLineDash([]);
+
+          ctx.strokeStyle = "rgba(255, 71, 87, 0.5)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx - unit * 0.28, cy + pathH / 2);
+          ctx.lineTo(cx + unit * 0.28, cy - pathH / 2);
+          ctx.stroke();
+
+          const pedY = cy + pathH * 0.42 - easeInOutSine(p) * pathH * 0.84;
+          drawPedestrian(cx, pedY, unit, "safe");
+
+          drawTag(cx, cy - pathH / 2 - 22, "СТРОГО ПОД УГЛОМ 90°", "#2EAC65");
+          drawTag(
+            cx + unit * 0.24,
+            cy + gauge * 0.9,
+            "НЕ НАСТУПАТЬ НА РЕЛЬС",
+            "#FF4757",
+          );
+        } else if (state.step === 6) {
+          const t1Y = cy - unit * 0.1;
+          const t2Y = cy + unit * 0.1;
+          drawTrack(t1Y, gauge, unit);
+          drawTrack(t2Y, gauge, unit);
+
+          const t1X = -unit * 0.2 + p * (w + unit * 0.9);
+          drawTrain(
+            t1X,
+            t1Y,
+            unit * 0.46,
+            gauge * 1.1,
+            1,
+            "#A0A0A0",
+            "ПОЕЗД 1",
+          );
+
+          const t2X =
+            w + unit * 0.35 - Math.max(0, p - 0.15) * (w + unit * 1.1);
+          drawTrain(
+            t2X,
+            t2Y,
+            unit * 0.46,
+            gauge * 1.1,
+            -1,
+            "#FF4757",
+            "ВСТРЕЧНЫЙ!",
+          );
+
+          drawPedestrian(cx, t2Y + unit * 0.22, unit, "warn");
+          drawTag(cx, t1Y - unit * 0.16, "ПРОВЕРЬ СОСЕДНИЙ ПУТЬ!", "#FFA502");
+        } else if (state.step === 7) {
+          drawTrack(cy, gauge, unit);
+
+          const startMove = Math.max(0, (p - 0.55) / 0.45);
+          const shiftX = Math.pow(startMove, 2) * w * 0.65;
+          const shake =
+            p > 0.45 && p < 0.6 ? Math.sin(state.globalTime * 60) * 3 : 0;
+
+          drawTrain(
+            cx + shiftX + shake,
+            cy,
+            unit * 0.68,
+            gauge * 1.25,
+            1,
+            "#FF4757",
+            "СОСТАВ",
+          );
+
+          ctx.fillStyle = "rgba(255, 71, 87, 0.28)";
+          ctx.fillRect(
+            cx - unit * 0.34 + shiftX,
+            cy - gauge * 0.7,
+            unit * 0.68,
+            gauge * 1.4,
+          );
+
+          drawPedestrian(cx, cy + unit * 0.24, unit, "danger");
+          drawTag(cx, cy - unit * 0.2, "⛔ НЕ ПОДЛЕЗАТЬ ПОД ВАГОНЫ", "#FF4757");
+        } else if (state.step === 8) {
+          drawTrack(cy - unit * 0.06, gauge, unit);
+
+          const barY = cy + unit * 0.12;
+          ctx.strokeStyle = "#FF4757";
+          ctx.lineWidth = 6;
+          ctx.shadowColor = "#FF4757";
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.moveTo(cx - unit * 0.32, barY);
+          ctx.lineTo(cx + unit * 0.32, barY);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 6;
+          ctx.setLineDash([16, 14]);
+          ctx.beginPath();
+          ctx.moveTo(cx - unit * 0.3, barY);
+          ctx.lineTo(cx + unit * 0.3, barY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const blink = Math.floor(state.globalTime * 4) % 2 === 0;
+          const lightY = barY + unit * 0.08;
+          [-1, 1].forEach((side, idx) => {
+            const active = (idx === 0 && blink) || (idx === 1 && !blink);
+            ctx.fillStyle = active ? "#FF4757" : "#3A181D";
+            if (active) {
+              ctx.shadowColor = "#FF4757";
+              ctx.shadowBlur = 18;
+            }
+            ctx.beginPath();
+            ctx.arc(cx + side * 18, lightY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          });
+
+          drawPedestrian(cx, barY + unit * 0.22, unit, "safe");
+          drawTag(
+            cx,
+            cy - unit * 0.22,
+            "КРАСНЫЙ СВЕТ — ЖДЁМ ЗА ШЛАГБАУМОМ",
+            "#2EAC65",
+          );
+        }
+
+        state.particles.forEach((pt) => {
+          ctx.globalAlpha = Math.max(0, pt.life);
+          ctx.fillStyle = pt.color;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        ctx.restore();
+      }
+
+      function loop(ts) {
+        if (!lastTs) lastTs = ts;
+        const dt = Math.min(0.05, (ts - lastTs) / 1000);
+        lastTs = ts;
+
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      function init() {
+        resize();
+        const ro = new ResizeObserver(resize);
+        ro.observe(els.wrap);
+        window.addEventListener("resize", resize);
+
+        updateSubtitles(1);
+        syncUI();
+        handleInput();
+
+        requestAnimationFrame(loop);
+        setTimeout(() => {
+          startAuto();
+        }, 500);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

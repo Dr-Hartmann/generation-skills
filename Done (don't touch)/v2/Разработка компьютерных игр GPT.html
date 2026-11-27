@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Правила безопасного поведения школьников при предупреждении об угрозе, обнаружении беспилотника или его обломков."
+      content="Основные этапы разработки игр: геймдизайн, прототипирование, движок, программирование, контент, тестирование и релиз."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Беспилотная опасность</title>
+    <title>Разработка компьютерных игр</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Беспилотная опасность</h1>
+        <h1 id="appTitle">Разработка компьютерных игр</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,72 +637,74 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Распознавание",
-            subtitle:
-              "Необычный объект или официальное сообщение — повод соблюдать осторожность.",
-            detail: "Наблюдение • оповещение • взрослые",
-            icon: "drone",
-            nodes: ["Объект", "Оповещение", "Взрослые"],
+            heading: "Концепция",
+            subtitle: "Концепция определяет жанр, аудиторию и игровой опыт.",
+            detail: "Жанр • аудитория • цель",
+            icon: "game",
+            nodes: ["Жанр", "Аудитория", "Цель"],
           },
           {
-            heading: "Дистанция",
+            heading: "Геймдизайн",
             subtitle:
-              "Не приближайся к аппарату, обломкам и подозрительным предметам.",
-            detail: "Не подходить • не трогать • не перемещать",
+              "Геймдизайн связывает правила, цели, уровни и прогрессию.",
+            detail: "Правила • уровни • баланс",
+            icon: "game",
+            nodes: ["Правила", "Уровни", "Баланс"],
+          },
+          {
+            heading: "Прототип",
+            subtitle:
+              "Прототип проверяет основную игровую механику до производства.",
+            detail: "Игровой цикл • проверка • итерация",
+            icon: "game",
+            nodes: ["Прототип", "Механика", "Тест"],
+          },
+          {
+            heading: "Движок",
+            subtitle:
+              "Движок объединяет сцены, ресурсы, физику и обработку ввода.",
+            detail: "Сцены • компоненты • ресурсы",
+            icon: "game",
+            nodes: ["Сцена", "Физика", "Ресурсы"],
+          },
+          {
+            heading: "Логика",
+            subtitle:
+              "Код управляет состояниями, взаимодействиями и поведением персонажей.",
+            detail: "Состояния • ввод • NPC",
+            icon: "code",
+            nodes: ["Состояния", "Ввод", "NPC"],
+          },
+          {
+            heading: "Контент",
+            subtitle:
+              "Графика, анимация и звук формируют атмосферу игрового мира.",
+            detail: "Модели • движение • звук",
+            icon: "game",
+            nodes: ["Модели", "Анимация", "Звук"],
+          },
+          {
+            heading: "Тестирование",
+            subtitle:
+              "Тестирование выявляет ошибки, дисбаланс и проблемы производительности.",
+            detail: "Ошибки • баланс • FPS",
             icon: "shield",
-            nodes: ["Дистанция", "Обломки", "Предметы"],
+            nodes: ["Ошибки", "Баланс", "FPS"],
           },
           {
-            heading: "Остановка",
-            subtitle: "Прекрати занятия на открытом месте и слушай взрослых.",
-            detail: "Спокойствие • остановка • указания",
-            icon: "shield",
-            nodes: ["Остановка", "Спокойствие", "Указания"],
-          },
-          {
-            heading: "Укрытие",
+            heading: "Релиз",
             subtitle:
-              "Перейди в предусмотренное безопасное помещение, если путь безопасен.",
-            detail: "Помещение • план школы • помощь",
-            icon: "shield",
-            nodes: ["Помещение", "Безопасность", "Маршрут"],
-          },
-          {
-            heading: "В школе",
-            subtitle: "В школе двигайся организованно вместе с педагогом.",
-            detail: "Педагог • группа • порядок",
-            icon: "network",
-            nodes: ["Педагог", "Группа", "Порядок"],
-          },
-          {
-            heading: "Ожидание",
-            subtitle: "В укрытии держись подальше от окон и жди указаний.",
-            detail: "Внутренняя зона • ожидание • инструкции",
-            icon: "shield",
-            nodes: ["Окна", "Укрытие", "Ожидание"],
-          },
-          {
-            heading: "Сообщение",
-            subtitle:
-              "Сообщи взрослому или службам только из безопасного места.",
-            detail: "112 • место • время",
-            icon: "phone",
-            nodes: ["112", "Место", "Время"],
-          },
-          {
-            heading: "Отмена угрозы",
-            subtitle:
-              "Покидай укрытие после официального разрешения ответственных служб.",
-            detail: "Официальный сигнал • разрешение • возвращение",
-            icon: "check",
-            nodes: ["Отбой", "Разрешение", "Возврат"],
+              "Релиз сопровождается поддержкой, обновлениями и развитием проекта.",
+            detail: "Публикация • поддержка • развитие",
+            icon: "game",
+            nodes: ["Релиз", "Поддержка", "Update"],
           },
         ],
         palette: {

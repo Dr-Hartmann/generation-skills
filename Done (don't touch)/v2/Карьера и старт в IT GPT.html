@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0F0F13" />
+    <meta name="description" content="Интерактивный маршрут для подростков 14–16 лет: от интереса к первым проектам и плану обучения." />
+    <meta name="color-scheme" content="dark" />
+    <title>Карьера и старт в IT</title>
+    <style>
+      :root {
+  --app-bg: #0F0F13;
+  --app-panel: #1A1A20;
+  --app-accent: #2EAC65;
+  --app-accent-dark: #1E7A47;
+  --app-text: #FFFFFF;
+  --app-muted: #A0A0A0;
+  --app-subtitle-bg: #00000080;
+  --app-modal-scrim: rgba(0, 0, 0, .62);
+  --app-border: rgba(255, 255, 255, .12);
+  --app-control-bg: rgba(255, 255, 255, .07);
+  --app-danger: #E5484D;
+  --app-accent-soft: rgba(46, 172, 101, .15);
+  --app-accent-glow: rgba(46, 172, 101, .055);
+  --app-control-hover: rgba(255, 255, 255, .13);
+  --app-dialog-shadow: rgba(0, 0, 0, .4);
+  --app-keyboard-bg: rgba(255, 255, 255, .06);
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --subtitle-size: clamp(16px, 4.5vw, 22px);
+  --heading-weight: 800;
+  --body-weight: 400;
+  --subtitle-controls-gap: 24px;
+  --portrait-aspect-ratio: 9 / 16;
+  --right-reserved: 80px;
+  --left-padding: 16px;
+  --header-top-padding: 16px;
+  --bottom-reserved: 25vh;
+  --sidebar-width: clamp(320px, 30vw, 380px);
+  --touch-target: 48px;
+  --modal-max-height: 90dvh;
+  --subtitle-blur: 8px;
+  --settings-scale: 0.95;
+  --subtitle-duration: 300ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+body {
+  color: var(--app-text);
+  font-family: var(--font-family);
+  font-weight: var(--body-weight);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--app-text);
+  outline-offset: 3px;
+}
+
+.app-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding:
+    calc(var(--header-top-padding) + env(safe-area-inset-top, 0px))
+    calc(var(--right-reserved) + env(safe-area-inset-right, 0px))
+    calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px))
+    calc(var(--left-padding) + env(safe-area-inset-left, 0px));
+  background: var(--app-bg);
+}
+
+.app-header {
+  min-width: 0;
+}
+
+.app-header h1 {
+  max-width: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(18px, 2.2vw, 28px);
+  font-weight: var(--heading-weight);
+  line-height: 1.2;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: stretch;
+}
+
+.visual-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 45%, var(--app-accent-glow), transparent 65%),
+    var(--app-bg);
+}
+
+#sceneCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subtitle {
+  z-index: 2;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-subtitle-bg);
+  -webkit-backdrop-filter: blur(var(--subtitle-blur));
+  backdrop-filter: blur(var(--subtitle-blur));
+  font-size: var(--subtitle-size);
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--subtitle-duration) ease,
+    transform var(--subtitle-duration) ease;
+}
+
+.subtitle.updating {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.subtitle-mobile {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--touch-target) + 12px + var(--subtitle-controls-gap));
+  left: 12px;
+  display: block;
+}
+
+.subtitle-desktop {
+  display: none;
+}
+
+.control-bar {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.app-root.controls-hidden .control-bar {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 12px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-control-bg);
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.icon-button:hover {
+  background: var(--app-control-hover);
+}
+
+.icon-button svg,
+.dialog-close svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.details-panel {
+  display: none;
+}
+
+.step-indicator {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  right: calc(var(--right-reserved) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--bottom-reserved) + env(safe-area-inset-bottom, 0px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  background: var(--app-modal-scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.settings-dialog {
+  width: min(100%, 380px);
+  max-height: 90vh;
+  max-height: var(--modal-max-height);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-panel);
+  box-shadow: 0 20px 80px var(--app-dialog-shadow);
+  animation: settings-enter .22s ease both;
+  outline: none;
+}
+
+@keyframes settings-enter {
+  from { opacity: 0; transform: scale(var(--settings-scale)); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dialog-close {
+  display: grid;
+  flex: 0 0 var(--touch-target);
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 14px;
+  place-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-control-bg);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.segmented-control button,
+.dialog-action {
+  min-height: var(--touch-target);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-control-bg);
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-accent-dark));
+}
+
+.dialog-action {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--app-accent-soft);
+}
+
+.dialog-action:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--touch-target);
+  margin: 8px 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.setting-row select {
+  min-width: 100px;
+  min-height: var(--touch-target);
+  padding: 0 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  color: var(--app-text);
+  background: var(--app-panel);
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--app-accent);
+}
+
+.secondary-action {
+  margin-top: 12px;
+  background: var(--app-control-bg);
+}
+
+.keyboard-help {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.keyboard-help span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+kbd {
+  min-width: 42px;
+  padding: 3px 6px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-text);
+  background: var(--app-keyboard-bg);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .app-root {
+    padding: 20px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+    gap: 20px;
+  }
+
+  .details-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 4px;
+  }
+
+  .subtitle-mobile {
+    display: none;
+  }
+
+  .subtitle-desktop {
+    display: block;
+  }
+
+  .modal-backdrop {
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+  }
+}
+
+.app-root.is-portrait .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-root.is-portrait .stage {
+  place-items: center;
+}
+
+.app-root.is-portrait .visual-frame {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--portrait-aspect-ratio);
+}
+
+.app-root.is-portrait .details-panel {
+  display: none;
+}
+
+.app-root.is-portrait .subtitle-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .app-root.is-portrait .visual-frame {
+    max-height: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+    </style>
+  </head>
+  <body>
+    <div class="app-root" id="appRoot">
+      <header class="app-header">
+        <h1 id="appTitle">Карьера и старт в IT</h1>
+      </header>
+
+      <main class="workspace">
+        <section class="stage" id="stage" aria-label="Область визуализации">
+          <div class="visual-frame" id="visualFrame">
+            <canvas
+              id="sceneCanvas"
+              aria-label="Анимированная визуализация"
+            ></canvas>
+
+            <div
+              class="subtitle subtitle-mobile"
+              id="mobileSubtitle"
+              aria-live="polite"
+            ></div>
+
+            <div class="control-bar" id="controlBar">
+              <button
+                class="icon-button"
+                id="playButton"
+                type="button"
+                aria-label="Пауза"
+              >
+                <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                id="settingsButton"
+                type="button"
+                aria-label="Открыть настройки"
+                aria-haspopup="dialog"
+                aria-controls="settingsDialog"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm9 4.9v-2.2l-2.1-.5a7.2 7.2 0 0 0-.7-1.7l1.1-1.8-1.6-1.6-1.8 1.1a7.2 7.2 0 0 0-1.7-.7L13.7 3h-2.2L11 5.1a7.2 7.2 0 0 0-1.7.7L7.5 4.7 5.9 6.3 7 8.1a7.2 7.2 0 0 0-.7 1.7l-2.1.5v2.2l2.1.5a7.2 7.2 0 0 0 .7 1.7l-1.1 1.8 1.6 1.6 1.8-1.1a7.2 7.2 0 0 0 1.7.7l.5 2.1h2.2l.5-2.1a7.2 7.2 0 0 0 1.7-.7l1.8 1.1 1.6-1.6-1.1-1.8a7.2 7.2 0 0 0 .7-1.7l2.1-.5Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="details-panel" id="detailsPanel">
+          <div
+            class="subtitle subtitle-desktop"
+            id="desktopSubtitle"
+            aria-live="polite"
+          ></div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+      <dialog
+        class="settings-dialog"
+        id="settingsDialog"
+        aria-modal="true"
+        aria-labelledby="settingsTitle"
+        tabindex="-1"
+      >
+        <header class="dialog-header">
+          <h2 id="settingsTitle">Настройки</h2>
+          <button
+            class="dialog-close"
+            id="closeSettingsButton"
+            type="button"
+            aria-label="Закрыть настройки"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="m6 6 12 12M18 6 6 18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+
+        <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
+
+        <optgroup
+          class="segmented-control"
+          aria-label="Режим воспроизведения"
+        >
+          <button id="autoModeButton" type="button" aria-pressed="true">
+            AUTO
+          </button>
+          <button id="stepModeButton" type="button" aria-pressed="false">
+            STEP
+          </button>
+        </div>
+
+        <button
+          class="dialog-action"
+          id="nextStepButton"
+          type="button"
+          disabled
+        >
+          Следующий шаг →
+        </button>
+
+        <div class="setting-row">
+          <label for="speedSelect">Скорость</label>
+          <select
+            id="speedSelect"
+            aria-label="Скорость воспроизведения"
+          ></select>
+        </div>
+
+        <div class="setting-row">
+          <label for="portraitToggle">Вертикальная рамка 9:16</label>
+          <input id="portraitToggle" type="checkbox" />
+        </div>
+
+        <button
+          class="dialog-action secondary-action"
+          id="resetButton"
+          type="button"
+        >
+          Сбросить
+        </button>
+
+        <div class="keyboard-help" aria-label="Горячие клавиши">
+          <span><kbd>Space</kbd> Показать или скрыть контролы</span>
+          <span><kbd>→</kbd> Следующий шаг в STEP</span>
+          <span><kbd>R</kbd> Сброс</span>
+          <span><kbd>S</kbd> AUTO / STEP</span>
+          <span><kbd>V</kbd> Рамка 9:16</span>
+          <span><kbd>Esc</kbd> Закрыть настройки</span>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const APP_CONFIG = {"steps":[{"subtitle":"Начни с интереса: что тебе хочется создать или улучшить?","kind":"interests","eyebrow":"ТОЧКА СТАРТА","headline":"Начни с того, что тебе интересно","note":"Интерес превращается в понятную задачу","items":[{"label":"Игры","detail":"правила и механики"},{"label":"Сайты","detail":"страницы и сервисы"},{"label":"Данные","detail":"искать закономерности"},{"label":"Техника","detail":"управлять устройствами"}]},{"subtitle":"Выбери область по задачам, а не по громкому названию профессии.","kind":"directions","eyebrow":"КАРТА НАПРАВЛЕНИЙ","headline":"В IT много разных маршрутов","note":"Попробуй мини-задачу из понравившейся области","items":[{"label":"Веб","detail":"сайты и сервисы"},{"label":"Игры","detail":"механики и движки"},{"label":"Мобильные","detail":"приложения"},{"label":"ИИ и данные","detail":"модели и выводы"},{"label":"Киберзащита","detail":"защищать системы"},{"label":"Автоматизация","detail":"убирать рутину"}]},{"subtitle":"Язык — инструмент: выбирай его под первый посильный проект.","kind":"languages","eyebrow":"ВЫБОР ЯЗЫКА · 2026","headline":"Нет единственного лучшего языка","note":"Старт: Python или JS; TypeScript — после основ JavaScript.","items":[{"label":"JavaScript","detail":"браузер · веб","usage":62.0},{"label":"Python","detail":"данные · автоматизация · ИИ","usage":58.0},{"label":"TypeScript","detail":"крупные веб-проекты","usage":43.8},{"label":"Java","detail":"backend · приложения","usage":27.6},{"label":"C#","detail":"Unity · .NET","usage":27.1},{"label":"C++","detail":"движки · системный код","usage":24.3}],"source":"Stack Overflow Developer Survey 2026 · n=14 099","sourceNote":"Доля разработчиков, использовавших язык за год; это не статистика вакансий."},{"subtitle":"Разбивай задачу на шаги, условия, повторения и проверки.","kind":"algorithms","eyebrow":"ОСНОВА РАЗРАБОТКИ","headline":"Сначала научись мыслить алгоритмами","note":"Понятный план помогает на любом языке","items":[{"label":"Разбей","detail":"на маленькие части"},{"label":"Опиши","detail":"шаги решения"},{"label":"Проверь","detail":"условия и крайние случаи"},{"label":"Улучши","detail":"после тестирования"}]},{"subtitle":"Учись через практику: IDE, документация, Git и обратная связь.","kind":"practice","eyebrow":"ИНСТРУМЕНТЫ","headline":"Теория работает вместе с практикой","note":"Сохраняй изменения и объясняй, что сделал","items":[{"label":"IDE","detail":"писать и запускать код"},{"label":"Документация","detail":"сверять поведение"},{"label":"Git / GitHub","detail":"история и проекты"},{"label":"AI-ассистент","detail":"подсказки и разбор ошибок"}]},{"subtitle":"Создай три небольших проекта и объясни решения в README.","kind":"portfolio","eyebrow":"ПЕРВОЕ ПОРТФОЛИО","headline":"Покажи не обещания, а результат","note":"У каждого проекта — понятная цель и инструкция","items":[{"label":"Сайт","detail":"личная страница или каталог"},{"label":"Мини-игра","detail":"правила, счёт, перезапуск"},{"label":"Автоматизация","detail":"небольшая полезная задача"}]},{"subtitle":"Начинай с небольших задач, а договорённости обсуждай со взрослым.","kind":"safety","eyebrow":"ПЕРВЫЕ ЗАКАЗЫ","headline":"Безопасность важнее быстрого заработка","note":"В 14–16 лет учитывай местные правила и ограничения платформ","items":[{"label":"Объём","detail":"задача и срок понятны"},{"label":"Условия","detail":"стоимость и результат согласованы"},{"label":"Доступы","detail":"не передавай пароли и личные данные"},{"label":"Поддержка","detail":"обсуди проект с родителем или опекуном"}]},{"subtitle":"Собери план на шесть месяцев и пересматривай его по результатам.","kind":"roadmap","eyebrow":"СЛЕДУЮЩИЕ 6 МЕСЯЦЕВ","headline":"Двигайся маленькими проверяемыми шагами","note":"Не прыгай между языками и не копируй уроки без практики","items":[{"label":"Месяц 1","detail":"основы и задачи"},{"label":"Месяц 2","detail":"первый проект"},{"label":"Месяц 3","detail":"Git и второй проект"},{"label":"Месяц 4","detail":"новая задача"},{"label":"Месяц 5","detail":"третий проект и README"},{"label":"Месяц 6","detail":"обратная связь и доработка"}]}],"palette":{"background":"#0F0F13","panel":"#1A1A20","accent":"#2EAC65","accent_dark":"#1E7A47","text":"#FFFFFF","muted_text":"#A0A0A0","subtitle_background":"#00000080","modal_scrim":"rgba(0, 0, 0, .62)","border":"rgba(255, 255, 255, .12)","control_background":"rgba(255, 255, 255, .07)","control_hover":"rgba(255, 255, 255, .13)","keyboard_background":"rgba(255, 255, 255, .06)","danger":"#E5484D","accent_soft":"rgba(46, 172, 101, .15)","accent_glow":"rgba(46, 172, 101, .055)","dialog_shadow":"rgba(0, 0, 0, .4)"},"breakpointPx":768,"visualizationFit":"contain","timing":{"autoStartDelayMs":500,"transitionMs":900,"autoStepIntervalMs":5000,"speeds":[0.5,1,2],"defaultSpeed":1,"defaultMode":"auto","defaultVideoMode":false,"targetFps":60,"minSteps":6,"maxSteps":10}};
+      window.AppScene = {
+  draw(ctx, frame) {
+    const { width, height, palette, step, stepIndex, elapsedMs } = frame;
+    if (!width || !height || !step) return;
+
+    const scale = Math.max(0.72, Math.min(1.25, Math.min(width / 420, height / 520)));
+    const accent = palette.accent;
+    const text = palette.text;
+    const muted = palette.muted_text;
+    const panel = palette.panel;
+    const border = palette.border;
+    const left = width * 0.06;
+
+    const roundRect = (x, y, w, h, radius, fill, stroke) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, radius);
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = Math.max(1, scale);
+        ctx.stroke();
+      }
+    };
+
+    const fitText = (value, x, y, maxWidth, size, color, weight = 600, align = "left") => {
+      let fontSize = size;
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = color;
+      ctx.font = `${weight} ${fontSize}px system-ui, sans-serif`;
+      while (ctx.measureText(value).width > maxWidth && fontSize > 7.5) {
+        fontSize -= 0.5;
+        ctx.font = `${weight} ${fontSize}px system-ui, sans-serif`;
+      }
+      ctx.fillText(value, x, y);
+    };
+
+    const wrappedText = (value, x, y, maxWidth, size, lineHeight, color, maxLines = 2) => {
+      ctx.font = `700 ${size}px system-ui, sans-serif`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = color;
+      const words = String(value).split(/\s+/);
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && ctx.measureText(candidate).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = candidate;
+        }
+      }
+      if (line) lines.push(line);
+      const visible = lines.slice(0, maxLines);
+      if (lines.length > maxLines && visible.length) {
+        let last = visible[visible.length - 1];
+        while (ctx.measureText(`${last}…`).width > maxWidth && last.length > 2) {
+          last = last.slice(0, -1);
+        }
+        visible[visible.length - 1] = `${last}…`;
+      }
+      visible.forEach((lineText, index) => {
+        ctx.fillText(lineText, x, y + index * lineHeight);
+      });
+      return visible.length;
+    };
+
+    const dot = (x, y, radius, color, alpha = 1) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const card = (x, y, w, h, label, detail, index) => {
+      roundRect(x, y, w, h, 10 * scale, panel, border);
+      dot(x + 14 * scale, y + 17 * scale, 3.2 * scale, accent);
+      fitText(label, x + 24 * scale, y + 18 * scale, w - 34 * scale,
+        Math.max(10, 13 * scale), text, 750);
+      wrappedText(detail, x + 13 * scale, y + h * 0.67,
+        w - 26 * scale, Math.max(8, 9.5 * scale), 11 * scale, muted, 2);
+      if (Number.isInteger(index)) {
+        fitText(String(index + 1).padStart(2, "0"), x + w - 12 * scale,
+          y + 17 * scale, 20 * scale, Math.max(7.5, 8 * scale),
+          muted, 700, "right");
+      }
+    };
+
+    const drawGrid = (items, columns = 2) => {
+      const rows = Math.ceil(items.length / columns);
+      const gap = 8 * scale;
+      const pad = 13 * scale;
+      const footer = 35 * scale;
+      const top = panelY + 13 * scale;
+      const innerW = panelW - pad * 2;
+      const innerH = panelH - 13 * scale - footer - 10 * scale;
+      const cellW = (innerW - gap * (columns - 1)) / columns;
+      const cellH = (innerH - gap * (rows - 1)) / rows;
+      items.forEach((item, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        card(
+          panelX + pad + col * (cellW + gap),
+          top + row * (cellH + gap),
+          cellW,
+          cellH,
+          item.label,
+          item.detail,
+          index,
+        );
+      });
+    };
+
+    // Фоновая сетка и редкие точки не конкурируют с содержанием.
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 1;
+    const grid = 34 * scale;
+    for (let x = grid; x < width; x += grid) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = grid; y < height; y += grid) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    for (let index = 0; index < 18; index += 1) {
+      const x = ((index * 97 + 31) % 997) / 997 * width;
+      const y = ((index * 173 + 67) % 991) / 991 * height;
+      dot(x, y, (index % 3 + 1) * 0.65 * scale, accent, 0.12);
+    }
+
+    // Шапка сцены.
+    fitText(String(step.eyebrow || "МАРШРУТ В IT").toUpperCase(),
+      left, height * 0.105, width * 0.84, Math.max(8.5, 10 * scale),
+      accent, 800);
+    wrappedText(step.headline || "", left, height * 0.17,
+      width * 0.86, Math.max(14, 22 * scale), 25 * scale, text, 2);
+
+    // Основная карточка ограничена шириной и находится выше субтитров.
+    const panelW = Math.min(width * 0.90, 760 * scale);
+    const panelH = Math.min(height * 0.46, 360 * scale);
+    const panelX = (width - panelW) / 2;
+    const panelY = height * 0.255;
+    roundRect(panelX, panelY, panelW, panelH, 16 * scale, "rgba(26, 26, 32, 0.92)", border);
+
+    const pulse = 0.72 + 0.18 * Math.sin((elapsedMs || 0) / 620);
+    dot(panelX + panelW - 17 * scale, panelY + 17 * scale,
+      4 * scale, accent, pulse);
+
+    if (step.kind === "languages") {
+      wrappedText(step.note || "", left, height * 0.232, width * 0.86,
+        Math.max(7.5, 8.5 * scale), 9 * scale, muted, 2);
+      const items = step.items || [];
+      const innerX = panelX + 12 * scale;
+      const rowTop = panelY + 13 * scale;
+      const rowH = (panelH - 50 * scale) / Math.max(1, items.length);
+      const nameW = Math.min(94 * scale, panelW * 0.32);
+      const percentW = 38 * scale;
+      const barX = innerX + nameW + 5 * scale;
+      const barW = Math.max(35 * scale, panelW - nameW - percentW - 36 * scale);
+
+      items.forEach((item, index) => {
+        const y = rowTop + index * rowH;
+        const pct = Math.max(0, Math.min(100, Number(item.usage) || 0));
+        fitText(item.label, innerX, y + 7 * scale, nameW,
+          Math.max(8.5, 10.5 * scale), text, 750);
+        fitText(item.detail, barX, y + 7 * scale, barW,
+          Math.max(7.5, 8.5 * scale), muted, 600);
+        roundRect(barX, y + 17 * scale, barW, 4 * scale, 2 * scale,
+          "rgba(255,255,255,0.08)", null);
+        roundRect(barX, y + 17 * scale, barW * pct / 100, 4 * scale,
+          2 * scale, accent, null);
+        fitText(`${pct.toFixed(1)}%`, panelX + panelW - 12 * scale,
+          y + 19 * scale, percentW, Math.max(7.5, 8.5 * scale),
+          text, 700, "right");
+      });
+
+      const footY = panelY + panelH - 22 * scale;
+      fitText(step.source || "", panelX + 12 * scale, footY - 4 * scale,
+        panelW - 24 * scale, Math.max(7.2, 8 * scale), text, 700);
+      fitText(step.sourceNote || "", panelX + 12 * scale, footY + 8 * scale,
+        panelW - 24 * scale, Math.max(7, 7.5 * scale), muted, 500);
+    } else if (step.kind === "portfolio") {
+      const items = step.items || [];
+      const gap = 8 * scale;
+      const x = panelX + 13 * scale;
+      const w = panelW - 26 * scale;
+      const rowH = (panelH - 60 * scale) / 3;
+      items.forEach((item, index) => {
+        const y = panelY + 12 * scale + index * (rowH + 4 * scale);
+        roundRect(x, y, w, rowH, 9 * scale, panel, border);
+        roundRect(x + 10 * scale, y + 8 * scale, 28 * scale, 28 * scale,
+          8 * scale, palette.accent_soft, null);
+        fitText(String(index + 1).padStart(2, "0"),
+          x + 24 * scale, y + 22 * scale, 24 * scale,
+          10 * scale, accent, 800, "center");
+        fitText(item.label, x + 48 * scale, y + 16 * scale,
+          w - 62 * scale, Math.max(10, 12 * scale), text, 750);
+        fitText(item.detail, x + 48 * scale, y + 34 * scale,
+          w - 62 * scale, Math.max(8, 9 * scale), muted, 500);
+      });
+      fitText(step.note || "", panelX + 13 * scale,
+        panelY + panelH - 13 * scale, panelW - 26 * scale,
+        Math.max(7.5, 8.5 * scale), accent, 650);
+    } else if (step.kind === "safety") {
+      const items = step.items || [];
+      const gap = 8 * scale;
+      const pad = 13 * scale;
+      const cellW = (panelW - pad * 2 - gap) / 2;
+      const cellH = (panelH - 58 * scale - gap) / 2;
+      items.forEach((item, index) => {
+        const col = index % 2;
+        const row = Math.floor(index / 2);
+        const x = panelX + pad + col * (cellW + gap);
+        const y = panelY + 12 * scale + row * (cellH + gap);
+        roundRect(x, y, cellW, cellH, 10 * scale, panel, border);
+        dot(x + 15 * scale, y + 17 * scale, 5 * scale, accent);
+        fitText("✓", x + 15 * scale, y + 17 * scale,
+          12 * scale, 9 * scale, palette.background, 900, "center");
+        wrappedText(item.label, x + 11 * scale, y + 38 * scale,
+          cellW - 20 * scale, Math.max(9, 11 * scale), 12 * scale, text, 2);
+        wrappedText(item.detail, x + 11 * scale, y + cellH - 15 * scale,
+          cellW - 20 * scale, Math.max(7.5, 8.5 * scale), 10 * scale, muted, 2);
+      });
+      fitText(step.note || "", panelX + 13 * scale,
+        panelY + panelH - 13 * scale, panelW - 26 * scale,
+        Math.max(7.2, 8 * scale), accent, 650);
+    } else if (step.kind === "roadmap") {
+      const items = step.items || [];
+      const gap = 7 * scale;
+      const pad = 12 * scale;
+      const columns = 3;
+      const rows = 2;
+      const cellW = (panelW - pad * 2 - gap * (columns - 1)) / columns;
+      const cellH = (panelH - 57 * scale - gap) / rows;
+      items.forEach((item, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        const x = panelX + pad + col * (cellW + gap);
+        const y = panelY + 12 * scale + row * (cellH + gap);
+        roundRect(x, y, cellW, cellH, 9 * scale, panel, border);
+        fitText(item.label, x + 9 * scale, y + 16 * scale,
+          cellW - 18 * scale, Math.max(8, 9.5 * scale), accent, 800);
+        wrappedText(item.detail, x + 9 * scale, y + 34 * scale,
+          cellW - 18 * scale, Math.max(7.5, 8.5 * scale), 10 * scale, text, 2);
+      });
+      fitText(step.note || "", panelX + 13 * scale,
+        panelY + panelH - 13 * scale, panelW - 26 * scale,
+        Math.max(7.2, 8 * scale), muted, 600);
+    } else {
+      drawGrid(step.items || [], 2);
+      fitText(step.note || "", panelX + 13 * scale,
+        panelY + panelH - 13 * scale, panelW - 26 * scale,
+        Math.max(7.5, 8.5 * scale), accent, 650);
+    }
+
+    // Индикатор маршрута подчёркивает последовательность, не управляя ею.
+    const points = 8;
+    const gap = Math.min(17 * scale, (width * 0.72) / (points - 1));
+    const total = gap * (points - 1);
+    const startX = (width - total) / 2;
+    const y = height * 0.795;
+    for (let index = 0; index < points; index += 1) {
+      const active = index <= stepIndex;
+      dot(startX + index * gap, y, active ? 3.2 * scale : 2.3 * scale,
+        active ? accent : muted, active ? 1 : 0.45);
+    }
+  },
+};
+      (() => {
+  "use strict";
+
+  const scene = window.AppScene;
+  const steps = APP_CONFIG.steps;
+  const timing = APP_CONFIG.timing;
+
+  const get = (id) => document.getElementById(id);
+  const elements = {
+    appRoot: get("appRoot"),
+    stage: get("stage"),
+    visualFrame: get("visualFrame"),
+    canvas: get("sceneCanvas"),
+    mobileSubtitle: get("mobileSubtitle"),
+    desktopSubtitle: get("desktopSubtitle"),
+    modalStep: get("modalStepIndicator"),
+    playButton: get("playButton"),
+    playIcon: get("playIcon"),
+    settingsButton: get("settingsButton"),
+    backdrop: get("settingsBackdrop"),
+    dialog: get("settingsDialog"),
+    closeSettings: get("closeSettingsButton"),
+    autoMode: get("autoModeButton"),
+    stepMode: get("stepModeButton"),
+    nextStep: get("nextStepButton"),
+    speed: get("speedSelect"),
+    portrait: get("portraitToggle"),
+    reset: get("resetButton"),
+  };
+
+  function showFatalError(message) {
+    const panel = document.createElement("div");
+    panel.setAttribute("role", "alert");
+    panel.style.cssText =
+      "position:absolute;inset:16px;z-index:10;display:grid;place-items:center;padding:20px;border:1px solid var(--app-danger);border-radius:12px;background:var(--app-panel);color:var(--app-text);text-align:center;font:16px/1.5 system-ui";
+    panel.textContent = message;
+    elements.stage.appendChild(panel);
+    console.error("[app-generator]", message);
+  }
+
+  if (!scene || typeof scene.draw !== "function") {
+    showFatalError(
+      "Сцена не подключена. Проверьте файл scene.js и функцию AppScene.draw().",
+    );
+    return;
+  }
+
+  if (
+    !Array.isArray(steps) ||
+    steps.length < timing.minSteps ||
+    steps.length > timing.maxSteps
+  ) {
+    showFatalError(
+      "Некорректная конфигурация шагов. Проверьте файл scene.json.",
+    );
+    return;
+  }
+
+  const ctx = elements.canvas.getContext("2d");
+  const previousCanvas = document.createElement("canvas");
+  const currentCanvas = document.createElement("canvas");
+  const previousCtx = previousCanvas.getContext("2d");
+  const currentCtx = currentCanvas.getContext("2d");
+
+  if (!ctx || !previousCtx || !currentCtx) {
+    showFatalError("Браузер не смог создать Canvas 2D-контекст.");
+    return;
+  }
+
+  const state = {
+    mode: timing.defaultMode,
+    isPlaying: false,
+    currentStep: 0,
+    speed: timing.defaultSpeed,
+    videoMode: timing.defaultVideoMode,
+    controlsHidden: false,
+    elapsedMs: 0,
+    waitElapsedMs: 0,
+    deltaMs: 0,
+    transition: null,
+  };
+
+  let cssWidth = 0;
+  let cssHeight = 0;
+  let pixelRatio = 1;
+  let lastTimestamp = 0;
+  let animationFrameId = 0;
+  let returnFocusTo = null;
+  let subtitleRevision = 0;
+  let sceneInitialized = false;
+
+  function setCanvasSize(canvas) {
+    canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+  }
+
+  function resizeCanvas() {
+    const rect = elements.visualFrame.getBoundingClientRect();
+    cssWidth = rect.width;
+    cssHeight = rect.height;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (cssWidth <= 0 || cssHeight <= 0) return;
+
+    setCanvasSize(elements.canvas);
+    setCanvasSize(previousCanvas);
+    setCanvasSize(currentCanvas);
+
+    if (!sceneInitialized) return;
+
+    if (typeof scene.resize === "function") {
+      scene.resize({ width: cssWidth, height: cssHeight, pixelRatio });
+    }
+
+    drawFrame();
+  }
+
+  function drawTo(targetContext, stepIndex, transitionProgress) {
+    targetContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    targetContext.clearRect(0, 0, cssWidth, cssHeight);
+    targetContext.save();
+
+    try {
+      scene.draw(targetContext, {
+        stepIndex,
+        step: steps[stepIndex],
+        width: cssWidth,
+        height: cssHeight,
+        elapsedMs: state.elapsedMs,
+        deltaMs: state.deltaMs,
+        transitionProgress,
+        speed: state.speed,
+        videoMode: state.videoMode,
+        palette: APP_CONFIG.palette,
+        fit: APP_CONFIG.visualizationFit,
+      });
+    } finally {
+      targetContext.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (!sceneInitialized || cssWidth <= 0 || cssHeight <= 0) return;
+
+    if (state.transition) {
+      const progress = Math.min(
+        1,
+        state.transition.elapsedMs / timing.transitionMs,
+      );
+      drawTo(previousCtx, state.transition.from, progress);
+      drawTo(currentCtx, state.transition.to, progress);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      ctx.globalAlpha = 1 - progress;
+      ctx.drawImage(previousCanvas, 0, 0);
+      ctx.globalAlpha = progress;
+      ctx.drawImage(currentCanvas, 0, 0);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    drawTo(ctx, state.currentStep, 1);
+  }
+
+  function updateIndicators(animateSubtitle) {
+    const stepNumber = state.currentStep + 1;
+    const label = "Шаг " + stepNumber + " / " + steps.length;
+    elements.modalStep.textContent = label;
+
+    const subtitle = steps[state.currentStep].subtitle;
+    const targets = [elements.mobileSubtitle, elements.desktopSubtitle];
+    const revision = ++subtitleRevision;
+
+    for (const target of targets) {
+      if (animateSubtitle) target.classList.add("updating");
+      target.textContent = subtitle;
+    }
+
+    if (animateSubtitle) {
+      requestAnimationFrame(() => {
+        if (revision !== subtitleRevision) return;
+        requestAnimationFrame(() => {
+          if (revision !== subtitleRevision) return;
+          for (const target of targets) target.classList.remove("updating");
+        });
+      });
+    } else {
+      for (const target of targets) target.classList.remove("updating");
+    }
+
+    updateControls();
+  }
+
+  function updateControls() {
+    const isAuto = state.mode === "auto";
+    elements.autoMode.setAttribute("aria-pressed", String(isAuto));
+    elements.stepMode.setAttribute("aria-pressed", String(!isAuto));
+    elements.nextStep.disabled =
+      isAuto ||
+      Boolean(state.transition) ||
+      state.currentStep >= steps.length - 1;
+
+    elements.playButton.setAttribute(
+      "aria-label",
+      state.isPlaying ? "Пауза" : "Продолжить воспроизведение",
+    );
+    elements.playIcon.innerHTML = state.isPlaying
+      ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/>'
+      : '<path d="m7 4 13 8-13 8z" fill="currentColor"/>';
+
+    elements.appRoot.classList.toggle("is-portrait", state.videoMode);
+    elements.appRoot.classList.toggle("controls-hidden", state.controlsHidden);
+    elements.settingsButton.setAttribute(
+      "aria-expanded",
+      String(elements.backdrop.classList.contains("open")),
+    );
+    elements.portrait.checked = state.videoMode;
+    elements.speed.value = String(state.speed);
+  }
+
+  function startTransition(nextStep) {
+    if (state.transition || nextStep < 0 || nextStep >= steps.length) return;
+
+    state.transition = {
+      from: state.currentStep,
+      to: nextStep,
+      elapsedMs: 0,
+    };
+    state.waitElapsedMs = 0;
+    updateControls();
+  }
+
+  function setMode(mode) {
+    if (mode !== "auto" && mode !== "step") return;
+    if (state.mode === mode) return;
+
+    if (mode === "step") {
+      if (state.transition) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+      }
+      state.mode = "step";
+      state.isPlaying = false;
+      state.waitElapsedMs = 0;
+    } else {
+      state.mode = "auto";
+      state.isPlaying = true;
+      state.waitElapsedMs = 0;
+    }
+
+    updateIndicators(false);
+    drawFrame();
+  }
+
+  function setPlaying(playing) {
+    state.isPlaying = Boolean(playing);
+    updateControls();
+  }
+
+  function nextStep() {
+    if (
+      state.mode !== "step" ||
+      state.transition ||
+      state.currentStep >= steps.length - 1
+    )
+      return;
+
+    state.isPlaying = true;
+    startTransition(state.currentStep + 1);
+    updateControls();
+  }
+
+  function setSpeed(value) {
+    const parsed = Number(value);
+    if (!timing.speeds.includes(parsed)) return;
+    state.speed = parsed;
+    updateControls();
+  }
+
+  function setVideoMode(enabled) {
+    state.videoMode = Boolean(enabled);
+    updateControls();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function reset() {
+    state.mode = timing.defaultMode;
+    state.isPlaying = true;
+    state.currentStep = 0;
+    state.elapsedMs = 0;
+    state.waitElapsedMs = 0;
+    state.transition = null;
+
+    if (typeof scene.reset === "function") scene.reset();
+    updateIndicators(true);
+    drawFrame();
+  }
+
+  function openSettings() {
+    returnFocusTo = document.activeElement;
+    elements.backdrop.classList.add("open");
+    elements.backdrop.setAttribute("aria-hidden", "false");
+    elements.settingsButton.setAttribute("aria-expanded", "true");
+    elements.appRoot.inert = true;
+    elements.dialog.focus();
+  }
+
+  function closeSettings() {
+    elements.backdrop.classList.remove("open");
+    elements.backdrop.setAttribute("aria-hidden", "true");
+    elements.settingsButton.setAttribute("aria-expanded", "false");
+    elements.appRoot.inert = false;
+
+    if (returnFocusTo && typeof returnFocusTo.focus === "function") {
+      returnFocusTo.focus();
+    }
+  }
+
+  function toggleSettings() {
+    if (elements.backdrop.classList.contains("open")) closeSettings();
+    else openSettings();
+  }
+
+  function update(dt) {
+    if (!state.isPlaying) return;
+
+    const scaledDelta = dt * state.speed;
+    state.elapsedMs += scaledDelta;
+
+    if (state.transition) {
+      state.transition.elapsedMs += scaledDelta;
+
+      if (state.transition.elapsedMs >= timing.transitionMs) {
+        state.currentStep = state.transition.to;
+        state.transition = null;
+        state.waitElapsedMs = 0;
+
+        if (state.mode === "step") state.isPlaying = false;
+        updateIndicators(true);
+      }
+      return;
+    }
+
+    if (state.mode === "auto") {
+      state.waitElapsedMs += scaledDelta;
+
+      if (state.waitElapsedMs >= timing.autoStepIntervalMs) {
+        startTransition((state.currentStep + 1) % steps.length);
+      }
+    }
+  }
+
+  function animationLoop(timestamp) {
+    const dt = lastTimestamp
+      ? Math.min(Math.max(timestamp - lastTimestamp, 0), 100)
+      : 0;
+    lastTimestamp = timestamp;
+    state.deltaMs = dt;
+
+    update(dt);
+    drawFrame();
+    animationFrameId = requestAnimationFrame(animationLoop);
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return (
+      (target instanceof HTMLElement && target.isContentEditable) ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.closest(
+        "button, a, [role='button'], [role='slider'], [role='switch']",
+      ) !== null
+    );
+  }
+
+  function handleKeyboard(event) {
+    if (event.isComposing) return;
+
+    const modalIsOpen = elements.backdrop.classList.contains("open");
+
+    if (event.key === "Escape") {
+      if (modalIsOpen) {
+        event.preventDefault();
+        closeSettings();
+      }
+      return;
+    }
+
+    if (modalIsOpen) {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          elements.dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((element) => !element.hasAttribute("hidden"));
+        const first = focusable[0];
+        const last = focusable.at(-1);
+
+        if (
+          first &&
+          last &&
+          event.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === elements.dialog)
+        ) {
+          event.preventDefault();
+          last.focus();
+        } else if (
+          first &&
+          last &&
+          !event.shiftKey &&
+          document.activeElement === last
+        ) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
+
+    if (isInteractiveTarget(event.target)) return;
+
+    if (
+      !window.matchMedia("(min-width: " + APP_CONFIG.breakpointPx + "px)")
+        .matches
+    ) {
+      return;
+    }
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.controlsHidden = !state.controlsHidden;
+      updateControls();
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      if (
+        state.mode === "step" &&
+        !state.transition &&
+        state.currentStep < steps.length - 1
+      ) {
+        event.preventDefault();
+        nextStep();
+      }
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (key === "r") reset();
+    else if (key === "s") setMode(state.mode === "auto" ? "step" : "auto");
+    else if (key === "v") setVideoMode(!state.videoMode);
+  }
+
+  function populateSpeedOptions() {
+    for (const value of timing.speeds) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = value + "×";
+      elements.speed.appendChild(option);
+    }
+  }
+
+  elements.playButton.addEventListener("click", () => {
+    setPlaying(!state.isPlaying);
+  });
+  elements.settingsButton.addEventListener("click", toggleSettings);
+  elements.closeSettings.addEventListener("click", closeSettings);
+  elements.backdrop.addEventListener("click", (event) => {
+    if (event.target === elements.backdrop) closeSettings();
+  });
+  elements.autoMode.addEventListener("click", () => setMode("auto"));
+  elements.stepMode.addEventListener("click", () => setMode("step"));
+  elements.nextStep.addEventListener("click", nextStep);
+  elements.speed.addEventListener("change", (event) =>
+    setSpeed(event.target.value),
+  );
+  elements.portrait.addEventListener("change", (event) =>
+    setVideoMode(event.target.checked),
+  );
+  elements.reset.addEventListener("click", reset);
+  window.addEventListener("keydown", handleKeyboard);
+  window.addEventListener("resize", resizeCanvas);
+  document.addEventListener("visibilitychange", () => {
+    lastTimestamp = 0;
+  });
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(elements.visualFrame);
+  }
+
+  populateSpeedOptions();
+  updateIndicators(false);
+  resizeCanvas();
+
+  try {
+    if (typeof scene.init === "function") {
+      scene.init({
+        width: cssWidth,
+        height: cssHeight,
+        steps,
+        setMode,
+        setPlaying,
+        setSpeed,
+        setVideoMode,
+        nextStep,
+        reset,
+      });
+    }
+    sceneInitialized = true;
+    resizeCanvas();
+  } catch (error) {
+    console.error("[app-generator] Scene initialization failed:", error);
+    showFatalError(
+      "Не удалось инициализировать визуализацию. Проверьте консоль браузера.",
+    );
+    return;
+  }
+
+  animationFrameId = requestAnimationFrame(animationLoop);
+  window.setTimeout(() => {
+    if (!state.isPlaying && state.mode === timing.defaultMode) setPlaying(true);
+  }, timing.autoStartDelayMs);
+
+  window.addEventListener(
+    "pagehide",
+    () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    },
+    { once: true },
+  );
+})();
+    </script>
+  </body>
+</html>

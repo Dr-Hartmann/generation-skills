@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Основные этапы разработки игр: геймдизайн, прототипирование, движок, программирование, контент, тестирование и релиз."
+      content="Основы создания сайтов и веб-приложений: браузер, HTML, CSS, JavaScript, API, тестирование и публикация."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Разработка компьютерных игр</title>
+    <title>Веб-разработка</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Разработка компьютерных игр</h1>
+        <h1 id="appTitle">Веб-разработка</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,74 +637,72 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Концепция",
-            subtitle: "Концепция определяет жанр, аудиторию и игровой опыт.",
-            detail: "Жанр • аудитория • цель",
-            icon: "game",
-            nodes: ["Жанр", "Аудитория", "Цель"],
+            heading: "Запрос",
+            subtitle:
+              "Браузер отправляет запрос серверу и получает веб-страницу.",
+            detail: "Клиент • HTTP • ответ",
+            icon: "web",
+            nodes: ["Браузер", "Запрос", "Ответ"],
           },
           {
-            heading: "Геймдизайн",
-            subtitle:
-              "Геймдизайн связывает правила, цели, уровни и прогрессию.",
-            detail: "Правила • уровни • баланс",
-            icon: "game",
-            nodes: ["Правила", "Уровни", "Баланс"],
+            heading: "HTML",
+            subtitle: "HTML задаёт структуру и смысловое устройство страницы.",
+            detail: "Элементы • семантика • документ",
+            icon: "web",
+            nodes: ["HTML", "Семантика", "Структура"],
           },
           {
-            heading: "Прототип",
-            subtitle:
-              "Прототип проверяет основную игровую механику до производства.",
-            detail: "Игровой цикл • проверка • итерация",
-            icon: "game",
-            nodes: ["Прототип", "Механика", "Тест"],
+            heading: "CSS",
+            subtitle: "CSS оформляет элементы и адаптирует интерфейс к экрану.",
+            detail: "Сетка • каскад • адаптивность",
+            icon: "web",
+            nodes: ["CSS", "Сетка", "Адаптивность"],
           },
           {
-            heading: "Движок",
+            heading: "JavaScript",
             subtitle:
-              "Движок объединяет сцены, ресурсы, физику и обработку ввода.",
-            detail: "Сцены • компоненты • ресурсы",
-            icon: "game",
-            nodes: ["Сцена", "Физика", "Ресурсы"],
-          },
-          {
-            heading: "Логика",
-            subtitle:
-              "Код управляет состояниями, взаимодействиями и поведением персонажей.",
-            detail: "Состояния • ввод • NPC",
+              "JavaScript добавляет интерактивность и обрабатывает действия пользователя.",
+            detail: "События • логика • DOM",
             icon: "code",
-            nodes: ["Состояния", "Ввод", "NPC"],
+            nodes: ["JavaScript", "События", "Логика"],
           },
           {
-            heading: "Контент",
-            subtitle:
-              "Графика, анимация и звук формируют атмосферу игрового мира.",
-            detail: "Модели • движение • звук",
-            icon: "game",
-            nodes: ["Модели", "Анимация", "Звук"],
+            heading: "DOM",
+            subtitle: "DOM связывает программный код с элементами документа.",
+            detail: "Узлы • атрибуты • события",
+            icon: "web",
+            nodes: ["DOM", "Элементы", "События"],
           },
           {
-            heading: "Тестирование",
+            heading: "API",
             subtitle:
-              "Тестирование выявляет ошибки, дисбаланс и проблемы производительности.",
-            detail: "Ошибки • баланс • FPS",
+              "API обеспечивает обмен данными между клиентом и сервером.",
+            detail: "REST • JSON • HTTPS",
+            icon: "network",
+            nodes: ["REST", "JSON", "HTTPS"],
+          },
+          {
+            heading: "Проверка",
+            subtitle:
+              "Тестирование проверяет доступность, безопасность и производительность сайта.",
+            detail: "Тесты • a11y • метрики",
             icon: "shield",
-            nodes: ["Ошибки", "Баланс", "FPS"],
+            nodes: ["Тесты", "A11y", "Метрики"],
           },
           {
-            heading: "Релиз",
+            heading: "Публикация",
             subtitle:
-              "Релиз сопровождается поддержкой, обновлениями и развитием проекта.",
-            detail: "Публикация • поддержка • развитие",
-            icon: "game",
-            nodes: ["Релиз", "Поддержка", "Update"],
+              "Публикация включает хостинг, домен, мониторинг и поддержку.",
+            detail: "Хостинг • домен • обновления",
+            icon: "network",
+            nodes: ["Хостинг", "Домен", "Мониторинг"],
           },
         ],
         palette: {

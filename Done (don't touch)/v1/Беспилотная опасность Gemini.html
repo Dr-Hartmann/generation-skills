@@ -1,0 +1,1576 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Беспилотная опасность — Правила для школьников</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --accent-dark: #1e7a47;
+        --text: #ffffff;
+        --muted: #a0a0a0;
+        --danger: #e5484d;
+        --warn: #f5a623;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background-color: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        touch-action: manipulation;
+      }
+
+      /* Ambient background for 9:16 video mode */
+      #ambient-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        opacity: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            circle at 25% 30%,
+            rgba(46, 172, 101, 0.25),
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 75% 70%,
+            rgba(30, 122, 71, 0.28),
+            transparent 55%
+          ),
+          #0f0f13;
+        filter: blur(28px);
+        transition: opacity 0.35s ease;
+      }
+
+      body.video-mode #ambient-bg {
+        opacity: 1;
+      }
+
+      /* Main App Container */
+      #app {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      /* Mobile-first (<768px) layout respecting social media safe zones */
+      @media (max-width: 767px) {
+        #app {
+          padding-top: calc(16px + env(safe-area-inset-top));
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: 84px; /* Right safe zone for Reels/Shorts/TikTok icons */
+          padding-bottom: max(18vh, calc(18vh + env(safe-area-inset-bottom)));
+          justify-content: space-between;
+        }
+
+        #main-stage {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          width: 100%;
+        }
+
+        #side-panel {
+          display: contents;
+        }
+      }
+
+      /* Desktop (>=768px) 2-column layout */
+      @media (min-width: 768px) {
+        #app {
+          flex-direction: row;
+          padding: 24px;
+          gap: 24px;
+        }
+
+        #main-stage {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          min-height: 0;
+        }
+
+        #side-panel {
+          width: 350px;
+          flex-shrink: 0;
+          background: var(--panel);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      /* Video 9:16 Recording Mode (overrides desktop split to keep everything inside 9:16 frame) */
+      body.video-mode #app {
+        flex-direction: column !important;
+        width: min(100vw, calc(100dvh * 9 / 16));
+        height: 100dvh;
+        margin: 0 auto;
+        background: var(--bg);
+        box-shadow:
+          0 0 60px rgba(0, 0, 0, 0.85),
+          0 0 0 1px rgba(46, 172, 101, 0.25);
+        padding-top: calc(16px + env(safe-area-inset-top)) !important;
+        padding-left: 16px !important;
+        padding-right: 84px !important;
+        padding-bottom: 18vh !important;
+        justify-content: space-between !important;
+      }
+
+      body.video-mode #main-stage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        width: 100%;
+      }
+
+      body.video-mode #side-panel {
+        display: contents !important;
+      }
+
+      /* Header */
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        flex-shrink: 0;
+      }
+
+      .badge-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px var(--accent);
+        flex-shrink: 0;
+        animation: pulseDot 2s infinite;
+      }
+
+      @keyframes pulseDot {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.35);
+          opacity: 0.7;
+        }
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(17px, 4.4vw, 24px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      }
+
+      /* Canvas Wrapper */
+      #canvas-wrap {
+        position: relative;
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+        border-radius: 20px;
+        overflow: hidden;
+        background: radial-gradient(
+          circle at 50% 45%,
+          #171922 0%,
+          #0f0f13 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Subtitles */
+      #subtitle-box {
+        flex-shrink: 0;
+        margin-top: 10px;
+        margin-bottom: 24px; /* Min 24px above bottom bar */
+        min-height: 76px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: #00000080;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(46, 172, 101, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      @media (min-width: 768px) {
+        body:not(.video-mode) #subtitle-box {
+          margin-top: 0;
+          margin-bottom: 0;
+          min-height: 140px;
+          padding: 20px;
+          background: rgba(15, 15, 19, 0.75);
+        }
+      }
+
+      #subtitle-text {
+        margin: 0;
+        font-size: clamp(16px, 4.5vw, 22px);
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--text);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+      }
+
+      @media (min-width: 768px) {
+        body:not(.video-mode) #subtitle-text {
+          font-size: 20px;
+        }
+      }
+
+      #subtitle-text.anim-out {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      #subtitle-text span {
+        color: var(--accent);
+        text-shadow: 0 0 14px rgba(46, 172, 101, 0.45);
+      }
+
+      /* Desktop side-panel info block (hidden on mobile & 9:16 mode) */
+      #desktop-meta {
+        display: none;
+      }
+
+      @media (min-width: 768px) {
+        body:not(.video-mode) #desktop-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+
+      .meta-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+      }
+
+      .meta-desc {
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      /* Bottom Bar */
+      #bottom-bar {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 8px;
+        border-radius: 18px;
+        background: rgba(26, 26, 32, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+
+      .bar-btn {
+        height: 48px;
+        min-width: 48px;
+        border: none;
+        border-radius: 14px;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition:
+          transform 0.15s ease,
+          background-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .bar-btn:active {
+        transform: scale(0.95);
+      }
+
+      #btn-play {
+        flex: 1;
+        background: var(--accent);
+        color: #08180f;
+        box-shadow: 0 4px 18px rgba(46, 172, 101, 0.4);
+        padding: 0 18px;
+      }
+
+      @media (hover: hover) {
+        #btn-play:hover {
+          background: #35c273;
+          box-shadow: 0 6px 24px rgba(46, 172, 101, 0.6);
+        }
+        #btn-settings:hover {
+          background: rgba(255, 255, 255, 0.14);
+        }
+      }
+
+      #btn-settings {
+        width: 48px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 20px;
+      }
+
+      /* Settings Modal */
+      #modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(8, 8, 12, 0.72);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+
+      #modal-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #settings-modal {
+        width: 100%;
+        max-width: 360px;
+        background: rgba(26, 26, 32, 0.92);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+        transform: scale(0.95);
+        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      #modal-backdrop.open #settings-modal {
+        transform: scale(1);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      #btn-close-modal {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: none;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stat-pill {
+        background: rgba(46, 172, 101, 0.14);
+        border: 1px solid rgba(46, 172, 101, 0.35);
+        color: var(--accent);
+        font-weight: 800;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        text-align: center;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .control-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: #0f0f13;
+        padding: 4px;
+        border-radius: 14px;
+        gap: 4px;
+      }
+
+      .segmented button {
+        height: 42px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .segmented button.active {
+        background: var(--accent);
+        color: #08180f;
+        box-shadow: 0 2px 10px rgba(46, 172, 101, 0.35);
+      }
+
+      .modal-btn {
+        height: 48px;
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition:
+          opacity 0.2s ease,
+          transform 0.15s ease,
+          background 0.2s ease;
+      }
+
+      .modal-btn:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      #btn-next-step {
+        background: var(--accent);
+        color: #08180f;
+      }
+
+      #btn-next-step:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .speed-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .speed-btn {
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: #0f0f13;
+        color: var(--text);
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .speed-btn.active {
+        border-color: var(--accent);
+        background: rgba(46, 172, 101, 0.2);
+        color: var(--accent);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #0f0f13;
+        padding: 10px 14px;
+        border-radius: 14px;
+        cursor: pointer;
+        min-height: 48px;
+      }
+
+      .toggle-row span {
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .switch-pill {
+        width: 46px;
+        height: 26px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.16);
+        position: relative;
+        transition: background 0.2s ease;
+      }
+
+      .switch-pill::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.2s ease;
+      }
+
+      .toggle-row.active .switch-pill {
+        background: var(--accent);
+      }
+
+      .toggle-row.active .switch-pill::after {
+        transform: translateX(20px);
+      }
+
+      #btn-reset {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+      }
+
+      #hotkeys-hint {
+        display: none;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.4;
+        padding-top: 4px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      @media (min-width: 768px) and (pointer: fine) {
+        #hotkeys-hint {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ambient-bg"></div>
+
+    <div id="app">
+      <div id="main-stage">
+        <header>
+          <div class="badge-dot"></div>
+          <h1>Беспилотная опасность</h1>
+        </header>
+        <div id="canvas-wrap">
+          <canvas id="scene"></canvas>
+        </div>
+      </div>
+
+      <aside id="side-panel">
+        <div id="desktop-meta">
+          <div class="meta-label">Памятка школьнику • ОБЗР</div>
+          <p class="meta-desc">
+            Алгоритм безопасных действий при обнаружении БПЛА на улице, в школе
+            и дома.
+          </p>
+        </div>
+
+        <div id="subtitle-box">
+          <p id="subtitle-text"></p>
+        </div>
+
+        <div id="bottom-bar">
+          <button
+            id="btn-play"
+            class="bar-btn"
+            type="button"
+            aria-label="Пауза или старт"
+          >
+            <span id="play-icon">❚❚</span>
+            <span id="play-label">Пауза</span>
+          </button>
+          <button
+            id="btn-settings"
+            class="bar-btn"
+            type="button"
+            aria-label="Настройки"
+          >
+            ⚙
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <div
+      id="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-heading"
+    >
+      <div id="settings-modal">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modal-heading">Настройки</h2>
+          <button id="btn-close-modal" type="button" aria-label="Закрыть">
+            ✕
+          </button>
+        </div>
+
+        <div class="stat-pill" id="step-indicator">Шаг 1 / 8</div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Режим воспроизведения</span></div>
+          <div class="segmented">
+            <button id="mode-auto" type="button" class="active">AUTO</button>
+            <button id="mode-step" type="button">STEP</button>
+          </div>
+          <button id="btn-next-step" class="modal-btn" type="button" disabled>
+            Следующий шаг ▶
+          </button>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Скорость анимации</span></div>
+          <div class="speed-row">
+            <button class="speed-btn" data-speed="0.5" type="button">
+              0.5x
+            </button>
+            <button class="speed-btn active" data-speed="1" type="button">
+              1x
+            </button>
+            <button class="speed-btn" data-speed="2" type="button">2x</button>
+          </div>
+        </div>
+
+        <div
+          class="toggle-row"
+          id="toggle-video-mode"
+          role="switch"
+          aria-checked="false"
+          tabindex="0"
+        >
+          <span>Режим 9:16 (для записи)</span>
+          <div class="switch-pill"></div>
+        </div>
+
+        <button id="btn-reset" class="modal-btn" type="button">
+          ↺ Сбросить
+        </button>
+
+        <div id="hotkeys-hint">
+          Space — Пауза/Старт • → — След. шаг<br />
+          S — AUTO/STEP • V — 9:16 • R — Сброс
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const STEPS = [
+          {
+            step: 1,
+            duration: 4.0,
+            text: "Услышал <span>жужжание</span> или сирену — сохраняй спокойствие и оцени обстановку.",
+          },
+          {
+            step: 2,
+            duration: 4.2,
+            text: "На улице: немедленно укройся в <span>ближайшем здании</span>, подъезде или переходе.",
+          },
+          {
+            step: 3,
+            duration: 4.2,
+            text: "Держись подальше от <span>окон</span>, витрин и стеклянных дверей.",
+          },
+          {
+            step: 4,
+            duration: 4.2,
+            text: "В школе: строго слушай <span>учителя</span> и спускайся в укрытие без паники.",
+          },
+          {
+            step: 5,
+            duration: 4.2,
+            text: "Дома: перейди в <span>ванную</span> или коридор за двумя несущими стенами.",
+          },
+          {
+            step: 6,
+            duration: 4.2,
+            text: "Запрещено <span>снимать дрон</span> на телефон и публиковать видео в сеть.",
+          },
+          {
+            step: 7,
+            duration: 4.2,
+            text: "Увидел упавший аппарат — <span>не подходи</span> и не трогай обломки.",
+          },
+          {
+            step: 8,
+            duration: 4.4,
+            text: "Отойди на безопасное расстояние и позвони по номеру <span>112</span>.",
+          },
+        ];
+
+        const state = {
+          stepIndex: 0,
+          stepTime: 0,
+          globalTime: 0,
+          isPlaying: false,
+          mode: "AUTO",
+          speed: 1,
+          videoMode: false,
+          settingsOpen: false,
+          lastFrameTime: 0,
+          width: 0,
+          height: 0,
+          dpr: 1,
+          particles: [],
+        };
+
+        const canvas = document.getElementById("scene");
+        const ctx = canvas.getContext("2d");
+        const canvasWrap = document.getElementById("canvas-wrap");
+        const subtitleText = document.getElementById("subtitle-text");
+        const btnPlay = document.getElementById("btn-play");
+        const playIcon = document.getElementById("play-icon");
+        const playLabel = document.getElementById("play-label");
+        const btnSettings = document.getElementById("btn-settings");
+        const modalBackdrop = document.getElementById("modal-backdrop");
+        const btnCloseModal = document.getElementById("btn-close-modal");
+        const stepIndicator = document.getElementById("step-indicator");
+        const modeAutoBtn = document.getElementById("mode-auto");
+        const modeStepBtn = document.getElementById("mode-step");
+        const btnNextStep = document.getElementById("btn-next-step");
+        const speedBtns = document.querySelectorAll(".speed-btn");
+        const toggleVideoRow = document.getElementById("toggle-video-mode");
+        const btnReset = document.getElementById("btn-reset");
+
+        function easeOutCubic(t) {
+          return 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
+        }
+
+        function easeInOutSine(t) {
+          return -(Math.cos(Math.PI * Math.max(0, Math.min(1, t))) - 1) / 2;
+        }
+
+        function initParticles() {
+          state.particles = [];
+          for (let i = 0; i < 28; i++) {
+            state.particles.push({
+              x: Math.random(),
+              y: Math.random(),
+              r: 1 + Math.random() * 2,
+              vx: (Math.random() - 0.5) * 0.03,
+              vy: -0.01 - Math.random() * 0.03,
+              alpha: 0.15 + Math.random() * 0.45,
+            });
+          }
+        }
+
+        function resize() {
+          const rect = canvasWrap.getBoundingClientRect();
+          state.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+          state.width = Math.max(1, rect.width);
+          state.height = Math.max(1, rect.height);
+          canvas.width = Math.round(state.width * state.dpr);
+          canvas.height = Math.round(state.height * state.dpr);
+        }
+
+        function updateSubtitles(stepIdx) {
+          const item = STEPS[stepIdx];
+          stepIndicator.textContent = `Шаг ${item.step} / ${STEPS.length}`;
+          subtitleText.classList.add("anim-out");
+          clearTimeout(updateSubtitles._timer);
+          updateSubtitles._timer = setTimeout(() => {
+            subtitleText.innerHTML = item.text;
+            subtitleText.classList.remove("anim-out");
+          }, 150);
+        }
+
+        function syncUI() {
+          if (state.isPlaying) {
+            playIcon.textContent = "❚❚";
+            playLabel.textContent = "Пауза";
+          } else {
+            playIcon.textContent = "▶";
+            playLabel.textContent = "Старт";
+          }
+
+          modeAutoBtn.classList.toggle("active", state.mode === "AUTO");
+          modeStepBtn.classList.toggle("active", state.mode === "STEP");
+          btnNextStep.disabled = state.mode !== "STEP";
+
+          speedBtns.forEach((btn) => {
+            btn.classList.toggle(
+              "active",
+              parseFloat(btn.dataset.speed) === state.speed,
+            );
+          });
+
+          toggleVideoRow.classList.toggle("active", state.videoMode);
+          toggleVideoRow.setAttribute("aria-checked", String(state.videoMode));
+          document.body.classList.toggle("video-mode", state.videoMode);
+        }
+
+        function startAuto() {
+          state.mode = "AUTO";
+          state.isPlaying = true;
+          syncUI();
+        }
+
+        function onStep(manual = false) {
+          state.stepIndex = (state.stepIndex + 1) % STEPS.length;
+          state.stepTime = 0;
+          updateSubtitles(state.stepIndex);
+          if (manual && state.mode === "STEP") {
+            state.isPlaying = true;
+            syncUI();
+          }
+        }
+
+        function openSettings() {
+          state.settingsOpen = true;
+          modalBackdrop.classList.add("open");
+        }
+
+        function closeSettings() {
+          state.settingsOpen = false;
+          modalBackdrop.classList.remove("open");
+        }
+
+        function toggleVideoMode() {
+          state.videoMode = !state.videoMode;
+          syncUI();
+          setTimeout(resize, 50);
+          setTimeout(resize, 360);
+        }
+
+        function resetSimulation() {
+          state.stepIndex = 0;
+          state.stepTime = 0;
+          state.mode = "AUTO";
+          state.isPlaying = true;
+          updateSubtitles(0);
+          syncUI();
+        }
+
+        function handleInput() {
+          btnPlay.addEventListener("click", () => {
+            state.isPlaying = !state.isPlaying;
+            syncUI();
+          });
+
+          btnSettings.addEventListener("click", () => {
+            if (state.settingsOpen) closeSettings();
+            else openSettings();
+          });
+
+          btnCloseModal.addEventListener("click", closeSettings);
+
+          modalBackdrop.addEventListener("click", (e) => {
+            if (e.target === modalBackdrop) closeSettings();
+          });
+
+          modeAutoBtn.addEventListener("click", () => {
+            state.mode = "AUTO";
+            state.isPlaying = true;
+            syncUI();
+          });
+
+          modeStepBtn.addEventListener("click", () => {
+            state.mode = "STEP";
+            syncUI();
+          });
+
+          btnNextStep.addEventListener("click", () => {
+            if (state.mode === "STEP") {
+              onStep(true);
+            }
+          });
+
+          speedBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              state.speed = parseFloat(btn.dataset.speed);
+              syncUI();
+            });
+          });
+
+          toggleVideoRow.addEventListener("click", toggleVideoMode);
+          toggleVideoRow.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleVideoMode();
+            }
+          });
+
+          btnReset.addEventListener("click", () => {
+            resetSimulation();
+            closeSettings();
+          });
+
+          window.addEventListener("keydown", (e) => {
+            if (e.code === "Escape") {
+              if (state.settingsOpen) closeSettings();
+              return;
+            }
+            if (e.code === "Space") {
+              e.preventDefault();
+              state.isPlaying = !state.isPlaying;
+              syncUI();
+            } else if (e.code === "ArrowRight") {
+              e.preventDefault();
+              onStep(true);
+            } else if (e.code === "KeyR") {
+              resetSimulation();
+            } else if (e.code === "KeyS") {
+              state.mode = state.mode === "AUTO" ? "STEP" : "AUTO";
+              if (state.mode === "AUTO") state.isPlaying = true;
+              syncUI();
+            } else if (e.code === "KeyV") {
+              toggleVideoMode();
+            }
+          });
+        }
+
+        function update(dt) {
+          const scaledDt = dt * state.speed;
+          state.globalTime += scaledDt;
+
+          for (const p of state.particles) {
+            p.x += p.vx * scaledDt;
+            p.y += p.vy * scaledDt;
+            if (p.y < -0.05) {
+              p.y = 1.05;
+              p.x = Math.random();
+            }
+            if (p.x < -0.05) p.x = 1.05;
+            if (p.x > 1.05) p.x = -0.05;
+          }
+
+          if (!state.isPlaying) return;
+
+          const currentDuration = STEPS[state.stepIndex].duration;
+          state.stepTime += scaledDt;
+
+          if (state.stepTime >= currentDuration) {
+            if (state.mode === "AUTO") {
+              onStep(false);
+            } else {
+              state.stepTime = currentDuration;
+              state.isPlaying = false;
+              syncUI();
+            }
+          }
+        }
+
+        function drawGridAndParticles(w, h) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(46, 172, 101, 0.06)";
+          ctx.lineWidth = 1;
+          const step = Math.min(w, h) / 7;
+          for (let x = (w % step) / 2; x < w; x += step) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+            ctx.stroke();
+          }
+          for (let y = (h % step) / 2; y < h; y += step) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+          }
+
+          for (const p of state.particles) {
+            ctx.fillStyle = `rgba(46, 172, 101, ${p.alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x * w, p.y * h, p.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        function drawDrone(
+          cx,
+          cy,
+          scale,
+          time,
+          alertColor = "#E5484D",
+          broken = false,
+        ) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          if (broken) {
+            ctx.rotate(0.42);
+          } else {
+            ctx.rotate(Math.sin(time * 4) * 0.06);
+          }
+          ctx.scale(scale, scale);
+
+          ctx.shadowColor = alertColor;
+          ctx.shadowBlur = broken ? 10 : 18;
+
+          ctx.strokeStyle = "#D0D5DD";
+          ctx.lineWidth = 5;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(-42, -16);
+          ctx.lineTo(42, 16);
+          ctx.moveTo(42, -16);
+          ctx.lineTo(-42, 16);
+          ctx.stroke();
+
+          const rotorSpin = broken ? 0.3 : Math.sin(time * 38);
+          const rotors = [
+            [-42, -16],
+            [42, -16],
+            [-42, 16],
+            [42, 16],
+          ];
+          rotors.forEach(([rx, ry], idx) => {
+            if (broken && idx === 1) return;
+            ctx.fillStyle = "rgba(255,255,255,0.65)";
+            ctx.beginPath();
+            const rw = broken ? 14 : 18 * Math.abs(rotorSpin) + 4;
+            ctx.ellipse(rx, ry - 4, rw, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          ctx.fillStyle = "#242631";
+          ctx.strokeStyle = alertColor;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(-18, -12, 36, 24, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = alertColor;
+          ctx.beginPath();
+          ctx.arc(0, 2, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawStudent(cx, cy, scale, pose = "stand", time = 0) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.scale(scale, scale);
+
+          ctx.shadowColor = "#2EAC65";
+          ctx.shadowBlur = 14;
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.fillStyle = "#2EAC65";
+          ctx.lineWidth = 5;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+
+          const bob = pose === "run" ? Math.abs(Math.sin(time * 12)) * 5 : 0;
+
+          if (pose === "crouch") {
+            ctx.beginPath();
+            ctx.arc(0, -14, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -2);
+            ctx.quadraticCurveTo(-14, 14, -6, 26);
+            ctx.lineTo(12, 26);
+            ctx.moveTo(-4, 4);
+            ctx.lineTo(-14, -14);
+            ctx.lineTo(-4, -24);
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, -44 - bob, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -32 - bob);
+            ctx.lineTo(0, -2 - bob);
+            ctx.stroke();
+
+            ctx.fillStyle = "#1E7A47";
+            ctx.beginPath();
+            ctx.roundRect(-13, -30 - bob, 9, 20, 4);
+            ctx.fill();
+
+            const stride = pose === "run" ? Math.sin(time * 12) * 14 : 6;
+            ctx.beginPath();
+            ctx.moveTo(0, -2 - bob);
+            ctx.lineTo(-stride, 26);
+            ctx.moveTo(0, -2 - bob);
+            ctx.lineTo(stride, 26);
+            ctx.stroke();
+
+            const armSwing = pose === "run" ? -stride * 0.8 : 8;
+            ctx.beginPath();
+            ctx.moveTo(0, -26 - bob);
+            ctx.lineTo(-armSwing, -8 - bob);
+            ctx.moveTo(0, -26 - bob);
+            ctx.lineTo(armSwing, -8 - bob);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function drawBuilding(x, y, w, h, label, highlight = true) {
+          ctx.save();
+          ctx.fillStyle = "#1A1A20";
+          ctx.strokeStyle = highlight ? "#2EAC65" : "rgba(255,255,255,0.2)";
+          ctx.lineWidth = highlight ? 3 : 2;
+          if (highlight) {
+            ctx.shadowColor = "#2EAC65";
+            ctx.shadowBlur = 18;
+          }
+          ctx.beginPath();
+          ctx.roundRect(x, y, w, h, 14);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.shadowBlur = 0;
+          const doorW = w * 0.34;
+          const doorH = h * 0.36;
+          ctx.fillStyle = highlight ? "rgba(46, 172, 101, 0.25)" : "#121216";
+          ctx.strokeStyle = highlight ? "#2EAC65" : "rgba(255,255,255,0.25)";
+          ctx.beginPath();
+          ctx.roundRect(
+            x + (w - doorW) / 2,
+            y + h - doorH,
+            doorW,
+            doorH,
+            [6, 6, 0, 0],
+          );
+          ctx.fill();
+          ctx.stroke();
+
+          if (label) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = `800 ${Math.max(11, Math.round(w * 0.13))}px system-ui, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillText(label, x + w / 2, y + h * 0.28);
+          }
+          ctx.restore();
+        }
+
+        function drawProgressRing(w, h, progress) {
+          const r = 13;
+          const x = w - 24;
+          const y = 24;
+          ctx.save();
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = "#2EAC65";
+          ctx.beginPath();
+          ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+          ctx.stroke();
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.font = "800 10px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`${state.stepIndex + 1}`, x, y + 0.5);
+          ctx.restore();
+        }
+
+        function draw() {
+          const w = state.width;
+          const h = state.height;
+          ctx.save();
+          ctx.scale(state.dpr, state.dpr);
+          ctx.clearRect(0, 0, w, h);
+
+          drawGridAndParticles(w, h);
+
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+          const minDim = Math.min(w, h);
+          const scale = Math.max(0.65, Math.min(1.45, minDim / 340));
+          const step = state.stepIndex + 1;
+          const duration = STEPS[state.stepIndex].duration;
+          const rawT = Math.min(1, state.stepTime / duration);
+          const easeT = easeOutCubic(Math.min(1, rawT * 1.4));
+          const t = state.globalTime;
+
+          if ([1, 2, 4, 7, 8].includes(step)) {
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(w * 0.1, cy + 72 * scale);
+            ctx.lineTo(w * 0.9, cy + 72 * scale);
+            ctx.stroke();
+          }
+
+          if (step === 1) {
+            const droneX = cx + Math.sin(t * 2.2) * 35 * scale;
+            const droneY = cy - 68 * scale;
+
+            for (let i = 0; i < 3; i++) {
+              const waveP = (t * 1.2 + i * 0.33) % 1;
+              ctx.strokeStyle = `rgba(229, 72, 77, ${(1 - waveP) * 0.7})`;
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.arc(
+                droneX,
+                droneY,
+                (18 + waveP * 85) * scale,
+                0.2 * Math.PI,
+                0.8 * Math.PI,
+              );
+              ctx.stroke();
+            }
+
+            drawDrone(droneX, droneY, scale * 0.95, t, "#E5484D");
+            drawStudent(cx, cy + 44 * scale, scale, "stand", t);
+
+            const pulse = 1 + Math.sin(t * 8) * 0.08;
+            ctx.save();
+            ctx.translate(cx + 28 * scale, cy - 12 * scale);
+            ctx.scale(scale * pulse, scale * pulse);
+            ctx.fillStyle = "#F5A623";
+            ctx.shadowColor = "#F5A623";
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#0F0F13";
+            ctx.font = "900 18px system-ui, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("!", 0, 1);
+            ctx.restore();
+          } else if (step === 2) {
+            const bW = 94 * scale;
+            const bH = 124 * scale;
+            const bX = cx + 38 * scale;
+            const bY = cy + 72 * scale - bH;
+
+            drawBuilding(bX, bY, bW, bH, "УКРЫТИЕ", true);
+
+            const startX = cx - 90 * scale;
+            const endX = bX + bW * 0.38;
+            const studentX =
+              startX + (endX - startX) * easeInOutSine(Math.min(1, rawT * 1.3));
+            const alpha =
+              rawT > 0.7 ? Math.max(0.25, 1 - (rawT - 0.7) * 2.5) : 1;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            drawStudent(studentX, cy + 44 * scale, scale, "run", t);
+            ctx.restore();
+
+            ctx.strokeStyle = "#2EAC65";
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(startX, cy + 84 * scale);
+            ctx.lineTo(bX + bW * 0.4, cy + 84 * scale);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          } else if (step === 3) {
+            const winX = cx - 95 * scale;
+            const winY = cy - 65 * scale;
+            const winW = 74 * scale;
+            const winH = 95 * scale;
+
+            ctx.save();
+            ctx.fillStyle = "rgba(229, 72, 77, 0.14)";
+            ctx.strokeStyle = "#E5484D";
+            ctx.lineWidth = 3;
+            ctx.shadowColor = "#E5484D";
+            ctx.shadowBlur = 14;
+            ctx.beginPath();
+            ctx.roundRect(winX, winY, winW, winH, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(winX + winW / 2, winY);
+            ctx.lineTo(winX + winW / 2, winY + winH);
+            ctx.moveTo(winX, winY + winH * 0.45);
+            ctx.lineTo(winX + winW, winY + winH * 0.45);
+            ctx.stroke();
+
+            ctx.fillStyle = "#E5484D";
+            ctx.beginPath();
+            ctx.arc(winX + winW, winY, 14 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#FFF";
+            ctx.font = `900 ${Math.round(15 * scale)}px system-ui`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("✕", winX + winW, winY + 1);
+            ctx.restore();
+
+            const safeX = cx + 52 * scale;
+            ctx.fillStyle = "rgba(46, 172, 101, 0.12)";
+            ctx.strokeStyle = "#2EAC65";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(
+              safeX - 32 * scale,
+              cy - 55 * scale,
+              68 * scale,
+              110 * scale,
+              12,
+            );
+            ctx.fill();
+            ctx.stroke();
+
+            const studentX = cx - 12 * scale + 64 * scale * easeT;
+            drawStudent(studentX, cy + 22 * scale, scale, "crouch", t);
+          } else if (step === 4) {
+            const doorX = cx + 52 * scale;
+            const doorY = cy - 55 * scale;
+            drawBuilding(doorX, doorY, 72 * scale, 115 * scale, "ВНИЗ", true);
+
+            const teacherX = cx - 25 * scale + 55 * scale * easeT;
+            drawStudent(teacherX, cy + 32 * scale, scale * 1.12, "run", t);
+
+            const pupilX = cx - 78 * scale + 55 * scale * easeT;
+            drawStudent(pupilX, cy + 36 * scale, scale * 0.9, "run", t + 0.5);
+
+            ctx.fillStyle = "#2EAC65";
+            ctx.font = `800 ${Math.round(13 * scale)}px system-ui`;
+            ctx.textAlign = "center";
+            ctx.fillText("СЛУШАЙ УЧИТЕЛЯ", cx, cy - 76 * scale);
+          } else if (step === 5) {
+            const roomW = 210 * scale;
+            const roomH = 140 * scale;
+            const rx = cx - roomW / 2;
+            const ry = cy - roomH / 2;
+
+            ctx.strokeStyle = "rgba(255,255,255,0.45)";
+            ctx.lineWidth = 6 * scale;
+            ctx.strokeRect(rx, ry, roomW, roomH);
+
+            const innerW = 92 * scale;
+            const innerH = 84 * scale;
+            ctx.fillStyle = "rgba(46, 172, 101, 0.16)";
+            ctx.strokeStyle = "#2EAC65";
+            ctx.lineWidth = 4 * scale;
+            ctx.shadowColor = "#2EAC65";
+            ctx.shadowBlur = 16;
+            ctx.beginPath();
+            ctx.roundRect(cx - innerW / 2, cy - innerH / 2, innerW, innerH, 10);
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            drawStudent(cx, cy + 8 * scale, scale * 0.92, "crouch", t);
+
+            ctx.fillStyle = "#2EAC65";
+            ctx.font = `800 ${Math.round(12 * scale)}px system-ui`;
+            ctx.textAlign = "center";
+            ctx.fillText("2 НЕСУЩИЕ СТЕНЫ", cx, ry - 14 * scale);
+          } else if (step === 6) {
+            drawDrone(cx, cy - 68 * scale, scale * 0.85, t, "#E5484D");
+
+            const pW = 54 * scale;
+            const pH = 94 * scale;
+            const px = cx - pW / 2;
+            const py = cy - 12 * scale;
+
+            ctx.save();
+            ctx.fillStyle = "#1A1A20";
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(px, py, pW, pH, 10 * scale);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, py + pH * 0.45, 14 * scale, 0, Math.PI * 2);
+            ctx.stroke();
+
+            const slashScale = 0.85 + 0.15 * easeT;
+            ctx.translate(cx, py + pH * 0.48);
+            ctx.scale(slashScale, slashScale);
+            ctx.strokeStyle = "#E5484D";
+            ctx.lineWidth = 5 * scale;
+            ctx.shadowColor = "#E5484D";
+            ctx.shadowBlur = 16;
+            ctx.beginPath();
+            ctx.arc(0, 0, 34 * scale, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-24 * scale, -24 * scale);
+            ctx.lineTo(24 * scale, 24 * scale);
+            ctx.stroke();
+            ctx.restore();
+          } else if (step === 7) {
+            const droneX = cx - 64 * scale;
+            const droneY = cy + 56 * scale;
+
+            const pulseR = (46 + Math.sin(t * 5) * 6) * scale;
+            ctx.strokeStyle = "rgba(229, 72, 77, 0.75)";
+            ctx.fillStyle = "rgba(229, 72, 77, 0.1)";
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.arc(droneX, droneY - 6 * scale, pulseR, Math.PI, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            drawDrone(droneX, droneY, scale * 0.85, t, "#E5484D", true);
+
+            const stX = cx + 24 * scale + 48 * scale * easeT;
+            drawStudent(stX, cy + 44 * scale, scale, "run", t);
+
+            ctx.fillStyle = "#2EAC65";
+            ctx.font = `800 ${Math.round(13 * scale)}px system-ui`;
+            ctx.textAlign = "center";
+            ctx.fillText("НЕ ПОДХОДИ! →", cx + 38 * scale, cy - 28 * scale);
+          } else if (step === 8) {
+            drawStudent(cx - 56 * scale, cy + 44 * scale, scale, "stand", t);
+
+            const cardW = 126 * scale;
+            const cardH = 78 * scale;
+            const cardX = cx - 4 * scale;
+            const cardY = cy - 46 * scale;
+
+            ctx.save();
+            ctx.fillStyle = "#1A1A20";
+            ctx.strokeStyle = "#2EAC65";
+            ctx.lineWidth = 3;
+            ctx.shadowColor = "#2EAC65";
+            ctx.shadowBlur = 22;
+            ctx.beginPath();
+            ctx.roundRect(cardX, cardY, cardW, cardH, 16 * scale);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#2EAC65";
+            ctx.font = `900 ${Math.round(32 * scale)}px system-ui, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("112", cardX + cardW / 2, cardY + cardH * 0.44);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = `700 ${Math.round(11 * scale)}px system-ui, sans-serif`;
+            ctx.fillText(
+              "СЛУЖБА СПАСЕНИЯ",
+              cardX + cardW / 2,
+              cardY + cardH * 0.78,
+            );
+            ctx.restore();
+          }
+
+          drawProgressRing(w, h, rawT);
+          ctx.restore();
+        }
+
+        function loop(timestamp) {
+          if (!state.lastFrameTime) state.lastFrameTime = timestamp;
+          const dt = Math.min(0.1, (timestamp - state.lastFrameTime) / 1000);
+          state.lastFrameTime = timestamp;
+
+          update(dt);
+          draw();
+          requestAnimationFrame(loop);
+        }
+
+        function init() {
+          initParticles();
+          resize();
+          handleInput();
+
+          const ro = new ResizeObserver(() => resize());
+          ro.observe(canvasWrap);
+          window.addEventListener("resize", resize);
+
+          updateSubtitles(0);
+          syncUI();
+
+          requestAnimationFrame(loop);
+
+          setTimeout(() => {
+            startAuto();
+          }, 500);
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>

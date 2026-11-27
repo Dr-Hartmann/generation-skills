@@ -1,0 +1,2269 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Анализ данных и Data Science</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --accent-dark: #1e7a47;
+        --text: #ffffff;
+        --muted: #a0a0a0;
+        --accent-soft: rgba(46, 172, 101, 0.14);
+        --accent-hover: rgba(46, 172, 101, 0.26);
+        --accent-border: rgba(46, 172, 101, 0.5);
+        --white-06: rgba(255, 255, 255, 0.06);
+        --white-08: rgba(255, 255, 255, 0.08);
+        --white-10: rgba(255, 255, 255, 0.1);
+        --white-12: rgba(255, 255, 255, 0.12);
+        --white-14: rgba(255, 255, 255, 0.14);
+        --sub-bg: #00000080;
+        --sub-blur: 8px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        overscroll-behavior: none;
+      }
+      .app {
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding-top: calc(16px + env(safe-area-inset-top));
+        padding-right: calc(80px + env(safe-area-inset-right));
+        padding-bottom: calc(25vh + env(safe-area-inset-bottom));
+        padding-left: calc(16px + env(safe-area-inset-left));
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+      .title {
+        margin: 0 0 12px 0;
+        min-width: 0;
+      }
+      .title h1 {
+        margin: 0;
+        font-size: clamp(21px, 3.4vw, 34px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text);
+      }
+      .title-bar {
+        display: block;
+        width: 56px;
+        height: 3px;
+        border-radius: 2px;
+        margin-top: 8px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+        box-shadow: 0 0 12px rgba(46, 172, 101, 0.55);
+      }
+      .stage {
+        position: relative;
+        flex: 1;
+        min-height: 110px;
+        overflow: hidden;
+        border-radius: 18px;
+        margin-bottom: 16px;
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .sidebar {
+        display: none;
+      }
+      .subtitle {
+        background: var(--sub-bg);
+        -webkit-backdrop-filter: blur(var(--sub-blur));
+        backdrop-filter: blur(var(--sub-blur));
+        border: 1px solid var(--white-12);
+        border-radius: 14px;
+        padding: 12px 16px;
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1.35;
+        font-weight: 500;
+        min-height: 3.4em;
+        display: flex;
+        align-items: center;
+        margin: 0 0 24px 0;
+        color: var(--text);
+      }
+      .subtitle__keyword {
+        color: var(--accent);
+        font-weight: 800;
+      }
+      .subtitle-text {
+        display: block;
+      }
+      .subtitle.in {
+        animation: subIn 0.45s ease both;
+      }
+      @keyframes subIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        background: rgba(26, 26, 32, 0.72);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--white-12);
+        border-radius: 16px;
+        padding: 8px 10px;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+      }
+      .panel-spacer {
+        flex: 1;
+      }
+      body.controls-hidden .panel {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+      }
+      .btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 10px;
+      }
+      .icon-btn {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: var(--white-06);
+        border: 1px solid var(--white-12);
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.1s ease;
+      }
+      .icon-btn:hover {
+        background: var(--white-10);
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      .icon-btn:active {
+        transform: scale(0.95);
+      }
+      .icon-btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+        pointer-events: none;
+      }
+      .icon-btn svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--text);
+        pointer-events: none;
+      }
+      .accent-btn {
+        background: var(--accent-soft);
+        border-color: var(--accent-border);
+      }
+      .accent-btn:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent);
+      }
+      .accent-btn svg {
+        fill: var(--accent);
+      }
+      .vframe {
+        position: absolute;
+        z-index: 3;
+        border: 1.5px solid rgba(46, 172, 101, 0.45);
+        border-radius: 22px;
+        box-shadow:
+          0 0 0 1px rgba(46, 172, 101, 0.16),
+          0 0 34px rgba(46, 172, 101, 0.16),
+          inset 0 0 30px rgba(15, 15, 19, 0.35);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 14px;
+      }
+      .vframe .subtitle {
+        font-size: clamp(16px, 4.5vw, 22px);
+      }
+      .vframe .panel {
+        width: 100%;
+      }
+      body.video-mode .sidebar {
+        display: none;
+      }
+      @media (min-width: 768px) {
+        .app {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+          grid-template-rows: auto minmax(0, 1fr) auto;
+          grid-template-areas: "title side" "stage side" "panel side";
+          column-gap: 20px;
+          padding-top: calc(20px + env(safe-area-inset-top));
+          padding-right: calc(24px + env(safe-area-inset-right));
+          padding-bottom: calc(24px + env(safe-area-inset-bottom));
+          padding-left: calc(24px + env(safe-area-inset-left));
+        }
+        .title {
+          grid-area: title;
+        }
+        .stage {
+          grid-area: stage;
+          margin-bottom: 16px;
+        }
+        .panel {
+          grid-area: panel;
+          width: auto;
+          justify-self: start;
+          min-width: 150px;
+        }
+        .sidebar {
+          display: block;
+          grid-area: side;
+          border-left: 1px solid var(--white-08);
+          padding: 6px 4px 8px 20px;
+          min-height: 0;
+        }
+        .subtitle {
+          grid-area: side;
+          align-self: start;
+          justify-self: stretch;
+          font-size: clamp(15px, 1.3vw, 18px);
+          margin: 14px 6px 0 20px;
+        }
+        body.video-mode .app {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto minmax(0, 1fr);
+          grid-template-areas: "title" "stage";
+        }
+        body.video-mode .panel {
+          width: 100%;
+        }
+      }
+      .modal-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-scrim {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transition: opacity 0.22s ease;
+      }
+      .modal {
+        position: relative;
+        width: min(420px, 94vw);
+        max-height: 90vh;
+        max-height: 90dvh;
+        display: flex;
+        flex-direction: column;
+        background: rgba(26, 26, 32, 0.94);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+        border: 1px solid var(--white-12);
+        border-radius: 20px;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(46, 172, 101, 0.12),
+          0 0 40px rgba(46, 172, 101, 0.08);
+        opacity: 0;
+        transform: scale(0.95);
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease;
+      }
+      .modal-wrap.open .modal {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .modal-wrap.open .modal-scrim {
+        opacity: 1;
+      }
+      .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--white-08);
+      }
+      .modal-head h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .modal-body {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 16px 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--white-10);
+        border-radius: 12px;
+        padding: 10px 14px;
+      }
+      .step-indicator-label {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .step-indicator-value {
+        font-weight: 800;
+        color: var(--accent);
+        font-size: 15px;
+        white-space: nowrap;
+      }
+      .set-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .set-row-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .set-label {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .segmented {
+        display: flex;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--white-10);
+        border-radius: 12px;
+        padding: 3px;
+        gap: 3px;
+      }
+      .seg-btn {
+        min-width: 64px;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 9px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .seg-btn:hover {
+        color: var(--text);
+      }
+      .seg-btn[aria-pressed="true"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        box-shadow: inset 0 0 0 1px var(--accent-border);
+      }
+      .next-btn {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 14px;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          opacity 0.2s ease;
+      }
+      .next-btn:hover:not(:disabled) {
+        background: var(--accent-hover);
+      }
+      .next-btn:active:not(:disabled) {
+        transform: scale(0.99);
+      }
+      .next-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .reset-btn {
+        width: 100%;
+        min-height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--white-14);
+        background: var(--white-06);
+        color: var(--text);
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .reset-btn:hover {
+        background: var(--white-10);
+        border-color: rgba(255, 255, 255, 0.28);
+      }
+      .switch {
+        width: 52px;
+        height: 30px;
+        min-width: 52px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--white-14);
+        position: relative;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .switch .knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition:
+          left 0.2s ease,
+          background 0.2s ease;
+      }
+      .switch[aria-checked="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent-border);
+      }
+      .switch[aria-checked="true"] .knob {
+        left: 25px;
+        background: var(--accent);
+        box-shadow: 0 0 10px rgba(46, 172, 101, 0.5);
+      }
+      .hotkeys h3 {
+        margin: 4px 0 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .hk-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .hk-row kbd {
+        background: var(--white-08);
+        border: 1px solid var(--white-14);
+        border-bottom-width: 2px;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font:
+          600 12px system-ui,
+          sans-serif;
+        color: var(--text);
+        min-width: 34px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="title" id="title">
+        <h1>Анализ данных и Data Science</h1>
+        <span class="title-bar"></span>
+      </header>
+      <div class="stage" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="vframe" id="vframe" hidden></div>
+      </div>
+      <div class="sidebar" id="sidebar"></div>
+      <div class="subtitle" id="subtitle" aria-live="polite"></div>
+      <div class="panel" id="panel">
+        <button
+          class="btn icon-btn accent-btn"
+          id="playBtn"
+          aria-label="Воспроизвести"
+        >
+          <svg id="iconPlay" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg id="iconPause" viewBox="0 0 24 24" aria-hidden="true" hidden>
+            <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+          </svg>
+        </button>
+        <div class="panel-spacer"></div>
+        <button
+          class="btn icon-btn"
+          id="gearBtn"
+          aria-label="Настройки"
+          aria-expanded="false"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-wrap" id="modalWrap" hidden>
+        <div class="modal-scrim" id="modalScrim"></div>
+        <div
+          class="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalTitle"
+        >
+          <div class="modal-head">
+            <h2 id="modalTitle">Настройки</h2>
+            <button
+              class="btn icon-btn"
+              id="closeBtn"
+              aria-label="Закрыть настройки"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="step-indicator">
+              <span class="step-indicator-label"
+                >Прогресс последовательности</span
+              >
+              <span class="step-indicator-value" id="stepIndicator"
+                >Шаг 1 / 8</span
+              >
+            </div>
+            <div class="set-row">
+              <span class="set-label">Режим</span>
+              <div class="segmented" id="modeSeg">
+                <button class="seg-btn" id="modeBtnAuto" aria-pressed="true">
+                  AUTO
+                </button>
+                <button class="seg-btn" id="modeBtnStep" aria-pressed="false">
+                  STEP
+                </button>
+              </div>
+            </div>
+            <button class="next-btn" id="nextBtn" disabled>
+              Следующий шаг ▶
+            </button>
+            <div class="set-row">
+              <span class="set-label">Скорость</span>
+              <div class="segmented" id="speedSeg">
+                <button class="seg-btn" data-speed="0.5" aria-pressed="false">
+                  0.5×
+                </button>
+                <button class="seg-btn" data-speed="1" aria-pressed="true">
+                  1×
+                </button>
+                <button class="seg-btn" data-speed="2" aria-pressed="false">
+                  2×
+                </button>
+              </div>
+            </div>
+            <div class="set-row">
+              <span class="set-label">Вертикальная рамка 9:16</span>
+              <button
+                class="switch"
+                id="videoSwitch"
+                role="switch"
+                aria-checked="false"
+                aria-label="Режим вертикальной рамки 9:16"
+              >
+                <span class="knob"></span>
+              </button>
+            </div>
+            <button class="reset-btn" id="resetBtn">Reset</button>
+            <div class="hotkeys">
+              <h3>Горячие клавиши</h3>
+              <div class="hk-row">
+                <kbd>Space</kbd><span>скрыть или показать управление</span>
+              </div>
+              <div class="hk-row">
+                <kbd>→</kbd><span>следующий шаг в режиме STEP</span>
+              </div>
+              <div class="hk-row">
+                <kbd>S</kbd><span>переключить AUTO и STEP</span>
+              </div>
+              <div class="hk-row">
+                <kbd>V</kbd><span>вертикальная рамка 9:16</span>
+              </div>
+              <div class="hk-row">
+                <kbd>R</kbd><span>сброс воспроизведения</span>
+              </div>
+              <div class="hk-row">
+                <kbd>Esc</kbd><span>закрыть настройки</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        var TAU = Math.PI * 2;
+        var TOTAL_STEPS = 8;
+        var STEP_NAMES = [
+          "Данные",
+          "Очистка",
+          "Распределение",
+          "Меры центра",
+          "Корреляция",
+          "Модель",
+          "Оценка",
+          "Вывод",
+        ];
+        var PIPE_NAMES = ["Данные", "Очистка", "Анализ", "Модель", "Вывод"];
+        var DWELL = 4.4;
+        var TRANS = 1.1;
+        var START_DELAY = 500;
+        var SUBTITLES = [
+          {
+            step: 1,
+            segments: [
+              { text: "Наблюдения и " },
+              { text: "признаки", emphasis: true },
+              { text: " образуют набор данных" },
+            ],
+          },
+          {
+            step: 2,
+            segments: [
+              { text: "Очистка", emphasis: true },
+              { text: " удаляет пропуски, дубликаты и выбросы" },
+            ],
+          },
+          {
+            step: 3,
+            segments: [
+              { text: "Распределение", emphasis: true },
+              { text: " показывает, как часто встречаются значения" },
+            ],
+          },
+          {
+            step: 4,
+            segments: [
+              { text: "Среднее, медиана и дисперсия", emphasis: true },
+              { text: " описывают данные" },
+            ],
+          },
+          {
+            step: 5,
+            segments: [
+              { text: "Корреляция", emphasis: true },
+              { text: " измеряет силу связи между признаками" },
+            ],
+          },
+          {
+            step: 6,
+            segments: [
+              { text: "Модель", emphasis: true },
+              { text: " обучается находить " },
+              { text: "закономерность", emphasis: true },
+              { text: " по обучающей выборке" },
+            ],
+          },
+          {
+            step: 7,
+            segments: [
+              { text: "Метрики проверяют качество на " },
+              { text: "тестовых данных", emphasis: true },
+            ],
+          },
+          {
+            step: 8,
+            segments: [
+              { text: "Корреляция не равна " },
+              { text: "причинности", emphasis: true },
+              { text: ": выводы требуют проверок" },
+            ],
+          },
+        ];
+        function clamp(v, a, b) {
+          return Math.min(b, Math.max(a, v));
+        }
+        function clamp01(v) {
+          return clamp(v, 0, 1);
+        }
+        function lerp(a, b, t) {
+          return a + (b - a) * t;
+        }
+        function easeInOut(t) {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+        function easeOutCubic(t) {
+          return 1 - Math.pow(1 - t, 3);
+        }
+        function mulberry32(seed) {
+          var a = seed;
+          return function () {
+            a |= 0;
+            a = (a + 0x6d2b79f5) | 0;
+            var t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+        var rnd = mulberry32(7);
+        var DOTS = [];
+        for (var di = 0; di < 36; di++) {
+          var uu = (rnd() + rnd() + rnd()) / 3;
+          var xx = clamp(0.04 + 0.92 * Math.pow(uu, 0.9), 0.02, 0.98);
+          var nn = (rnd() + rnd() - 1) * 0.13;
+          var yy = clamp(0.14 + 0.68 * xx + nn, 0.04, 0.96);
+          DOTS.push({
+            i: di,
+            x: xx,
+            y: yy,
+            missing: false,
+            ghost: false,
+            outlier: false,
+          });
+        }
+        [5, 14, 27].forEach(function (idx, k) {
+          DOTS[idx].missing = true;
+          DOTS[idx].x = clamp(0.3 + 0.16 * k + rnd() * 0.08, 0.05, 0.95);
+          DOTS[idx].y = clamp(
+            0.14 + 0.68 * DOTS[idx].x + (rnd() + rnd() - 1) * 0.06,
+            0.05,
+            0.95,
+          );
+        });
+        DOTS[23].ghost = true;
+        DOTS[23].dupOf = 8;
+        DOTS[30].ghost = true;
+        DOTS[30].dupOf = 11;
+        DOTS[19].outlier = true;
+        DOTS[19].x = 0.12;
+        DOTS[19].y = 0.94;
+        var VALID = DOTS.filter(function (d) {
+          return !d.ghost && !d.outlier;
+        });
+        var TRAIN = VALID.filter(function (d) {
+          return d.i % 5 < 3;
+        });
+        var TEST = VALID.filter(function (d) {
+          return d.i % 5 >= 3;
+        });
+        function fitOf(set) {
+          var n = set.length;
+          var mx = 0,
+            my = 0,
+            i;
+          for (i = 0; i < n; i++) {
+            mx += set[i].x;
+            my += set[i].y;
+          }
+          mx /= n;
+          my /= n;
+          var sxy = 0,
+            sxx = 0,
+            syy = 0;
+          for (i = 0; i < n; i++) {
+            sxy += (set[i].x - mx) * (set[i].y - my);
+            sxx += (set[i].x - mx) * (set[i].x - mx);
+            syy += (set[i].y - my) * (set[i].y - my);
+          }
+          return {
+            slope: sxy / sxx,
+            intercept: my - (sxy / sxx) * mx,
+            r: sxy / Math.sqrt(sxx * syy),
+          };
+        }
+        function r2Of(set, fit) {
+          var m = 0,
+            i;
+          for (i = 0; i < set.length; i++) m += set[i].y;
+          m /= set.length;
+          var ssr = 0,
+            sst = 0;
+          for (i = 0; i < set.length; i++) {
+            var f = fit.intercept + fit.slope * set[i].x;
+            ssr += (set[i].y - f) * (set[i].y - f);
+            sst += (set[i].y - m) * (set[i].y - m);
+          }
+          return 1 - ssr / sst;
+        }
+        var FIT_ALL = fitOf(VALID);
+        var FIT_TRAIN = fitOf(TRAIN);
+        var R2_TRAIN = r2Of(TRAIN, FIT_TRAIN);
+        var R2_TEST = r2Of(TEST, FIT_TRAIN);
+        var MEAN = 0,
+          MEDIAN = 0,
+          SIGMA = 0;
+        (function () {
+          var n = VALID.length,
+            i;
+          for (i = 0; i < n; i++) MEAN += VALID[i].x;
+          MEAN /= n;
+          var xs = VALID.map(function (d) {
+            return d.x;
+          }).sort(function (a, b) {
+            return a - b;
+          });
+          MEDIAN = n % 2 ? xs[(n - 1) / 2] : (xs[n / 2 - 1] + xs[n / 2]) / 2;
+          for (i = 0; i < n; i++)
+            SIGMA += (VALID[i].x - MEAN) * (VALID[i].x - MEAN);
+          SIGMA = Math.sqrt(SIGMA / n);
+        })();
+        var CALL = [
+          { i: 5, label: "пропуск" },
+          { i: 8, label: "дубликат", pair: 23 },
+          { i: 19, label: "выброс" },
+        ];
+        var els = {};
+        var state = {
+          mode: "auto",
+          playing: false,
+          currentStep: 1,
+          fromStep: 1,
+          speed: 1,
+          videoMode: false,
+          transitioning: false,
+          tt: 0,
+          stepTime: 0,
+          time: 0,
+          controlsHidden: false,
+          settingsOpen: false,
+        };
+        var canvas = null;
+        var ctx = null;
+        var view = { w: 1, h: 1 };
+        var dpr = 1;
+        var frameRect = null;
+        var frameReserve = 150;
+        var targets = { from: null, to: null };
+        var cur = new Array(36);
+        var drawArea = null;
+        var hideTimer = null;
+        function q(id) {
+          var el = document.getElementById(id);
+          if (!el) throw new Error("missing element " + id);
+          return el;
+        }
+        function dotStyle(step, d) {
+          var invalid = d.ghost || d.outlier;
+          if (step === 1)
+            return { a: d.ghost ? 0.85 : 1, s: 1, h: d.missing ? 1 : 0, g: 0 };
+          if (step === 2) {
+            if (d.ghost) return { a: 0, s: 0.5, h: 0, g: 0 };
+            if (d.outlier) return { a: 0, s: 0.4, h: 0, g: 0 };
+            return { a: 1, s: 1, h: 0, g: 1 };
+          }
+          if (step <= 7) {
+            if (invalid) return { a: 0, s: 0.4, h: 0, g: 1 };
+            var base = { a: 1, s: 1, h: 0, g: 1 };
+            if (step === 6 || step === 7) base.h = d.i % 5 >= 3 ? 1 : 0;
+            if (step === 7) base.a = 0.3;
+            return base;
+          }
+          return { a: 0, s: 0.5, h: 0, g: 1 };
+        }
+        function computeArea() {
+          var A;
+          if (state.videoMode && frameRect) {
+            A = {
+              x: frameRect.x + 2,
+              y: frameRect.y + 2,
+              w: Math.max(10, frameRect.w - 4),
+              h: Math.max(10, frameRect.h - 4 - frameReserve),
+            };
+          } else {
+            var m = clamp(Math.min(view.w, view.h) * 0.05, 10, 26);
+            A = {
+              x: m,
+              y: m,
+              w: Math.max(10, view.w - 2 * m),
+              h: Math.max(10, view.h - 2 * m),
+            };
+          }
+          var maxW = 1000;
+          if (A.w > maxW) {
+            A.x += (A.w - maxW) / 2;
+            A.w = maxW;
+          }
+          return A;
+        }
+        function contentArea(A) {
+          var fs = captionSize(A);
+          return {
+            x: A.x,
+            y: A.y + fs * 2.6,
+            w: A.w,
+            h: Math.max(10, A.h - fs * 2.6),
+          };
+        }
+        function captionSize(A) {
+          return clamp(Math.min(A.w, A.h) * 0.033, 10, 15);
+        }
+        function histRect(A) {
+          return {
+            x: A.x + 22,
+            y: A.y + 2,
+            w: A.w - 26,
+            h: Math.max(10, A.h - 22),
+          };
+        }
+        function scatterRect(A) {
+          return {
+            x: A.x + 24,
+            y: A.y + 2,
+            w: A.w - 30,
+            h: Math.max(10, A.h - 24),
+          };
+        }
+        function gridGeom(A) {
+          var ratio = A.w / Math.max(1, A.h);
+          var cols = ratio > 1.25 ? 9 : ratio > 0.72 ? 6 : 4;
+          var rows = 36 / cols;
+          return {
+            cols: cols,
+            rows: rows,
+            cw: A.w / cols,
+            ch: A.h / rows,
+            x0: A.x,
+            y0: A.y,
+          };
+        }
+        function buildLayout(step, area) {
+          var A = contentArea(area);
+          var out = new Array(36);
+          var i, d;
+          if (step <= 2) {
+            var g = gridGeom(A);
+            var r = clamp(Math.min(g.cw, g.ch) * 0.3, 3.5, 12);
+            for (i = 0; i < 36; i++) {
+              d = DOTS[i];
+              var c = d.i % g.cols;
+              var rr = Math.floor(d.i / g.cols);
+              var px = g.x0 + (c + 0.5) * g.cw;
+              var py = g.y0 + (rr + 0.5) * g.ch;
+              if (d.ghost) {
+                var pd = DOTS[d.dupOf];
+                px = g.x0 + ((pd.i % g.cols) + 0.5) * g.cw + r * 0.9;
+                py = g.y0 + (Math.floor(pd.i / g.cols) + 0.5) * g.ch - r * 0.9;
+              }
+              var st = dotStyle(step, d);
+              out[i] = {
+                x: px,
+                y: py,
+                r: r,
+                a: st.a,
+                s: st.s,
+                h: st.h,
+                g: st.g,
+              };
+            }
+            return out;
+          }
+          if (step <= 4) {
+            var R = histRect(A);
+            var bins = [[], [], [], [], [], [], [], []];
+            for (i = 0; i < VALID.length; i++) {
+              var b = Math.min(7, Math.floor(VALID[i].x * 8));
+              bins[b].push(VALID[i]);
+            }
+            var maxCount = 1;
+            for (i = 0; i < 8; i++)
+              maxCount = Math.max(maxCount, bins[i].length);
+            var bw = R.w / 8;
+            var maxStackH = R.h - 6;
+            var hr = clamp(
+              Math.min(bw * 0.3, ((maxStackH / maxCount - 2) / 2) * 0.7),
+              2.5,
+              13,
+            );
+            if (maxCount * (2 * hr + 2) > maxStackH)
+              hr = Math.max(1.8, (maxStackH / maxCount - 2) / 2);
+            var stepY = 2 * hr + 2;
+            var yBase = R.y + R.h;
+            var slots = [0, 0, 0, 0, 0, 0, 0, 0];
+            for (i = 0; i < 36; i++) {
+              d = DOTS[i];
+              var st2 = dotStyle(step, d);
+              var bi = Math.min(7, Math.floor(d.x * 8));
+              if (d.ghost || d.outlier) {
+                out[i] = {
+                  x: R.x + (bi + 0.5) * bw,
+                  y: yBase - 10,
+                  r: hr,
+                  a: 0,
+                  s: 0.4,
+                  h: 0,
+                  g: 1,
+                };
+                continue;
+              }
+              var j = slots[bi]++;
+              var jx = R.x + (bi + 0.5) * bw + ((j % 2) * 2 - 1) * hr * 0.3;
+              var jy = yBase - (j + 0.5) * stepY;
+              out[i] = {
+                x: jx,
+                y: jy,
+                r: hr,
+                a: st2.a,
+                s: st2.s,
+                h: st2.h,
+                g: st2.g,
+              };
+            }
+            return out;
+          }
+          if (step <= 7) {
+            var P = scatterRect(A);
+            var sr = clamp(Math.min(P.w, P.h) * 0.032, 3, 9);
+            for (i = 0; i < 36; i++) {
+              d = DOTS[i];
+              var st3 = dotStyle(step, d);
+              out[i] = {
+                x: P.x + d.x * P.w,
+                y: P.y + (1 - d.y) * P.h,
+                r: sr,
+                a: st3.a,
+                s: st3.s,
+                h: st3.h,
+                g: st3.g,
+              };
+            }
+            return out;
+          }
+          var cx = A.x + A.w / 2;
+          var cy = A.y + A.h * 0.42;
+          for (i = 0; i < 36; i++) {
+            out[i] = { x: cx, y: cy, r: 4, a: 0, s: 0.5, h: 0, g: 1 };
+          }
+          return out;
+        }
+        function captureTargets() {
+          var area = computeArea();
+          targets.from = buildLayout(state.fromStep, area);
+          targets.to = buildLayout(state.currentStep, area);
+        }
+        function computeDotStates(p) {
+          for (var i = 0; i < 36; i++) {
+            var delayN = (i % 6) * 0.04 + Math.floor(i / 6) * 0.028;
+            var span = 0.66;
+            var q = state.transitioning ? clamp01((p - delayN) / span) : 1;
+            var e = easeInOut(q);
+            var F = targets.from[i],
+              T = targets.to[i];
+            cur[i] = {
+              x: lerp(F.x, T.x, e),
+              y: lerp(F.y, T.y, e),
+              r: lerp(F.r, T.r, e),
+              a: lerp(F.a, T.a, e),
+              s: lerp(F.s, T.s, e),
+              h: lerp(F.h, T.h, e),
+              g: lerp(F.g, T.g, e),
+            };
+          }
+        }
+        function setFont(size, weight, color) {
+          ctx.font =
+            weight + " " + size + "px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = color;
+        }
+        function roundRect(c, x, y, w, h, r) {
+          r = Math.min(r, w / 2, h / 2);
+          c.beginPath();
+          c.moveTo(x + r, y);
+          c.arcTo(x + w, y, x + w, y + h, r);
+          c.arcTo(x + w, y + h, x, y + h, r);
+          c.arcTo(x, y + h, x, y, r);
+          c.arcTo(x, y, x + w, y, r);
+          c.closePath();
+        }
+        function pill(cx2, cy2, text, size, color, weight, alpha) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          setFont(size, weight || 600, color);
+          var w = ctx.measureText(text).width + 16;
+          var h = size + 12;
+          roundRect(ctx, cx2 - w / 2, cy2 - h / 2, w, h, h / 2);
+          ctx.fillStyle = "rgba(0,0,0,0.5)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = color;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, cx2, cy2 + 0.5);
+          ctx.restore();
+          return w;
+        }
+        function drawAmbient(now) {
+          var t = now * 0.12;
+          var R = Math.max(view.w, view.h) * 0.5;
+          var g1 = ctx.createRadialGradient(
+            view.w * (0.3 + 0.06 * Math.sin(t)),
+            view.h * (0.28 + 0.05 * Math.cos(t * 0.8)),
+            0,
+            view.w * 0.3,
+            view.h * 0.28,
+            R,
+          );
+          g1.addColorStop(0, "rgba(46,172,101,0.10)");
+          g1.addColorStop(1, "rgba(46,172,101,0)");
+          ctx.fillStyle = g1;
+          ctx.fillRect(0, 0, view.w, view.h);
+          var g2 = ctx.createRadialGradient(
+            view.w * (0.76 + 0.05 * Math.cos(t * 0.7)),
+            view.h * (0.8 + 0.04 * Math.sin(t * 0.9)),
+            0,
+            view.w * 0.76,
+            view.h * 0.8,
+            R,
+          );
+          g2.addColorStop(0, "rgba(30,122,71,0.12)");
+          g2.addColorStop(1, "rgba(30,122,71,0)");
+          ctx.fillStyle = g2;
+          ctx.fillRect(0, 0, view.w, view.h);
+        }
+        function drawBackdropGrid(A) {
+          var s = 34;
+          ctx.fillStyle = "rgba(255,255,255,0.05)";
+          var x0 = Math.ceil(A.x / s) * s;
+          var y0 = Math.ceil(A.y / s) * s;
+          for (var gx = x0; gx <= A.x + A.w; gx += s) {
+            for (var gy = y0; gy <= A.y + A.h; gy += s) {
+              ctx.beginPath();
+              ctx.arc(gx, gy, 1.1, 0, TAU);
+              ctx.fill();
+            }
+          }
+        }
+        function dotColor(g, a) {
+          var r = Math.round(lerp(160, 46, g));
+          var gg = Math.round(lerp(160, 172, g));
+          var b = Math.round(lerp(160, 101, g));
+          return "rgba(" + r + "," + gg + "," + b + "," + a.toFixed(3) + ")";
+        }
+        function drawDots() {
+          var i;
+          for (i = 0; i < 36; i++) {
+            var c = cur[i];
+            if (c.a < 0.02) continue;
+            var r = c.r * c.s;
+            if (r < 0.6) continue;
+            var col = dotColor(c.g, c.a);
+            var hollow = c.h > 0.5;
+            ctx.save();
+            if (c.g > 0.3) {
+              ctx.shadowColor =
+                "rgba(46,172,101," + (0.45 * c.a).toFixed(3) + ")";
+              ctx.shadowBlur = 9;
+            }
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, r, 0, TAU);
+            if (hollow) {
+              ctx.fillStyle = "rgba(15,15,19," + (0.4 * c.a).toFixed(3) + ")";
+              ctx.fill();
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = col;
+              if (DOTS[i].missing && c.g < 0.5) ctx.setLineDash([4, 3]);
+              ctx.stroke();
+              ctx.setLineDash([]);
+            } else {
+              ctx.fillStyle = col;
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+        }
+        function drawCaption(A, alpha) {
+          if (alpha < 0.02) return;
+          var fs = captionSize(A);
+          var name = STEP_NAMES[state.currentStep - 1];
+          var text =
+            "Шаг " + state.currentStep + "/" + TOTAL_STEPS + " · " + name;
+          ctx.save();
+          ctx.globalAlpha = alpha * 0.9;
+          ctx.beginPath();
+          ctx.arc(A.x + 4, A.y + fs * 1.3, 3, 0, TAU);
+          ctx.fillStyle = "rgba(46,172,101,0.9)";
+          ctx.shadowColor = "rgba(46,172,101,0.7)";
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          setFont(fs, 700, "#A0A0A0");
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, A.x + 14, A.y + fs * 1.3 + 1);
+          ctx.restore();
+        }
+        function drawCallouts(alpha, resolved) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var midY = C.y + C.h / 2;
+          var col = resolved
+            ? "rgba(46,172,101,0.95)"
+            : "rgba(210,210,210,0.8)";
+          for (var k = 0; k < CALL.length; k++) {
+            var c = CALL[k];
+            var p = cur[c.i];
+            if (!p || p.a < 0.05) continue;
+            var ringR = c.pair != null ? p.r * 2.1 : p.r + 6;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 1.6;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, ringR, 0, TAU);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            var dir = p.y < midY ? 1 : -1;
+            var ly = p.y + dir * (ringR + 17);
+            ly = clamp(ly, C.y + 12, C.y + C.h - 12);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y + dir * ringR);
+            ctx.lineTo(p.x, ly - dir * 10);
+            ctx.strokeStyle = "rgba(255,255,255,0.35)";
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            var label = c.label;
+            if (resolved) {
+              var lw = ctx.measureText(label).width;
+              setFont(11, 700, col);
+              var tw = ctx.measureText(label).width + 20;
+              var th = 22;
+              roundRect(ctx, p.x - tw / 2, ly - th / 2, tw, th, th / 2);
+              ctx.fillStyle = "rgba(0,0,0,0.5)";
+              ctx.fill();
+              ctx.strokeStyle = "rgba(46,172,101,0.5)";
+              ctx.lineWidth = 1;
+              ctx.stroke();
+              var tx = p.x - tw / 2 + 6;
+              var ty = ly;
+              ctx.strokeStyle = col;
+              ctx.lineWidth = 1.8;
+              ctx.beginPath();
+              ctx.moveTo(tx, ty + 1);
+              ctx.lineTo(tx + 3, ty + 4);
+              ctx.lineTo(tx + 8, ty - 4);
+              ctx.stroke();
+              setFont(11, 700, col);
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(label, tx + 12, ty + 0.5);
+            } else {
+              pill(p.x, ly, label, 11, "#A0A0A0", 600, alpha);
+            }
+            ctx.restore();
+          }
+        }
+        function drawHistAxes(alpha) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var R = histRect(C);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(R.x, R.y + R.h);
+          ctx.lineTo(R.x + R.w, R.y + R.h);
+          ctx.stroke();
+          var fs = clamp(C.w * 0.032, 9, 13);
+          setFont(fs, 600, "#A0A0A0");
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("значение признака", R.x + R.w / 2, R.y + R.h + 11);
+          ctx.save();
+          ctx.translate(C.x + 10, R.y + R.h / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText("частота", 0, 0);
+          ctx.restore();
+          ctx.restore();
+        }
+        function drawMeasures(alpha, t) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var R = histRect(C);
+          var xOf = function (v) {
+            return R.x + v * R.w;
+          };
+          var bx = xOf(MEAN - SIGMA);
+          var bw = 2 * SIGMA * R.w;
+          ctx.save();
+          ctx.globalAlpha = alpha * t;
+          ctx.fillStyle = "rgba(46,172,101,0.10)";
+          ctx.fillRect(bx, R.y, bw, R.h);
+          ctx.strokeStyle = "rgba(46,172,101,0.4)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(bx, R.y);
+          ctx.lineTo(bx, R.y + R.h);
+          ctx.moveTo(bx + bw, R.y);
+          ctx.lineTo(bx + bw, R.y + R.h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          setFont(clamp(C.w * 0.03, 9, 12), 700, "rgba(46,172,101,0.9)");
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText("±σ", bx + 6, R.y + R.h * 0.55);
+          ctx.strokeStyle = "#2EAC65";
+          ctx.lineWidth = 2;
+          ctx.shadowColor = "rgba(46,172,101,0.6)";
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(xOf(MEAN), R.y);
+          ctx.lineTo(xOf(MEAN), R.y + R.h);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(xOf(MEDIAN), R.y);
+          ctx.lineTo(xOf(MEDIAN), R.y + R.h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+          pill(
+            xOf(MEAN),
+            R.y + 1,
+            "среднее",
+            clamp(C.w * 0.032, 9, 12),
+            "#2EAC65",
+            700,
+            alpha * t,
+          );
+          pill(
+            xOf(MEDIAN),
+            R.y + R.h - 1,
+            "медиана",
+            clamp(C.w * 0.032, 9, 12),
+            "#FFFFFF",
+            700,
+            alpha * t,
+          );
+        }
+        function drawScatterAxes(alpha) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var P = scatterRect(C);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(255,255,255,0.22)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(P.x, P.y);
+          ctx.lineTo(P.x, P.y + P.h);
+          ctx.lineTo(P.x + P.w, P.y + P.h);
+          ctx.stroke();
+          var fs = clamp(C.w * 0.03, 9, 12);
+          setFont(fs, 600, "#A0A0A0");
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText("признак X", P.x + P.w, P.y + P.h + 11);
+          ctx.save();
+          ctx.translate(C.x + 10, P.y + P.h / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.textAlign = "center";
+          ctx.fillText("признак Y", 0, 0);
+          ctx.restore();
+          ctx.restore();
+        }
+        function drawLinePartial(fit, t, alpha, width) {
+          if (alpha < 0.02 || t <= 0) return;
+          var P = scatterRect(contentArea(drawArea));
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "#2EAC65";
+          ctx.lineWidth = width;
+          ctx.shadowColor = "rgba(46,172,101,0.55)";
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          var x1 = P.x + P.w * t;
+          var y0 = P.y + (1 - fit.intercept) * P.h;
+          var y1 = P.y + (1 - (fit.intercept + fit.slope * t)) * P.h;
+          ctx.moveTo(P.x, y0);
+          ctx.lineTo(x1, y1);
+          ctx.stroke();
+          ctx.restore();
+        }
+        function drawCorrBadge(alpha) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var text = "r = " + FIT_ALL.r.toFixed(2);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          roundRect(ctx, C.x + 24, C.y + 14, 108, 46, 12);
+          ctx.fillStyle = "rgba(26,26,32,0.85)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(46,172,101,0.5)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          setFont(16, 800, "#2EAC65");
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, C.x + 78, C.y + 30);
+          setFont(9.5, 600, "#A0A0A0");
+          ctx.fillText("корреляция", C.x + 78, C.y + 48);
+          ctx.restore();
+        }
+        function drawLegend(alpha) {
+          if (alpha < 0.02) return;
+          var C = contentArea(drawArea);
+          var items = [
+            { label: "обучение", hollow: false },
+            { label: "тест", hollow: true },
+          ];
+          var x = C.x + C.w - 16;
+          var y = C.y + 16;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          for (var i = items.length - 1; i >= 0; i--) {
+            var it = items[i];
+            setFont(11, 600, "#A0A0A0");
+            var w = ctx.measureText(it.label).width + 30;
+            var bx = x - w;
+            roundRect(ctx, bx, y - 12, w, 24, 12);
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,0.14)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(bx + 13, y, 5, 0, TAU);
+            if (it.hollow) {
+              ctx.fillStyle = "rgba(15,15,19,0.4)";
+              ctx.fill();
+              ctx.strokeStyle = "#2EAC65";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            } else {
+              ctx.fillStyle = "#2EAC65";
+              ctx.fill();
+            }
+            setFont(11, 600, "#A0A0A0");
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(it.label, bx + 23, y + 0.5);
+            y += 30;
+          }
+          ctx.restore();
+        }
+        function drawResiduals(alpha, fit) {
+          if (alpha < 0.02) return;
+          var P = scatterRect(contentArea(drawArea));
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(255,255,255,0.28)";
+          ctx.lineWidth = 1.2;
+          for (var i = 0; i < VALID.length; i++) {
+            var d = VALID[i];
+            var px = P.x + d.x * P.w;
+            var py = P.y + (1 - d.y) * P.h;
+            var fy = P.y + (1 - (fit.intercept + fit.slope * d.x)) * P.h;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px, fy);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        function drawMetrics(alpha, t) {
+          if (alpha < 0.02) return;
+          var A = drawArea;
+          var C = contentArea(A);
+          var pw = Math.min(A.w * 0.78, 330);
+          var ph = 118;
+          var px = A.x + A.w / 2 - pw / 2;
+          var py = C.y + C.h / 2 - ph / 2 - 6;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = "rgba(0,0,0,0.5)";
+          ctx.shadowBlur = 24;
+          roundRect(ctx, px, py, pw, ph, 16);
+          ctx.fillStyle = "rgba(26,26,32,0.93)";
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          var rows = [
+            { label: "Обучение", v: R2_TRAIN, ft: clamp01(t / 0.9) },
+            { label: "Тест", v: R2_TEST, ft: clamp01((t - 0.3) / 0.9) },
+          ];
+          var trackX = px + 88;
+          var trackW = pw - 88 - 52;
+          for (var i = 0; i < 2; i++) {
+            var row = rows[i];
+            var ry = py + 30 + i * 34;
+            setFont(12, 700, "#FFFFFF");
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(row.label, px + 16, ry);
+            roundRect(ctx, trackX, ry - 7, trackW, 14, 7);
+            ctx.fillStyle = "rgba(255,255,255,0.08)";
+            ctx.fill();
+            var fw = Math.max(
+              0,
+              clamp01(row.v) * trackW * easeOutCubic(row.ft),
+            );
+            if (fw > 1) {
+              var grad = ctx.createLinearGradient(
+                trackX,
+                0,
+                trackX + trackW,
+                0,
+              );
+              grad.addColorStop(0, "#1E7A47");
+              grad.addColorStop(1, "#2EAC65");
+              roundRect(ctx, trackX, ry - 7, fw, 14, 7);
+              ctx.fillStyle = grad;
+              ctx.shadowColor = "rgba(46,172,101,0.4)";
+              ctx.shadowBlur = 8;
+              ctx.fill();
+              ctx.shadowBlur = 0;
+            }
+            setFont(12, 800, "#2EAC65");
+            ctx.textAlign = "right";
+            ctx.fillText(
+              Math.round(clamp01(row.v) * 100) + "%",
+              px + pw - 16,
+              ry,
+            );
+          }
+          ctx.restore();
+          setFont(clamp(A.w * 0.032, 10, 13), 600, "#A0A0A0");
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.globalAlpha = alpha * clamp01((t - 0.5) / 0.4);
+          ctx.fillText("качество на новых данных", A.x + A.w / 2, py + ph + 18);
+          ctx.globalAlpha = 1;
+        }
+        function glyph(key, x, y, s, color, alpha) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = 1.8;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          if (key === "data") {
+            for (var i = 0; i < 3; i++) {
+              for (var j = 0; j < 3; j++) {
+                ctx.beginPath();
+                ctx.arc(x - s + i * s, y - s + j * s, 1.7, 0, TAU);
+                ctx.fill();
+              }
+            }
+          } else if (key === "check") {
+            ctx.beginPath();
+            ctx.moveTo(x - s, y);
+            ctx.lineTo(x - s * 0.25, y + s * 0.7);
+            ctx.lineTo(x + s, y - s * 0.7);
+            ctx.stroke();
+          } else if (key === "bars") {
+            ctx.beginPath();
+            ctx.moveTo(x - s, y + s * 0.8);
+            ctx.lineTo(x - s, y - s * 0.2);
+            ctx.moveTo(x, y + s * 0.8);
+            ctx.lineTo(x, y - s * 0.9);
+            ctx.moveTo(x + s, y + s * 0.8);
+            ctx.lineTo(x + s, y - s * 0.5);
+            ctx.stroke();
+          } else if (key === "model") {
+            ctx.beginPath();
+            ctx.moveTo(x - s, y + s * 0.8);
+            ctx.lineTo(x + s, y - s * 0.8);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x - s * 0.5, y + s * 0.15, 1.8, 0, TAU);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + s * 0.3, y - s * 0.35, 1.8, 0, TAU);
+            ctx.fill();
+          } else if (key === "star") {
+            ctx.beginPath();
+            ctx.moveTo(x, y - s);
+            ctx.lineTo(x, y + s);
+            ctx.moveTo(x - s, y);
+            ctx.lineTo(x + s, y);
+            ctx.moveTo(x - s * 0.6, y - s * 0.6);
+            ctx.lineTo(x + s * 0.6, y + s * 0.6);
+            ctx.moveTo(x + s * 0.6, y - s * 0.6);
+            ctx.lineTo(x - s * 0.6, y + s * 0.6);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        function drawPipeline(alpha, t, now) {
+          if (alpha < 0.02) return;
+          var A = drawArea;
+          var C = contentArea(A);
+          var horiz = A.w > 700 || A.w > A.h * 1.22;
+          var n = 5;
+          var i;
+          var nodeAlpha = [];
+          for (i = 0; i < n; i++) nodeAlpha.push(clamp01(t * 1.5 - i * 0.22));
+          ctx.save();
+          if (horiz) {
+            var gap = Math.min(26, A.w * 0.03);
+            var nodeW = Math.min((A.w * 0.92 - gap * (n - 1)) / n, 128);
+            var nodeH = 62;
+            var totalW = nodeW * n + gap * (n - 1);
+            var x0 = A.x + (A.w - totalW) / 2;
+            var yc = C.y + C.h / 2 - 14;
+            for (i = 0; i < n; i++) {
+              var nx = x0 + i * (nodeW + gap);
+              var isLast = i === n - 1;
+              ctx.globalAlpha = nodeAlpha[i];
+              ctx.shadowColor = "rgba(0,0,0,0.4)";
+              ctx.shadowBlur = 14;
+              roundRect(ctx, nx, yc - nodeH / 2, nodeW, nodeH, 14);
+              ctx.fillStyle = "rgba(26,26,32,0.88)";
+              ctx.fill();
+              ctx.shadowBlur = 0;
+              if (isLast) {
+                ctx.strokeStyle = "#2EAC65";
+                ctx.shadowColor = "rgba(46,172,101,0.5)";
+                ctx.shadowBlur = 12 + 5 * Math.sin(now * 3);
+              } else {
+                ctx.strokeStyle = "rgba(255,255,255,0.16)";
+              }
+              ctx.lineWidth = 1.5;
+              roundRect(ctx, nx, yc - nodeH / 2, nodeW, nodeH, 14);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+              var gc = isLast ? "#2EAC65" : "rgba(255,255,255,0.7)";
+              var gk = ["data", "check", "bars", "model", "star"][i];
+              glyph(gk, nx + 16, yc - 9, 6, gc, nodeAlpha[i]);
+              setFont(
+                clamp(nodeW * 0.14, 10, 12.5),
+                isLast ? 800 : 600,
+                isLast ? "#2EAC65" : "#E6E6EC",
+              );
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(PIPE_NAMES[i], nx + 27, yc - 8);
+              setFont(clamp(nodeW * 0.11, 8.5, 10), 600, "#A0A0A0");
+              ctx.fillText(
+                [
+                  "сырые записи",
+                  "качество",
+                  "статистика",
+                  "обучение",
+                  "решение",
+                ][i],
+                nx + 27,
+                yc + 8,
+              );
+              if (i < n - 1) {
+                var ax0 = nx + nodeW + 3;
+                var ax1 = nx + nodeW + gap - 3;
+                ctx.globalAlpha = Math.min(nodeAlpha[i], nodeAlpha[i + 1]);
+                ctx.strokeStyle = "rgba(46,172,101,0.7)";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(ax0, yc);
+                ctx.lineTo(ax1, yc);
+                ctx.moveTo(ax1 - 4, yc - 3);
+                ctx.lineTo(ax1, yc);
+                ctx.lineTo(ax1 - 4, yc + 3);
+                ctx.stroke();
+              }
+            }
+            ctx.globalAlpha = alpha * clamp01((t - 0.7) / 0.4);
+            setFont(clamp(A.w * 0.03, 10, 13), 700, "#A0A0A0");
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              "корреляция ≠ причинность",
+              A.x + A.w / 2,
+              yc + nodeH / 2 + 24,
+            );
+          } else {
+            var vh = Math.min(50, (A.h * 0.78 - 4 * 12) / n);
+            var vw = Math.min(A.w * 0.72, 240);
+            var vy0 = C.y + (C.h - (vh * n + 12 * (n - 1))) / 2;
+            var vx = A.x + (A.w - vw) / 2;
+            for (i = 0; i < n; i++) {
+              var ny = vy0 + i * (vh + 12);
+              var isLast2 = i === n - 1;
+              ctx.globalAlpha = nodeAlpha[i];
+              ctx.shadowColor = "rgba(0,0,0,0.4)";
+              ctx.shadowBlur = 12;
+              roundRect(ctx, vx, ny, vw, vh, 13);
+              ctx.fillStyle = "rgba(26,26,32,0.88)";
+              ctx.fill();
+              ctx.shadowBlur = 0;
+              if (isLast2) {
+                ctx.strokeStyle = "#2EAC65";
+                ctx.shadowColor = "rgba(46,172,101,0.5)";
+                ctx.shadowBlur = 12 + 5 * Math.sin(now * 3);
+              } else {
+                ctx.strokeStyle = "rgba(255,255,255,0.16)";
+              }
+              ctx.lineWidth = 1.5;
+              roundRect(ctx, vx, ny, vw, vh, 13);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+              var gc2 = isLast2 ? "#2EAC65" : "rgba(255,255,255,0.7)";
+              var gk2 = ["data", "check", "bars", "model", "star"][i];
+              glyph(gk2, vx + 22, ny + vh / 2, 6, gc2, nodeAlpha[i]);
+              setFont(
+                clamp(vw * 0.13, 11, 14),
+                isLast2 ? 800 : 600,
+                isLast2 ? "#2EAC65" : "#E6E6EC",
+              );
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(PIPE_NAMES[i], vx + 40, ny + vh / 2 - 0.5);
+              if (i < n - 1) {
+                ctx.globalAlpha = Math.min(nodeAlpha[i], nodeAlpha[i + 1]);
+                ctx.strokeStyle = "rgba(46,172,101,0.7)";
+                ctx.lineWidth = 1.5;
+                var ay0 = ny + vh + 2;
+                var ay1 = ny + vh + 10;
+                var acx = vx + vw / 2;
+                ctx.beginPath();
+                ctx.moveTo(acx, ay0);
+                ctx.lineTo(acx, ay1);
+                ctx.moveTo(acx - 3, ay1 - 4);
+                ctx.lineTo(acx, ay1);
+                ctx.lineTo(acx + 3, ay1 - 4);
+                ctx.stroke();
+              }
+            }
+            ctx.globalAlpha = alpha * clamp01((t - 0.7) / 0.4);
+            setFont(clamp(A.w * 0.034, 10, 13), 700, "#A0A0A0");
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              "корреляция ≠ причинность",
+              A.x + A.w / 2,
+              vy0 + n * vh + (n - 1) * 12 + 18,
+            );
+          }
+          ctx.restore();
+        }
+        function drawOverlay(step, alpha, now, isFrom) {
+          var tLocal = isFrom ? 99 : state.transitioning ? 0 : state.stepTime;
+          switch (step) {
+            case 1:
+              drawCallouts(alpha, false);
+              break;
+            case 2:
+              drawCallouts(alpha, true);
+              break;
+            case 3:
+              drawHistAxes(alpha);
+              break;
+            case 4:
+              drawHistAxes(alpha);
+              drawMeasures(alpha, clamp01(tLocal / 0.6));
+              break;
+            case 5:
+              drawScatterAxes(alpha);
+              drawLinePartial(
+                FIT_ALL,
+                easeOutCubic(clamp01(tLocal / 0.7)),
+                alpha,
+                2.5,
+              );
+              drawCorrBadge(alpha * clamp01((tLocal - 0.35) / 0.3));
+              break;
+            case 6:
+              drawScatterAxes(alpha);
+              var prog = easeOutCubic(clamp01(tLocal / 1.1));
+              var fitAnim = {
+                slope: lerp(0.06, FIT_TRAIN.slope, prog),
+                intercept: lerp(0.5, FIT_TRAIN.intercept, prog),
+              };
+              drawResiduals(alpha * clamp01((tLocal - 0.9) / 0.5), FIT_TRAIN);
+              drawLinePartial(fitAnim, 1, alpha, 2.5);
+              drawLegend(alpha * clamp01(tLocal / 0.4));
+              break;
+            case 7:
+              drawMetrics(alpha, tLocal);
+              break;
+            case 8:
+              drawPipeline(alpha, tLocal, now);
+              break;
+          }
+        }
+        function draw(now) {
+          if (!ctx) return;
+          ctx.clearRect(0, 0, view.w, view.h);
+          if (state.videoMode) {
+            ctx.fillStyle = "rgba(0,0,0,0.45)";
+            ctx.fillRect(0, 0, view.w, view.h);
+          }
+          drawAmbient(now);
+          var area = computeArea();
+          drawArea = area;
+          var p = state.transitioning ? clamp01(state.tt / TRANS) : 1;
+          computeDotStates(p);
+          ctx.save();
+          if (state.videoMode && frameRect) {
+            roundRect(
+              ctx,
+              frameRect.x,
+              frameRect.y,
+              frameRect.w,
+              frameRect.h,
+              20,
+            );
+          } else {
+            roundRect(ctx, area.x - 4, area.y - 4, area.w + 8, area.h + 8, 16);
+          }
+          ctx.clip();
+          drawBackdropGrid(area);
+          drawDots();
+          var toAlpha = state.transitioning ? p : 1;
+          var fromAlpha = state.transitioning ? 1 - p : 0;
+          if (fromAlpha > 0.01)
+            drawOverlay(state.fromStep, fromAlpha, now, true);
+          drawOverlay(state.currentStep, toAlpha, now, false);
+          drawCaption(area, toAlpha);
+          ctx.restore();
+        }
+        function update(dt) {
+          state.time += dt;
+          var sdt = dt * state.speed;
+          if (!state.playing) return;
+          if (state.transitioning) {
+            state.tt += sdt;
+            if (state.tt >= TRANS) {
+              state.transitioning = false;
+              state.tt = 0;
+              state.stepTime = 0;
+              renderControls();
+            }
+          } else {
+            state.stepTime += sdt;
+            if (state.mode === "auto" && state.stepTime >= DWELL) {
+              beginTransition(
+                state.currentStep >= TOTAL_STEPS ? 1 : state.currentStep + 1,
+              );
+            }
+          }
+        }
+        function beginTransition(target) {
+          state.fromStep = state.currentStep;
+          state.currentStep = target;
+          state.transitioning = true;
+          state.tt = 0;
+          state.stepTime = 0;
+          captureTargets();
+          updateSubtitles(target);
+          renderControls();
+        }
+        function onStep() {
+          if (
+            state.mode !== "step" ||
+            state.transitioning ||
+            state.currentStep >= TOTAL_STEPS
+          )
+            return;
+          beginTransition(state.currentStep + 1);
+        }
+        function setMode(m) {
+          if (state.mode === m) return;
+          state.mode = m;
+          if (m === "auto") {
+            state.playing = true;
+            state.stepTime = 0;
+          }
+          renderControls();
+        }
+        function setPlaying(v) {
+          state.playing = v;
+          renderControls();
+        }
+        function setSpeed(v) {
+          state.speed = v;
+          renderControls();
+        }
+        function reset() {
+          state.mode = "auto";
+          state.playing = true;
+          state.transitioning = false;
+          state.tt = 0;
+          state.stepTime = 0;
+          state.fromStep = 1;
+          state.currentStep = 1;
+          captureTargets();
+          updateSubtitles(1);
+          renderControls();
+        }
+        function toggleControls() {
+          state.controlsHidden = !state.controlsHidden;
+          document.body.classList.toggle(
+            "controls-hidden",
+            state.controlsHidden,
+          );
+        }
+        function toggleVideoMode() {
+          state.videoMode = !state.videoMode;
+          relayout();
+          renderControls();
+        }
+        function relayout() {
+          document.body.classList.toggle("video-mode", state.videoMode);
+          if (state.videoMode) {
+            els.vframe.hidden = false;
+            els.vframe.appendChild(els.subtitle);
+            els.vframe.appendChild(els.panel);
+          } else {
+            els.vframe.hidden = true;
+            els.app.insertBefore(els.subtitle, els.sidebar);
+            els.app.insertBefore(els.panel, els.sidebar);
+          }
+          requestAnimationFrame(function () {
+            resize();
+          });
+        }
+        function measureReserve() {
+          if (!state.videoMode) {
+            frameReserve = 0;
+            return;
+          }
+          var sh = els.subtitle.offsetHeight || 70;
+          var ph = els.panel.offsetHeight || 64;
+          frameReserve = sh + ph + 24 + 36;
+        }
+        function resize() {
+          if (!canvas || !ctx) return;
+          var rect = els.stage.getBoundingClientRect();
+          view.w = Math.max(1, rect.width);
+          view.h = Math.max(1, rect.height);
+          dpr = Math.min(window.devicePixelRatio || 1, 3);
+          canvas.width = Math.max(1, Math.round(view.w * dpr));
+          canvas.height = Math.max(1, Math.round(view.h * dpr));
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          measureReserve();
+          if (state.videoMode) {
+            var availW = Math.max(10, view.w - 16);
+            var availH = Math.max(10, view.h - 16);
+            var fw = Math.min(availW, (availH * 9) / 16);
+            var fh = (fw * 16) / 9;
+            if (fh > availH) {
+              fh = availH;
+              fw = (fh * 9) / 16;
+            }
+            frameRect = {
+              x: (view.w - fw) / 2,
+              y: (view.h - fh) / 2,
+              w: fw,
+              h: fh,
+            };
+            els.vframe.style.left = frameRect.x + "px";
+            els.vframe.style.top = frameRect.y + "px";
+            els.vframe.style.width = frameRect.w + "px";
+            els.vframe.style.height = frameRect.h + "px";
+          } else {
+            frameRect = null;
+          }
+          captureTargets();
+        }
+        function updateSubtitles(step) {
+          var sub = SUBTITLES[step - 1];
+          els.subtitle.textContent = "";
+          var inner = document.createElement("div");
+          inner.className = "subtitle-text";
+          for (var i = 0; i < sub.segments.length; i++) {
+            var seg = sub.segments[i];
+            var span = document.createElement("span");
+            if (seg.emphasis) span.className = "subtitle__keyword";
+            span.textContent = seg.text;
+            inner.appendChild(span);
+          }
+          els.subtitle.appendChild(inner);
+          els.subtitle.classList.remove("in");
+          void els.subtitle.offsetWidth;
+          els.subtitle.classList.add("in");
+          if (state.videoMode)
+            requestAnimationFrame(function () {
+              resize();
+            });
+        }
+        function setHidden(el, v) {
+          if (v) el.setAttribute("hidden", "");
+          else el.removeAttribute("hidden");
+        }
+        function renderControls() {
+          setHidden(els.iconPlay, state.playing);
+          setHidden(els.iconPause, !state.playing);
+          els.playBtn.setAttribute(
+            "aria-label",
+            state.playing ? "Пауза" : "Воспроизвести",
+          );
+          els.modeBtnAuto.setAttribute(
+            "aria-pressed",
+            state.mode === "auto" ? "true" : "false",
+          );
+          els.modeBtnStep.setAttribute(
+            "aria-pressed",
+            state.mode === "step" ? "true" : "false",
+          );
+          els.nextBtn.disabled = !(
+            state.mode === "step" &&
+            !state.transitioning &&
+            state.currentStep < TOTAL_STEPS
+          );
+          var speedBtns = els.speedSeg.querySelectorAll("[data-speed]");
+          for (var i = 0; i < speedBtns.length; i++) {
+            speedBtns[i].setAttribute(
+              "aria-pressed",
+              parseFloat(speedBtns[i].getAttribute("data-speed")) ===
+                state.speed
+                ? "true"
+                : "false",
+            );
+          }
+          els.videoSwitch.setAttribute(
+            "aria-checked",
+            state.videoMode ? "true" : "false",
+          );
+          els.stepIndicator.textContent =
+            "Шаг " + state.currentStep + " / " + TOTAL_STEPS;
+        }
+        function openSettings() {
+          if (state.settingsOpen) return;
+          state.settingsOpen = true;
+          els.modalWrap.hidden = false;
+          requestAnimationFrame(function () {
+            els.modalWrap.classList.add("open");
+          });
+          els.gearBtn.setAttribute("aria-expanded", "true");
+          renderControls();
+          els.closeBtn.focus();
+        }
+        function closeSettings() {
+          if (!state.settingsOpen) return;
+          state.settingsOpen = false;
+          els.modalWrap.classList.remove("open");
+          els.gearBtn.setAttribute("aria-expanded", "false");
+          if (hideTimer) clearTimeout(hideTimer);
+          hideTimer = setTimeout(function () {
+            els.modalWrap.hidden = true;
+          }, 240);
+          els.gearBtn.focus();
+        }
+        function handleInput(e) {
+          var t = e.target;
+          if (
+            t &&
+            (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))
+          )
+            return;
+          if (e.key === "Escape") {
+            if (state.settingsOpen) {
+              closeSettings();
+              e.preventDefault();
+            }
+            return;
+          }
+          if (state.settingsOpen) return;
+          switch (e.key) {
+            case " ":
+            case "Spacebar":
+              toggleControls();
+              e.preventDefault();
+              break;
+            case "ArrowRight":
+              if (state.mode === "step") onStep();
+              e.preventDefault();
+              break;
+            case "r":
+            case "R":
+            case "к":
+            case "К":
+              reset();
+              break;
+            case "s":
+            case "S":
+            case "ы":
+            case "Ы":
+              setMode(state.mode === "auto" ? "step" : "auto");
+              break;
+            case "v":
+            case "V":
+            case "м":
+            case "М":
+              toggleVideoMode();
+              break;
+          }
+        }
+        function init() {
+          els.app = q("app");
+          els.stage = q("stage");
+          els.sidebar = q("sidebar");
+          els.vframe = q("vframe");
+          els.subtitle = q("subtitle");
+          els.panel = q("panel");
+          els.playBtn = q("playBtn");
+          els.gearBtn = q("gearBtn");
+          els.iconPlay = q("iconPlay");
+          els.iconPause = q("iconPause");
+          els.modalWrap = q("modalWrap");
+          els.modalScrim = q("modalScrim");
+          els.closeBtn = q("closeBtn");
+          els.stepIndicator = q("stepIndicator");
+          els.modeBtnAuto = q("modeBtnAuto");
+          els.modeBtnStep = q("modeBtnStep");
+          els.nextBtn = q("nextBtn");
+          els.speedSeg = q("speedSeg");
+          els.videoSwitch = q("videoSwitch");
+          els.resetBtn = q("resetBtn");
+          canvas = q("scene");
+          ctx = canvas.getContext("2d");
+          if (!ctx) throw new Error("canvas context unavailable");
+          els.playBtn.addEventListener("click", function () {
+            setPlaying(!state.playing);
+          });
+          els.gearBtn.addEventListener("click", function () {
+            if (state.settingsOpen) closeSettings();
+            else openSettings();
+          });
+          els.closeBtn.addEventListener("click", closeSettings);
+          els.modalScrim.addEventListener("click", closeSettings);
+          els.modeBtnAuto.addEventListener("click", function () {
+            setMode("auto");
+          });
+          els.modeBtnStep.addEventListener("click", function () {
+            setMode("step");
+          });
+          els.nextBtn.addEventListener("click", onStep);
+          els.videoSwitch.addEventListener("click", toggleVideoMode);
+          els.resetBtn.addEventListener("click", reset);
+          var speedBtns = els.speedSeg.querySelectorAll("[data-speed]");
+          for (var i = 0; i < speedBtns.length; i++) {
+            (function (btn) {
+              btn.addEventListener("click", function () {
+                setSpeed(parseFloat(btn.getAttribute("data-speed")));
+              });
+            })(speedBtns[i]);
+          }
+          window.addEventListener("keydown", handleInput);
+          var resizeScheduled = false;
+          var scheduleResize = function () {
+            if (resizeScheduled) return;
+            resizeScheduled = true;
+            requestAnimationFrame(function () {
+              resizeScheduled = false;
+              resize();
+            });
+          };
+          if (typeof ResizeObserver !== "undefined") {
+            new ResizeObserver(scheduleResize).observe(els.stage);
+          }
+          window.addEventListener("resize", scheduleResize);
+          resize();
+          captureTargets();
+          updateSubtitles(1);
+          renderControls();
+          requestAnimationFrame(loop);
+          setTimeout(function () {
+            state.playing = true;
+            renderControls();
+          }, START_DELAY);
+        }
+        var lastT = 0;
+        function loop(now) {
+          var dt = lastT ? (now - lastT) / 1000 : 0;
+          lastT = now;
+          if (dt > 0.1) dt = 0.1;
+          update(dt);
+          draw(now / 1000);
+          requestAnimationFrame(loop);
+        }
+        try {
+          init();
+        } catch (err) {
+          if (window.console && console.error)
+            console.error("Init failed:", err);
+          var subEl = document.getElementById("subtitle");
+          if (subEl) {
+            subEl.textContent =
+              "Не удалось инициализировать визуализацию. Обновите страницу.";
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Основы создания сайтов и веб-приложений: браузер, HTML, CSS, JavaScript, API, тестирование и публикация."
+      content="Основы защиты цифровых устройств, учётных записей, персональных данных и безопасного поведения в интернете."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Веб-разработка</title>
+    <title>Кибербезопасность</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Веб-разработка</h1>
+        <h1 id="appTitle">Кибербезопасность</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,72 +637,74 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Запрос",
+            heading: "Три принципа",
             subtitle:
-              "Браузер отправляет запрос серверу и получает веб-страницу.",
-            detail: "Клиент • HTTP • ответ",
-            icon: "web",
-            nodes: ["Браузер", "Запрос", "Ответ"],
+              "Защита информации опирается на три принципа: конфиденциальность, целостность, доступность.",
+            detail: "CIA • риски • контроль",
+            icon: "shield",
+            nodes: ["Данные", "Целостность", "Доступ"],
           },
           {
-            heading: "HTML",
-            subtitle: "HTML задаёт структуру и смысловое устройство страницы.",
-            detail: "Элементы • семантика • документ",
-            icon: "web",
-            nodes: ["HTML", "Семантика", "Структура"],
-          },
-          {
-            heading: "CSS",
-            subtitle: "CSS оформляет элементы и адаптирует интерфейс к экрану.",
-            detail: "Сетка • каскад • адаптивность",
-            icon: "web",
-            nodes: ["CSS", "Сетка", "Адаптивность"],
-          },
-          {
-            heading: "JavaScript",
+            heading: "Фишинг",
             subtitle:
-              "JavaScript добавляет интерактивность и обрабатывает действия пользователя.",
-            detail: "События • логика • DOM",
-            icon: "code",
-            nodes: ["JavaScript", "События", "Логика"],
-          },
-          {
-            heading: "DOM",
-            subtitle: "DOM связывает программный код с элементами документа.",
-            detail: "Узлы • атрибуты • события",
-            icon: "web",
-            nodes: ["DOM", "Элементы", "События"],
-          },
-          {
-            heading: "API",
-            subtitle:
-              "API обеспечивает обмен данными между клиентом и сервером.",
-            detail: "REST • JSON • HTTPS",
-            icon: "network",
-            nodes: ["REST", "JSON", "HTTPS"],
+              "Фишинговые сообщения маскируются под знакомые сервисы и людей.",
+            detail: "Письмо • ссылка • подделка",
+            icon: "mail",
+            nodes: ["Письмо", "Ссылка", "Подделка"],
           },
           {
             heading: "Проверка",
             subtitle:
-              "Тестирование проверяет доступность, безопасность и производительность сайта.",
-            detail: "Тесты • a11y • метрики",
+              "Проверяй адрес сайта, отправителя и неожиданные вложения.",
+            detail: "Домен • адрес • вложение",
             icon: "shield",
-            nodes: ["Тесты", "A11y", "Метрики"],
+            nodes: ["Домен", "Адрес", "Вложение"],
           },
           {
-            heading: "Публикация",
+            heading: "Пароли",
+            subtitle: "Уникальные пароли и менеджер паролей защищают аккаунты.",
+            detail: "Уникальность • менеджер • хранилище",
+            icon: "lock",
+            nodes: ["Уникальность", "Менеджер", "Хранилище"],
+          },
+          {
+            heading: "2FA",
             subtitle:
-              "Публикация включает хостинг, домен, мониторинг и поддержку.",
-            detail: "Хостинг • домен • обновления",
-            icon: "network",
-            nodes: ["Хостинг", "Домен", "Мониторинг"],
+              "Многофакторная аутентификация добавляет второй уровень проверки личности.",
+            detail: "Пароль • подтверждение • доступ",
+            icon: "lock",
+            nodes: ["Пароль", "Код", "Подтверждение"],
+          },
+          {
+            heading: "Устройство",
+            subtitle:
+              "Обновления и разрешения приложений укрепляют защиту устройства.",
+            detail: "Обновления • разрешения • защита",
+            icon: "shield",
+            nodes: ["Обновления", "Разрешения", "Защита"],
+          },
+          {
+            heading: "Цифровой след",
+            subtitle:
+              "Публикации, фотографии и геолокация формируют цифровой след.",
+            detail: "Приватность • профиль • данные",
+            icon: "phone",
+            nodes: ["Фото", "Геоданные", "Профиль"],
+          },
+          {
+            heading: "Инцидент",
+            subtitle:
+              "При инциденте используй доверенное устройство и поддержку сервиса.",
+            detail: "Смена пароля • сессии • помощь",
+            icon: "lock",
+            nodes: ["Сессии", "Поддержка", "Восстановление"],
           },
         ],
         palette: {

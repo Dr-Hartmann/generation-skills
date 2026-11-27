@@ -1,0 +1,2753 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F0F13" />
+    <title>Анализ данных и Data Science</title>
+    <style>
+      :root {
+        --ui-bg: #0f0f13;
+        --ui-panel: #1a1a20;
+        --ui-text: #ffffff;
+        --ui-muted: #a0a0a0;
+        --ui-accent: #2eac65;
+        --ui-accent-dark: #1e7a47;
+        --ui-accent-soft: rgba(46, 172, 101, 0.14);
+        --ui-accent-border: rgba(46, 172, 101, 0.5);
+        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
+        --ui-accent-shadow-strong: rgba(46, 172, 101, 0.35);
+        --ui-accent-ambient-1: rgba(46, 172, 101, 0.34);
+        --ui-accent-ambient-2: rgba(30, 122, 71, 0.3);
+        --ui-accent-ambient-3: rgba(20, 80, 45, 0.38);
+        --ui-border-soft: rgba(255, 255, 255, 0.12);
+        --ui-white-06: rgba(255, 255, 255, 0.06);
+        --ui-white-08: rgba(255, 255, 255, 0.08);
+        --ui-white-12: rgba(255, 255, 255, 0.12);
+        --ui-white-14: rgba(255, 255, 255, 0.14);
+        --ui-modal-bg: rgba(26, 26, 32, 0.94);
+        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
+        --ui-danger-hover-border: rgba(255, 255, 255, 0.35);
+        --ui-ambient-blur: 90px;
+        --right-safe: 80px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        color: var(--ui-text);
+        background: var(--ui-bg);
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        overscroll-behavior: none;
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+      }
+      #ambient {
+        position: fixed;
+        inset: -10%;
+        z-index: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+      #ambient i {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(var(--ui-ambient-blur));
+      }
+      #ambient .b1 {
+        width: 46vmin;
+        height: 46vmin;
+        left: -6%;
+        top: 8%;
+        background: var(--ui-accent-ambient-1);
+        animation: drift 9s ease-in-out infinite alternate;
+      }
+      #ambient .b2 {
+        width: 40vmin;
+        height: 40vmin;
+        right: -4%;
+        top: 38%;
+        background: var(--ui-accent-ambient-2);
+        animation: drift 11s ease-in-out infinite alternate-reverse;
+      }
+      #ambient .b3 {
+        width: 52vmin;
+        height: 52vmin;
+        left: 16%;
+        bottom: -8%;
+        background: var(--ui-accent-ambient-3);
+        animation: drift 13s ease-in-out infinite alternate;
+      }
+      @keyframes drift {
+        from {
+          transform: translate(0, 0) scale(1);
+        }
+        to {
+          transform: translate(4vmin, -5vmin) scale(1.12);
+        }
+      }
+      body.v916 #ambient {
+        opacity: 1;
+      }
+      .app-shell {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        column-gap: clamp(24px, 4vw, 72px);
+        row-gap: 20px;
+        padding: clamp(20px, 4vh, 44px) clamp(24px, 4vw, 72px) 26px;
+        overflow: hidden;
+      }
+      .topic-header {
+        grid-column: 1 / -1;
+        min-width: 0;
+      }
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--ui-accent);
+        font-size: 11px;
+        line-height: 1.2;
+        letter-spacing: 0.18em;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        max-width: 100%;
+        color: var(--ui-text);
+        font-size: clamp(21px, 2.25vw, 34px);
+        line-height: 1.12;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+      }
+      #visualizationArea {
+        grid-column: 1;
+        grid-row: 2;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      #stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 26px;
+        background: rgba(26, 26, 32, 0.28);
+      }
+      #stage canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      #stage.video-frame {
+        flex: 0 0 auto;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 9 / 16;
+        border: 1px solid rgba(46, 172, 101, 0.5);
+        border-radius: 24px;
+        background: var(--ui-bg);
+        box-shadow:
+          0 0 44px var(--ui-accent-shadow),
+          inset 0 0 32px rgba(30, 122, 71, 0.12);
+      }
+      .subtitle-home {
+        grid-column: 2;
+        grid-row: 2;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      .subtitle {
+        width: 100%;
+        min-height: 118px;
+        display: flex;
+        align-items: center;
+        padding: 22px;
+        color: var(--ui-text);
+        background: #00000080;
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 20px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1.34;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        text-wrap: pretty;
+        animation: subtitle-in 0.32s ease both;
+      }
+      .subtitle__keyword {
+        color: var(--ui-accent);
+      }
+      @keyframes subtitle-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .controls-home {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        min-height: 56px;
+      }
+      #controlBar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .control-btn {
+        width: 52px;
+        height: 52px;
+        min-width: 48px;
+        min-height: 48px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 16px;
+        border: 1px solid var(--ui-border-soft);
+        background: var(--ui-panel);
+        color: var(--ui-text);
+        cursor: pointer;
+        transition:
+          border-color 0.18s,
+          background 0.18s,
+          transform 0.18s,
+          box-shadow 0.18s;
+      }
+      .control-btn.primary {
+        color: var(--ui-text);
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        border-color: transparent;
+        box-shadow: 0 6px 20px var(--ui-accent-shadow);
+      }
+      .control-btn svg {
+        width: 21px;
+        height: 21px;
+        fill: currentColor;
+      }
+      .control-btn:active {
+        transform: scale(0.96);
+      }
+      .control-btn:focus-visible,
+      #modal button:focus-visible,
+      #modal input:focus-visible {
+        outline: 2px solid var(--ui-text);
+        outline-offset: 3px;
+      }
+      @media (hover: hover) {
+        .control-btn:hover {
+          border-color: var(--ui-accent-border);
+        }
+        .control-btn.primary:hover {
+          box-shadow: 0 7px 24px var(--ui-accent-shadow-strong);
+        }
+      }
+      body.controls-hidden #controlBar {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+      }
+      #stage.video-frame #controlBar {
+        position: absolute;
+        z-index: 4;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+      }
+      #stage.video-frame #subtitle {
+        position: absolute;
+        z-index: 3;
+        left: 12px;
+        right: 12px;
+        bottom: 84px;
+        width: auto;
+        min-height: 0;
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1.25;
+      }
+      #stage.video-frame #subtitleHome,
+      #stage.video-frame #controlsHome {
+        display: contents;
+      }
+      #stage.video-frame #controlBar {
+        display: flex;
+      }
+      #stage.video-frame #controlBar .control-btn {
+        background: rgba(26, 26, 32, 0.88);
+        backdrop-filter: blur(8px);
+      }
+      #stage.video-frame #controlBar .primary {
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+      }
+      #stage.video-frame canvas {
+        width: 100%;
+        height: 100%;
+      }
+      #modalWrap {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+          max(16px, env(safe-area-inset-bottom, 0px));
+        background: var(--ui-modal-scrim);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+      #modalWrap.open {
+        display: flex;
+      }
+      #modal {
+        width: min(92vw, 380px);
+        max-height: 90vh;
+        max-height: 90dvh;
+        overflow: auto;
+        color: var(--ui-text);
+        background: var(--ui-modal-bg);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 20px;
+        padding: 20px;
+        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+        outline: none;
+        overscroll-behavior: contain;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      #modal button {
+        font-family: inherit;
+        color: var(--ui-text);
+        cursor: pointer;
+      }
+      .modal-close {
+        display: grid;
+        place-items: center;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        min-height: 48px;
+        border-radius: 14px;
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+      }
+      .mhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .mhead h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 800;
+      }
+      .mstep {
+        color: var(--ui-muted);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .seg {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .seg button {
+        flex: 1;
+        min-height: 48px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+      .seg button.active {
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        border-color: transparent;
+        box-shadow: 0 4px 14px var(--ui-accent-shadow);
+      }
+      #mNext {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-accent-soft);
+        border: 1px solid var(--ui-accent-border);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+      }
+      #mNext:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      #mNext:not(:disabled):hover {
+        background: rgba(46, 172, 101, 0.26);
+      }
+      .mrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 48px;
+        margin-bottom: 14px;
+      }
+      .mlabel {
+        flex: 1;
+        color: var(--ui-muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      #mSpeed {
+        flex: 1.4;
+        min-width: 80px;
+        min-height: 48px;
+        padding: 0 10px;
+        color: var(--ui-text);
+        background: var(--ui-panel);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 10px;
+        accent-color: var(--ui-accent);
+      }
+      .sw {
+        position: relative;
+        display: inline-block;
+        flex: 0 0 52px;
+        width: 52px;
+        height: 48px;
+        cursor: pointer;
+      }
+      .sw input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+      .sw span {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 9px;
+        height: 30px;
+        background: var(--ui-white-12);
+        border-radius: 999px;
+        transition: background 0.25s;
+        pointer-events: none;
+      }
+      .sw span::before {
+        content: "";
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        background: var(--ui-text);
+        border-radius: 50%;
+        transition: transform 0.25s;
+      }
+      .sw input:checked + span {
+        background: var(--ui-accent);
+      }
+      .sw input:checked + span::before {
+        transform: translateX(22px);
+      }
+      .sw input:focus-visible + span {
+        outline: 2px solid var(--ui-text);
+        outline-offset: 3px;
+      }
+      #mReset {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-white-14);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition: border-color 0.2s;
+      }
+      #mReset:hover {
+        border-color: var(--ui-danger-hover-border);
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: auto 1fr auto 1fr;
+        gap: 6px 10px;
+        align-items: center;
+        color: var(--ui-muted);
+        font-size: 12px;
+      }
+      .keys span {
+        justify-self: start;
+        padding: 2px 7px;
+        color: var(--ui-text);
+        background: var(--ui-white-08);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 6px;
+        font-weight: 800;
+      }
+      .keys i {
+        font-style: normal;
+      }
+      body.modal-open {
+        overflow: hidden;
+      }
+      @media (max-width: 767px) {
+        #ambient {
+          right: calc(80px + env(safe-area-inset-right, 0px));
+        }
+        .app-shell {
+          width: calc(100% - 80px - env(safe-area-inset-right, 0px));
+          padding: max(16px, env(safe-area-inset-top, 0px)) 0
+            calc(25vh + env(safe-area-inset-bottom, 0px))
+            max(16px, env(safe-area-inset-left, 0px));
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto minmax(0, 1fr) auto auto;
+          row-gap: 12px;
+        }
+        .topic-header {
+          grid-column: 1;
+        }
+        h1 {
+          font-size: clamp(20px, 5.4vw, 25px);
+          max-width: 100%;
+        }
+        #visualizationArea {
+          grid-column: 1;
+          grid-row: 2;
+        }
+        #stage {
+          border-radius: 18px;
+        }
+        .subtitle-home {
+          grid-column: 1;
+          grid-row: 3;
+          min-width: 0;
+          margin-bottom: 12px;
+        }
+        .subtitle {
+          min-height: 76px;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-size: clamp(16px, 4.5vw, 22px);
+        }
+        .controls-home {
+          grid-column: 1;
+          grid-row: 4;
+          justify-content: center;
+          min-height: 52px;
+        }
+        #stage.video-frame #subtitle {
+          left: 8px;
+          right: 8px;
+          bottom: 76px;
+          padding: 10px 11px;
+        }
+        #stage.video-frame #controlBar {
+          bottom: 12px;
+          gap: 8px;
+        }
+        #stage.video-frame #controlBar .control-btn {
+          width: 48px;
+          height: 48px;
+          min-width: 48px;
+          min-height: 48px;
+          border-radius: 14px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        #ambient .b1,
+        #ambient .b2,
+        #ambient .b3 {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ambient" aria-hidden="true">
+      <i class="b1"></i><i class="b2"></i><i class="b3"></i>
+    </div>
+    <main class="app-shell" id="appShell">
+      <header class="topic-header">
+        <p class="eyebrow">ОТ ИСХОДНЫХ ДАННЫХ К РЕШЕНИЯМ</p>
+        <h1>Анализ данных и Data Science</h1>
+      </header>
+      <div id="visualizationArea">
+        <section id="stage" aria-label="Анимированная визуализация темы">
+          <canvas
+            id="scene"
+            role="img"
+            aria-label="Схема анализа данных. Используйте настройки для пошагового просмотра."
+          ></canvas>
+        </section>
+      </div>
+      <aside class="subtitle-home" id="subtitleHome" aria-live="polite">
+        <div class="subtitle" id="subtitle"></div>
+      </aside>
+      <footer class="controls-home" id="controlsHome">
+        <div id="controlBar">
+          <button
+            class="control-btn primary"
+            id="playPause"
+            type="button"
+            aria-label="Пауза"
+            title="Пауза"
+          >
+            <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 5h4v14H7zM15 5h4v14h-4z" />
+            </svg>
+          </button>
+          <button
+            class="control-btn js-gear"
+            id="settingsOpen"
+            type="button"
+            aria-label="Открыть настройки"
+            title="Настройки"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M19.14 12.94a7.49 7.49 0 0 0 .05-1 7.49 7.49 0 0 0-.05-1l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.73-1L14.29 2.6a.48.48 0 0 0-.49-.4h-3.6a.48.48 0 0 0-.49.4L9.35 5.14a7.3 7.3 0 0 0-1.73 1l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.72a.5.5 0 0 0 .12.64L4.86 10.94a7.49 7.49 0 0 0-.05 1 7.49 7.49 0 0 0 .05 1l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96a7.3 7.3 0 0 0 1.73 1l.36 2.54a.48.48 0 0 0 .49.4h3.6a.48.48 0 0 0 .49-.4l.36-2.54a7.3 7.3 0 0 0 1.73-1l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
+              />
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </main>
+    <div id="modalWrap" aria-hidden="true">
+      <section
+        id="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        tabindex="-1"
+      >
+        <header class="mhead">
+          <h2 id="modalTitle">Настройки</h2>
+          <button
+            class="modal-close"
+            id="mClose"
+            type="button"
+            data-modal-close
+            aria-label="Закрыть"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
+        <div class="seg" role="group" aria-label="Режим воспроизведения">
+          <button
+            id="mAuto"
+            class="active"
+            type="button"
+            data-mode="auto"
+            aria-pressed="true"
+          >
+            AUTO
+          </button>
+          <button
+            id="mStepBtn"
+            type="button"
+            data-mode="step"
+            aria-pressed="false"
+          >
+            STEP
+          </button>
+        </div>
+        <button id="mNext" type="button" data-modal-action="next-step" disabled>
+          Следующий шаг ▶
+        </button>
+        <div class="mrow">
+          <label class="mlabel" for="mSpeed">Скорость</label>
+          <select id="mSpeed" aria-label="Скорость воспроизведения">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+          </select>
+        </div>
+        <div class="mrow">
+          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
+          <label class="sw" aria-labelledby="mNineLabel">
+            <input type="checkbox" id="mNine" data-modal-toggle="video-mode" />
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+        <button id="mReset" type="button" data-modal-action="reset">
+          Reset
+        </button>
+        <div class="keys" aria-label="Горячие клавиши">
+          <span>Space</span><i>скрыть панель</i> <span>→</span
+          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
+          ><i>AUTO/STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
+          ><i>закрыть</i>
+        </div>
+      </section>
+    </div>
+    <script>
+      (() => {
+        "use strict";
+
+        const PARAMS = Object.freeze({
+          startupDelay: 500,
+          targetFps: 60,
+          speeds: [0.5, 1, 2],
+          stepDurationMs: 2800,
+        });
+
+        const subtitles = [
+          {
+            step: 1,
+            segments: [
+              { text: "Data Science превращает разрозненные сведения в " },
+              { text: "обоснованные решения", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 2,
+            segments: [
+              { text: "Набор данных объединяет наблюдения, признаки и " },
+              { text: "целевую переменную", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 3,
+            segments: [
+              { text: "Статистика описывает данные и помогает " },
+              { text: "проверять гипотезы", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 4,
+            segments: [
+              { text: "Очистка и преобразование повышают " },
+              { text: "качество исходного набора", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 5,
+            segments: [
+              { text: "Визуализация раскрывает распределения, связи и " },
+              { text: "изменения во времени", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 6,
+            segments: [
+              { text: "Excel, SQL и Python покрывают основные этапы " },
+              { text: "аналитики", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 7,
+            segments: [
+              { text: "Машинное обучение ищет закономерности и " },
+              { text: "строит прогнозы", emphasis: true },
+              { text: "." },
+            ],
+          },
+          {
+            step: 8,
+            segments: [
+              { text: "Выводы требуют проверки смещений, ограничений и " },
+              { text: "этических рисков", emphasis: true },
+              { text: "." },
+            ],
+          },
+        ];
+
+        const state = {
+          mode: "auto",
+          isPlaying: false,
+          currentStep: 0,
+          speed: 1,
+          videoMode: false,
+          elapsed: 0,
+          manualTransition: false,
+          controlsVisible: true,
+          lastTimestamp: 0,
+          rafId: 0,
+        };
+
+        const dom = {};
+        let ctx = null;
+        let dpr = 1;
+        let logicalWidth = 960;
+        let logicalHeight = 600;
+        let resizeObserver = null;
+        let settingsModal = null;
+
+        const C = {
+          bg: "#0F0F13",
+          panel: "#1A1A20",
+          accent: "#2EAC65",
+          accentDark: "#1E7A47",
+          text: "#FFFFFF",
+          muted: "#A0A0A0",
+          whiteSoft: "rgba(255,255,255,.72)",
+          whiteDim: "rgba(255,255,255,.42)",
+          line: "rgba(255,255,255,.16)",
+          lineStrong: "rgba(255,255,255,.28)",
+          greenSoft: "rgba(46,172,101,.16)",
+          greenLine: "rgba(46,172,101,.55)",
+          darkGreen: "rgba(30,122,71,.28)",
+          shade: "rgba(0,0,0,.24)",
+        };
+
+        function init() {
+          dom.stage = document.getElementById("stage");
+          dom.visualizationArea = document.getElementById("visualizationArea");
+          dom.canvas = document.getElementById("scene");
+          dom.subtitle = document.getElementById("subtitle");
+          dom.subtitleHome = document.getElementById("subtitleHome");
+          dom.controlsHome = document.getElementById("controlsHome");
+          dom.controlBar = document.getElementById("controlBar");
+          dom.playPause = document.getElementById("playPause");
+          dom.playIcon = document.getElementById("playIcon");
+          dom.modalWrap = document.getElementById("modalWrap");
+          dom.modal = document.getElementById("modal");
+          dom.next = document.getElementById("mNext");
+          dom.modeAuto = document.getElementById("mAuto");
+          dom.modeStep = document.getElementById("mStepBtn");
+          dom.speed = document.getElementById("mSpeed");
+          dom.videoMode = document.getElementById("mNine");
+          dom.stepText = document.getElementById("mStepTxt");
+
+          if (!dom.canvas || !dom.stage || !dom.subtitle || !dom.playPause) {
+            throw new Error(
+              "Не удалось инициализировать обязательные элементы интерфейса.",
+            );
+          }
+          ctx = dom.canvas.getContext("2d", { alpha: true });
+          if (!ctx)
+            throw new Error("Браузер не предоставил Canvas 2D context.");
+
+          updateSubtitles(1);
+          settingsModal = window.SettingsModal.init();
+          bindEvents();
+          observeSize();
+          resize();
+          syncUI();
+          state.rafId = requestAnimationFrame(frame);
+          window.setTimeout(() => {
+            if (state.mode === "auto" && state.currentStep === 0)
+              state.isPlaying = true;
+            state.lastTimestamp = 0;
+            syncUI();
+          }, PARAMS.startupDelay);
+        }
+
+        function bindEvents() {
+          dom.playPause.addEventListener("click", togglePlayPause);
+          dom.modalWrap.addEventListener("settings:mode", (event) =>
+            setMode(event.detail.mode),
+          );
+          dom.modalWrap.addEventListener("settings:next-step", nextStep);
+          dom.modalWrap.addEventListener("settings:speed", (event) =>
+            setSpeed(event.detail.value),
+          );
+          dom.modalWrap.addEventListener("settings:video-mode", (event) =>
+            toggleVideoMode(event.detail.enabled),
+          );
+          dom.modalWrap.addEventListener("settings:reset", reset);
+          document.addEventListener("keydown", handleInput);
+          window.addEventListener("resize", resize, { passive: true });
+          window.addEventListener("orientationchange", resize, {
+            passive: true,
+          });
+        }
+
+        function observeSize() {
+          if ("ResizeObserver" in window) {
+            resizeObserver = new ResizeObserver(() => resize());
+            resizeObserver.observe(dom.visualizationArea);
+          }
+        }
+
+        function resize() {
+          if (!dom.canvas || !ctx) return;
+          const areaRect = dom.visualizationArea.getBoundingClientRect();
+          if (areaRect.width <= 0 || areaRect.height <= 0) return;
+          if (state.videoMode) {
+            const frameWidth = Math.min(
+              areaRect.width,
+              (areaRect.height * 9) / 16,
+            );
+            const frameHeight = (frameWidth * 16) / 9;
+            dom.stage.style.width = `${frameWidth}px`;
+            dom.stage.style.height = `${frameHeight}px`;
+          } else {
+            dom.stage.style.width = "100%";
+            dom.stage.style.height = "100%";
+          }
+          const rect = dom.stage.getBoundingClientRect();
+          dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+          const compactLayout =
+            !state.videoMode && window.matchMedia("(max-width: 767px)").matches;
+          logicalWidth = state.videoMode || compactLayout ? 540 : 960;
+          logicalHeight = state.videoMode ? 960 : 600;
+          dom.canvas.width = Math.max(1, Math.round(rect.width * dpr));
+          dom.canvas.height = Math.max(1, Math.round(rect.height * dpr));
+          draw();
+        }
+
+        function frame(timestamp) {
+          if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+          const dt = Math.min(timestamp - state.lastTimestamp, 100);
+          state.lastTimestamp = timestamp;
+          update(dt);
+          draw();
+          state.rafId = requestAnimationFrame(frame);
+        }
+
+        function update(dt) {
+          if (!state.isPlaying) return;
+          state.elapsed += dt * state.speed;
+          if (state.elapsed < PARAMS.stepDurationMs) return;
+
+          if (state.mode === "auto") {
+            const overrun = state.elapsed % PARAMS.stepDurationMs;
+            const completed = Math.floor(state.elapsed / PARAMS.stepDurationMs);
+            state.currentStep =
+              (state.currentStep + completed) % subtitles.length;
+            state.elapsed = overrun;
+            updateSubtitles(state.currentStep + 1);
+          } else if (state.manualTransition) {
+            state.elapsed = PARAMS.stepDurationMs;
+            state.isPlaying = false;
+            state.manualTransition = false;
+          }
+          syncUI();
+        }
+
+        function draw() {
+          if (!ctx || !dom.canvas.width || !dom.canvas.height) return;
+          const canvasWidth = dom.canvas.width / dpr;
+          const canvasHeight = dom.canvas.height / dpr;
+          const scale = Math.min(
+            canvasWidth / logicalWidth,
+            canvasHeight / logicalHeight,
+          );
+          const offsetX = (canvasWidth - logicalWidth * scale) / 2;
+          const offsetY = (canvasHeight - logicalHeight * scale) / 2;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+          ctx.translate(offsetX, offsetY);
+          ctx.scale(scale, scale);
+          ctx.fillStyle = C.bg;
+          ctx.fillRect(0, 0, logicalWidth, logicalHeight);
+          drawGrid(logicalWidth, logicalHeight);
+          const progress = Math.max(
+            0,
+            Math.min(1, state.elapsed / PARAMS.stepDurationMs),
+          );
+          const transitionProgress = Math.min(1, progress / 0.18);
+          const eased = 1 - Math.pow(1 - transitionProgress, 3);
+          ctx.save();
+          ctx.globalAlpha = eased;
+          ctx.translate(0, (1 - eased) * 12);
+          if (state.videoMode) drawPortraitScene(state.currentStep, progress);
+          else if (window.matchMedia("(max-width: 767px)").matches)
+            drawCompactScene(state.currentStep, progress);
+          else drawLandscapeScene(state.currentStep, progress);
+          ctx.restore();
+        }
+
+        function drawGrid(w, h) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255,255,255,.035)";
+          ctx.lineWidth = 1;
+          const gap = state.videoMode ? 36 : 40;
+          for (let x = 0; x <= w; x += gap) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+            ctx.stroke();
+          }
+          for (let y = 0; y <= h; y += gap) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function rounded(x, y, w, h, r, fill, stroke, lineWidth = 1) {
+          ctx.beginPath();
+          ctx.roundRect(x, y, w, h, r);
+          if (fill) {
+            ctx.fillStyle = fill;
+            ctx.fill();
+          }
+          if (stroke) {
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = stroke;
+            ctx.stroke();
+          }
+        }
+
+        function write(
+          text,
+          x,
+          y,
+          size = 18,
+          color = C.text,
+          weight = 600,
+          align = "left",
+        ) {
+          ctx.fillStyle = color;
+          ctx.font = `${weight} ${size}px system-ui, -apple-system, sans-serif`;
+          ctx.textAlign = align;
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, x, y);
+        }
+
+        function line(
+          x1,
+          y1,
+          x2,
+          y2,
+          color = C.lineStrong,
+          width = 2,
+          dash = [],
+        ) {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.setLineDash(dash);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function dot(x, y, r, fill = C.accent, stroke = null) {
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = fill;
+          ctx.fill();
+          if (stroke) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = stroke;
+            ctx.stroke();
+          }
+        }
+
+        function arrow(x1, y1, x2, y2, color = C.accent) {
+          line(x1, y1, x2, y2, color, 2.5);
+          const a = Math.atan2(y2 - y1, x2 - x1);
+          ctx.save();
+          ctx.translate(x2, y2);
+          ctx.rotate(a);
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-10, -5);
+          ctx.lineTo(-10, 5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function pill(label, x, y, w, color = C.accent) {
+          rounded(
+            x,
+            y,
+            w,
+            30,
+            15,
+            "rgba(46,172,101,.13)",
+            "rgba(46,172,101,.42)",
+          );
+          write(label, x + w / 2, y + 15, 12, color, 800, "center");
+        }
+
+        function iconBox(
+          label,
+          sub,
+          x,
+          y,
+          w,
+          h,
+          kind = "data",
+          active = false,
+        ) {
+          rounded(
+            x,
+            y,
+            w,
+            h,
+            17,
+            active ? "rgba(46,172,101,.14)" : "rgba(26,26,32,.92)",
+            active ? C.greenLine : C.line,
+            active ? 2 : 1,
+          );
+          const cx = x + w / 2;
+          const top = y + (h > 110 ? 29 : 24);
+          if (kind === "database") {
+            ctx.save();
+            ctx.strokeStyle = active ? C.accent : C.whiteSoft;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(cx, top, 22, 8, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - 22, top);
+            ctx.lineTo(cx - 22, top + 28);
+            ctx.ellipse(cx, top + 28, 22, 8, 0, 0, Math.PI);
+            ctx.lineTo(cx + 22, top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(cx, top + 13, 22, 8, 0, 0, Math.PI);
+            ctx.stroke();
+            ctx.restore();
+          } else if (kind === "chart") {
+            line(cx - 25, top + 24, cx - 25, top - 12, C.whiteDim, 2);
+            line(cx - 25, top + 24, cx + 28, top + 24, C.whiteDim, 2);
+            rounded(cx - 16, top + 5, 8, 19, 3, C.accent, null);
+            rounded(cx - 2, top - 5, 8, 29, 3, "rgba(46,172,101,.65)", null);
+            rounded(cx + 12, top - 16, 8, 40, 3, C.accent, null);
+          } else if (kind === "model") {
+            const pts = [
+              [cx - 22, top - 2],
+              [cx, top - 18],
+              [cx + 22, top - 2],
+              [cx - 12, top + 22],
+              [cx + 14, top + 22],
+            ];
+            [
+              [0, 1],
+              [1, 2],
+              [0, 3],
+              [1, 3],
+              [1, 4],
+              [2, 4],
+              [3, 4],
+            ].forEach(([a, b]) =>
+              line(pts[a][0], pts[a][1], pts[b][0], pts[b][1], C.greenLine, 2),
+            );
+            pts.forEach((p) => dot(p[0], p[1], 5, C.accent));
+          } else if (kind === "shield") {
+            ctx.save();
+            ctx.strokeStyle = active ? C.accent : C.whiteSoft;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, top - 22);
+            ctx.lineTo(cx + 22, top - 12);
+            ctx.lineTo(cx + 18, top + 14);
+            ctx.lineTo(cx, top + 28);
+            ctx.lineTo(cx - 18, top + 14);
+            ctx.lineTo(cx - 22, top - 12);
+            ctx.closePath();
+            ctx.stroke();
+            line(cx - 10, top + 2, cx - 2, top + 10, C.accent, 3);
+            line(cx - 2, top + 10, cx + 12, top - 7, C.accent, 3);
+            ctx.restore();
+          } else {
+            rounded(
+              cx - 23,
+              top - 19,
+              46,
+              37,
+              7,
+              "rgba(255,255,255,.03)",
+              active ? C.accent : C.whiteDim,
+            );
+            line(
+              cx - 14,
+              top - 8,
+              cx + 14,
+              top - 8,
+              active ? C.accent : C.whiteDim,
+              2,
+            );
+            line(cx - 14, top, cx + 8, top, C.whiteDim, 2);
+            line(cx - 14, top + 8, cx + 12, top + 8, C.whiteDim, 2);
+          }
+          write(label, cx, y + h - (sub ? 38 : 22), 16, C.text, 750, "center");
+          if (sub) write(sub, cx, y + h - 17, 11, C.muted, 500, "center");
+        }
+
+        function drawLandscapeScene(step, p) {
+          const W = 960,
+            H = 600;
+          const headings = [
+            "ЦИКЛ РАБОТЫ С ДАННЫМИ",
+            "СТРУКТУРА НАБОРА ДАННЫХ",
+            "СТАТИСТИКА И ВЕРОЯТНОСТЬ",
+            "ПОДГОТОВКА И КАЧЕСТВО",
+            "ВИЗУАЛЬНЫЙ АНАЛИЗ",
+            "ИНСТРУМЕНТАРИЙ АНАЛИТИКА",
+            "МОДЕЛИ И ПРОГНОЗЫ",
+            "ОТ АНАЛИЗА К ОТВЕТСТВЕННЫМ РЕШЕНИЯМ",
+          ];
+          write(headings[step], 58, 54, 16, C.muted, 800);
+          pill(`ЭТАП 0${step + 1}`, 795, 36, 108);
+          if (step === 0) {
+            const labels = [
+              ["Сбор", "источники", "data"],
+              ["Очистка", "ошибки · пропуски", "data"],
+              ["Анализ", "связи · статистика", "chart"],
+              ["Модель", "обучение", "model"],
+              ["Решение", "действие", "shield"],
+            ];
+            const start = 45,
+              gap = 16,
+              bw = 158,
+              by = 224;
+            labels.forEach((item, i) => {
+              const x = start + i * (bw + gap);
+              iconBox(item[0], item[1], x, by, bw, 154, item[2], i === 2);
+              if (i < labels.length - 1)
+                arrow(x + bw + 2, by + 77, x + bw + gap - 3, by + 77, C.accent);
+            });
+            write(
+              "Получение  →  преобразование  →  интерпретация  →  действие",
+              480,
+              460,
+              18,
+              C.whiteSoft,
+              600,
+              "center",
+            );
+            rounded(242, 505, 476, 42, 21, C.greenSoft, C.greenLine);
+            write(
+              "Результат: проверяемое решение на основе данных",
+              480,
+              526,
+              14,
+              C.accent,
+              750,
+              "center",
+            );
+            dot(
+              45 + 2 * (bw + gap) + bw / 2,
+              by + 77,
+              45 + Math.sin(p * Math.PI) * 5,
+              "rgba(46,172,101,.07)",
+            );
+          } else if (step === 1) {
+            write("НАБОР ДАННЫХ · DATASET", 70, 128, 14, C.accent, 800);
+            const x0 = 70,
+              y0 = 168,
+              colW = 142,
+              rowH = 48;
+            const cols = ["Наблюдение", "Признак X₁", "Признак X₂", "Target"];
+            cols.forEach((c, i) => {
+              rounded(
+                x0 + i * colW,
+                y0,
+                colW - 7,
+                38,
+                8,
+                i === 3 ? C.greenSoft : C.panel,
+                i === 3 ? C.greenLine : C.line,
+              );
+              write(
+                c,
+                x0 + i * colW + (colW - 7) / 2,
+                y0 + 19,
+                12,
+                i === 3 ? C.accent : C.whiteSoft,
+                750,
+                "center",
+              );
+            });
+            const rows = [
+              ["001", "24", "Москва", "0"],
+              ["002", "31", "Казань", "1"],
+              ["003", "28", "Пермь", "0"],
+              ["004", "42", "Тула", "1"],
+            ];
+            rows.forEach((r, j) =>
+              r.forEach((v, i) => {
+                rounded(
+                  x0 + i * colW,
+                  y0 + 48 + j * rowH,
+                  colW - 7,
+                  39,
+                  7,
+                  "rgba(26,26,32,.78)",
+                  C.line,
+                );
+                write(
+                  v,
+                  x0 + i * colW + (colW - 7) / 2,
+                  y0 + 67 + j * rowH,
+                  14,
+                  i === 3 ? C.accent : C.text,
+                  650,
+                  "center",
+                );
+              }),
+            );
+            pill("FEATURES", 80, 437, 130);
+            arrow(220, 452, 340, 452);
+            pill("TARGET", 350, 437, 120);
+            write(
+              "Генеральная совокупность",
+              560,
+              182,
+              15,
+              C.whiteSoft,
+              700,
+              "center",
+            );
+            ctx.save();
+            ctx.strokeStyle = C.greenLine;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(720, 310, 105, 0, Math.PI * 2);
+            ctx.stroke();
+            for (let i = 0; i < 22; i++) {
+              const a = i * 2.399;
+              const r = 18 + (i % 5) * 16;
+              dot(720 + Math.cos(a) * r, 310 + Math.sin(a) * r, 4, C.whiteDim);
+            }
+            ctx.beginPath();
+            ctx.arc(720, 310, 55, 0, Math.PI * 2);
+            ctx.fillStyle = C.greenSoft;
+            ctx.fill();
+            ctx.strokeStyle = C.accent;
+            ctx.stroke();
+            ctx.restore();
+            write("Выборка", 720, 310, 15, C.accent, 800, "center");
+            write(
+              "Параметр описывает совокупность · статистика — выборку",
+              480,
+              526,
+              14,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 2) {
+            rounded(52, 132, 400, 350, 18, C.panel, C.line);
+            write("РАСПРЕДЕЛЕНИЕ", 78, 164, 14, C.whiteSoft, 800);
+            const baseY = 420,
+              xL = 95,
+              xR = 420;
+            line(xL, baseY, xR, baseY, C.whiteDim, 1.5);
+            line(xL, baseY, xL, 216, C.whiteDim, 1.5);
+            const heights = [35, 78, 130, 185, 225, 204, 150, 94, 50, 22];
+            heights.forEach((v, i) =>
+              rounded(
+                112 + i * 28,
+                baseY - v,
+                18,
+                v,
+                5,
+                i === 4 || i === 5 ? C.accent : "rgba(46,172,101,.48)",
+                null,
+              ),
+            );
+            ctx.save();
+            ctx.strokeStyle = C.text;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            for (let i = 0; i <= 80; i++) {
+              const x = xL + (i * (xR - xL)) / 80;
+              const z = (x - 260) / 70;
+              const y = baseY - 230 * Math.exp(-0.5 * z * z);
+              if (!i) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+            line(260, 205, 260, 430, C.accent, 1.5, [5, 6]);
+            write("μ", 260, 447, 15, C.accent, 800, "center");
+            rounded(490, 132, 418, 350, 18, C.panel, C.line);
+            write("ЦЕНТР И РАЗБРОС", 518, 164, 14, C.whiteSoft, 800);
+            [
+              ["Среднее", "чувствительно к выбросам"],
+              ["Медиана", "устойчива к крайним значениям"],
+              ["Мода", "самое частое значение"],
+              ["Дисперсия", "разброс относительно среднего"],
+              ["IQR", "межквартильный размах"],
+            ].forEach((r, i) => {
+              const y = 207 + i * 52;
+              write(r[0], 520, y, 16, i === 1 ? C.accent : C.text, 750);
+              write(r[1], 650, y, 12, C.muted, 500);
+            });
+            pill("КОРРЕЛЯЦИЯ ≠ ПРИЧИННОСТЬ", 570, 505, 290);
+            write(
+              "Доверительные интервалы · гипотезы · p-value",
+              480,
+              548,
+              14,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 3) {
+            const stages = [
+              ["СЫРЫЕ ДАННЫЕ", "дубли · пропуски"],
+              ["ОЧИСТКА", "ошибки · выбросы"],
+              ["ПРЕОБРАЗОВАНИЕ", "масштаб · кодирование"],
+              ["EDA", "аномалии · связи"],
+            ];
+            stages.forEach((s, i) => {
+              const x = 54 + i * 226;
+              const active = i === 1;
+              rounded(
+                x,
+                176,
+                190,
+                214,
+                18,
+                active ? C.greenSoft : C.panel,
+                active ? C.greenLine : C.line,
+              );
+              write(
+                s[0],
+                x + 95,
+                210,
+                13,
+                active ? C.accent : C.whiteSoft,
+                800,
+                "center",
+              );
+              if (i === 0) {
+                for (let r = 0; r < 4; r++)
+                  for (let c = 0; c < 3; c++)
+                    rounded(
+                      x + 22 + c * 49,
+                      242 + r * 29,
+                      38,
+                      20,
+                      5,
+                      r === 2 && c === 1
+                        ? "rgba(255,255,255,.08)"
+                        : "rgba(255,255,255,.04)",
+                      C.line,
+                    );
+                write("—", x + 95, 319, 20, C.muted, 800, "center");
+              } else if (i === 1) {
+                for (let r = 0; r < 4; r++) {
+                  dot(x + 46, 255 + r * 29, 5, C.accent);
+                  line(
+                    x + 61,
+                    255 + r * 29,
+                    x + 148,
+                    255 + r * 29,
+                    C.whiteDim,
+                    2,
+                  );
+                }
+                line(x + 28, 352, x + 160, 352, C.accent, 1.5, [4, 4]);
+              } else if (i === 2) {
+                ["scale()", "one-hot", "format"].forEach((t, j) =>
+                  pill(t, x + 20 + j * 54, 270, 50),
+                );
+                write("единые шкалы", x + 95, 331, 12, C.muted, 600, "center");
+              } else {
+                for (let j = 0; j < 5; j++)
+                  dot(
+                    x + 42 + j * 27,
+                    280 + Math.sin(j * 1.4) * 35,
+                    6,
+                    j === 3 ? "#FFFFFF" : C.accent,
+                  );
+                write(
+                  "закономерности",
+                  x + 95,
+                  348,
+                  12,
+                  C.muted,
+                  600,
+                  "center",
+                );
+              }
+              write(s[1], x + 95, 420, 12, C.muted, 600, "center");
+              if (i < 3) arrow(x + 193, 282, x + 218, 282, C.accent);
+            });
+            rounded(180, 478, 600, 58, 16, C.greenSoft, C.greenLine);
+            write(
+              "Проверяй полноту · согласованность · репрезентативность",
+              480,
+              507,
+              15,
+              C.accent,
+              750,
+              "center",
+            );
+          } else if (step === 4) {
+            const panels = [
+              { x: 52, t: "РАСПРЕДЕЛЕНИЕ", kind: 0 },
+              { x: 360, t: "СВЯЗЬ ПРИЗНАКОВ", kind: 1 },
+              { x: 668, t: "ДИНАМИКА", kind: 2 },
+            ];
+            panels.forEach((o) => {
+              rounded(o.x, 155, 240, 300, 18, C.panel, C.line);
+              write(o.t, o.x + 20, 184, 12, C.whiteSoft, 800);
+              if (o.kind === 0) {
+                const vals = [22, 45, 74, 108, 138, 122, 92, 60, 31];
+                vals.forEach((v, i) =>
+                  rounded(
+                    o.x + 32 + i * 20,
+                    410 - v,
+                    13,
+                    v,
+                    4,
+                    "rgba(46,172,101,.72)",
+                    null,
+                  ),
+                );
+                line(o.x + 24, 412, o.x + 218, 412, C.whiteDim, 1);
+                write(
+                  "гистограмма",
+                  o.x + 120,
+                  435,
+                  11,
+                  C.muted,
+                  600,
+                  "center",
+                );
+              } else if (o.kind === 1) {
+                line(o.x + 28, 410, o.x + 214, 410, C.whiteDim, 1);
+                line(o.x + 28, 410, o.x + 28, 220, C.whiteDim, 1);
+                for (let i = 0; i < 30; i++) {
+                  const x = o.x + 40 + ((i * 37) % 168);
+                  const y = 390 - ((i * 29) % 154) - (i % 3) * 12;
+                  dot(x, y, 4.5, C.accent);
+                }
+                write(
+                  "диаграмма рассеяния",
+                  o.x + 120,
+                  435,
+                  11,
+                  C.muted,
+                  600,
+                  "center",
+                );
+              } else {
+                line(o.x + 28, 410, o.x + 214, 410, C.whiteDim, 1);
+                line(o.x + 28, 410, o.x + 28, 220, C.whiteDim, 1);
+                ctx.save();
+                ctx.strokeStyle = C.accent;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const v = [330, 350, 310, 300, 260, 280, 228, 240, 190];
+                v.forEach((y, i) => {
+                  const x = o.x + 34 + i * 22;
+                  if (!i) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                ctx.restore();
+                write(
+                  "временной ряд",
+                  o.x + 120,
+                  435,
+                  11,
+                  C.muted,
+                  600,
+                  "center",
+                );
+              }
+            });
+            write(
+              "Выбирай форму по вопросу, типу переменных и аудитории",
+              480,
+              520,
+              15,
+              C.accent,
+              750,
+              "center",
+            );
+          } else if (step === 5) {
+            const tools = [
+              ["Таблицы", "Excel · Sheets · Calc", "data"],
+              ["SQL", "извлечение из БД", "database"],
+              ["Python", "NumPy · Pandas", "model"],
+              ["Статистика", "SciPy · Statsmodels", "chart"],
+            ];
+            tools.forEach((t, i) => {
+              const x = 55 + i * 225;
+              iconBox(t[0], t[1], x, 170, 195, 170, t[2], i === 2);
+            });
+            const libs = ["Matplotlib", "Seaborn", "Scikit-learn", "Jupyter"];
+            libs.forEach((t, i) => pill(t, 106 + i * 190, 390, 154));
+            rounded(142, 472, 676, 62, 18, "rgba(26,26,32,.9)", C.line);
+            write(
+              "CSV  ·  JSON  ·  XML  ·  Parquet",
+              480,
+              495,
+              16,
+              C.text,
+              750,
+              "center",
+            );
+            write(
+              "Воспроизводимость · документирование · версионирование",
+              480,
+              520,
+              12,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 6) {
+            const boxes = [
+              ["ДАННЫЕ", "train / validation / test"],
+              ["ОБУЧЕНИЕ", "алгоритм + параметры"],
+              ["ОЦЕНКА", "метрики + CV"],
+              ["ПРОГНОЗ", "новые наблюдения"],
+            ];
+            boxes.forEach((b, i) => {
+              const x = 50 + i * 228;
+              iconBox(
+                b[0],
+                b[1],
+                x,
+                167,
+                190,
+                145,
+                i === 1 ? "model" : i === 3 ? "chart" : "data",
+                i === 1,
+              );
+              if (i < 3) arrow(x + 192, 239, x + 220, 239, C.accent);
+            });
+            rounded(68, 364, 360, 142, 18, C.panel, C.line);
+            write("ОБУЧЕНИЕ С УЧИТЕЛЕМ", 90, 390, 13, C.accent, 800);
+            pill("Классификация", 88, 412, 145);
+            pill("Регрессия", 250, 412, 118);
+            write(
+              "известна целевая переменная",
+              248,
+              477,
+              12,
+              C.muted,
+              600,
+              "center",
+            );
+            rounded(465, 364, 420, 142, 18, C.panel, C.line);
+            write("БЕЗ УЧИТЕЛЯ И ВО ВРЕМЕНИ", 490, 390, 13, C.accent, 800);
+            pill("Кластеризация", 485, 412, 142);
+            pill("Аномалии", 642, 412, 100);
+            pill("Тренд", 755, 412, 92);
+            write(
+              "Переобучение · недообучение · обобщение",
+              480,
+              548,
+              14,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 7) {
+            const sectors = [
+              ["ЭКОНОМИКА", "финансы"],
+              ["МЕДИЦИНА", "исследования"],
+              ["ОБРАЗОВАНИЕ", "обучение"],
+              ["ПРОМЫШЛЕННОСТЬ", "процессы"],
+              ["БИЗНЕС", "маркетинг"],
+            ];
+            sectors.forEach((s, i) => {
+              const x = 48 + i * 180;
+              rounded(x, 168, 164, 104, 16, C.panel, C.line);
+              write(s[0], x + 82, 202, 13, C.accent, 800, "center");
+              write(s[1], x + 82, 231, 12, C.muted, 600, "center");
+            });
+            arrow(480, 294, 480, 344, C.accent);
+            rounded(230, 350, 500, 70, 18, C.greenSoft, C.greenLine);
+            write("ПРОВЕРКА ВЫВОДОВ", 480, 374, 15, C.accent, 800, "center");
+            write(
+              "смещения · ошибки · причинность · неопределённость",
+              480,
+              399,
+              12,
+              C.text,
+              600,
+              "center",
+            );
+            const risks = [
+              ["ПРИВАТНОСТЬ", "обезличивание"],
+              ["ПРЕДВЗЯТОСТЬ", "справедливость"],
+              ["ПРОЗРАЧНОСТЬ", "объяснимость"],
+            ];
+            risks.forEach((r, i) => {
+              const x = 130 + i * 240;
+              rounded(x, 464, 220, 70, 15, C.panel, C.line);
+              write(r[0], x + 110, 486, 12, C.whiteSoft, 800, "center");
+              write(r[1], x + 110, 512, 12, C.muted, 600, "center");
+            });
+          }
+        }
+
+        function drawCompactScene(step, p) {
+          const W = 540,
+            H = 600,
+            cx = 270;
+          const titles = [
+            "ЖИЗНЕННЫЙ ЦИКЛ ДАННЫХ",
+            "DATASET И ПРИЗНАКИ",
+            "СТАТИСТИЧЕСКИЙ ВЫВОД",
+            "КАЧЕСТВО ДАННЫХ",
+            "ВЫБОР ВИЗУАЛИЗАЦИИ",
+            "ИНСТРУМЕНТЫ DATA SCIENCE",
+            "ПОСТРОЕНИЕ МОДЕЛИ",
+            "ПРИМЕНЕНИЕ И ЭТИКА",
+          ];
+          write(titles[step], 28, 42, 16, C.muted, 800);
+          pill(`ШАГ ${step + 1} / 8`, 380, 27, 130);
+          const card = (x, y, w, h, title, detail, active = false) => {
+            rounded(
+              x,
+              y,
+              w,
+              h,
+              14,
+              active ? C.greenSoft : C.panel,
+              active ? C.greenLine : C.line,
+              active ? 2 : 1,
+            );
+            write(title, x + 20, y + 31, 17, active ? C.accent : C.text, 800);
+            write(detail, x + 20, y + 61, 13, C.muted, 600);
+            dot(x + w - 28, y + h / 2, 6, active ? C.accent : C.whiteDim);
+          };
+          if (step === 0) {
+            const rows = [
+              ["СБОР", "источники · наблюдения"],
+              ["ПОДГОТОВКА", "очистка · преобразование"],
+              ["АНАЛИЗ", "статистика · EDA"],
+              ["РЕШЕНИЕ", "модель · интерпретация"],
+            ];
+            rows.forEach((r, i) => {
+              const y = 92 + i * 119;
+              card(48, y, 444, 86, r[0], r[1], i === 2);
+              if (i < 3) arrow(cx, y + 88, cx, y + 113, C.accent);
+            });
+            write(
+              "Сбор → обработка → выводы → действие",
+              cx,
+              574,
+              13,
+              C.whiteSoft,
+              650,
+              "center",
+            );
+          } else if (step === 1) {
+            write("ПРИМЕР ТАБЛИЧНОГО DATASET", 42, 91, 13, C.accent, 800);
+            const x0 = 42,
+              y0 = 124,
+              ws = [94, 102, 130, 112],
+              hs = ["ID", "ВОЗРАСТ", "ГОРОД", "TARGET"];
+            let xx = x0;
+            hs.forEach((h, i) => {
+              rounded(
+                xx,
+                y0,
+                ws[i] - 5,
+                36,
+                6,
+                i === 3 ? C.greenSoft : C.panel,
+                i === 3 ? C.greenLine : C.line,
+              );
+              write(
+                h,
+                xx + (ws[i] - 5) / 2,
+                y0 + 18,
+                11,
+                i === 3 ? C.accent : C.whiteSoft,
+                800,
+                "center",
+              );
+              xx += ws[i];
+            });
+            [
+              ["001", "24", "Москва", "0"],
+              ["002", "31", "Казань", "1"],
+              ["003", "28", "Пермь", "0"],
+              ["004", "42", "Тула", "1"],
+            ].forEach((r, j) => {
+              let x = x0;
+              r.forEach((v, i) => {
+                rounded(
+                  x,
+                  y0 + 43 + j * 43,
+                  ws[i] - 5,
+                  34,
+                  5,
+                  "rgba(26,26,32,.9)",
+                  C.line,
+                );
+                write(
+                  v,
+                  x + (ws[i] - 5) / 2,
+                  y0 + 60 + j * 43,
+                  12,
+                  i === 3 ? C.accent : C.text,
+                  650,
+                  "center",
+                );
+                x += ws[i];
+              });
+            });
+            rounded(46, 370, 448, 78, 14, C.panel, C.line);
+            write("FEATURES", 68, 398, 15, C.accent, 800);
+            write("признаки описывают наблюдение", 68, 426, 12, C.muted, 600);
+            rounded(46, 466, 448, 78, 14, C.panel, C.line);
+            write("TARGET", 68, 494, 15, C.accent, 800);
+            write("целевая переменная для модели", 68, 522, 12, C.muted, 600);
+            write(
+              "Выборка представляет генеральную совокупность",
+              cx,
+              574,
+              11,
+              C.whiteSoft,
+              600,
+              "center",
+            );
+          } else if (step === 2) {
+            rounded(42, 92, 456, 238, 15, C.panel, C.line);
+            write("РАСПРЕДЕЛЕНИЕ И РАЗБРОС", 64, 119, 13, C.whiteSoft, 800);
+            const base = 292,
+              vals = [24, 42, 64, 91, 125, 142, 130, 102, 72, 46, 25];
+            vals.forEach((v, i) =>
+              rounded(
+                76 + i * 35,
+                base - v,
+                23,
+                v,
+                4,
+                i === 5 ? C.accent : "rgba(46,172,101,.58)",
+                null,
+              ),
+            );
+            line(66, base, 476, base, C.whiteDim, 1.2);
+            line(265, 145, 265, 305, C.accent, 1.2, [4, 5]);
+            card(42, 350, 456, 62, "ЦЕНТР", "среднее · медиана · мода");
+            card(42, 422, 456, 62, "РАЗБРОС", "дисперсия · σ · квартили · IQR");
+            card(
+              42,
+              494,
+              456,
+              62,
+              "ВЫВОД",
+              "гипотезы · p-value · интервалы",
+              true,
+            );
+            write(
+              "Корреляция и ковариация не доказывают причинность",
+              cx,
+              582,
+              10,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 3) {
+            const rows = [
+              ["ИСХОДНЫЕ ДАННЫЕ", "дубли · пропуски · ошибки"],
+              ["ОЧИСТКА", "выбросы · согласованность"],
+              ["ПРЕОБРАЗОВАНИЕ", "нормализация · кодирование"],
+              ["EDA", "аномалии · закономерности"],
+            ];
+            rows.forEach((r, i) => {
+              const y = 93 + i * 119;
+              card(48, y, 444, 86, r[0], r[1], i === 1);
+              if (i < 3) arrow(cx, y + 88, cx, y + 113, C.accent);
+            });
+            write(
+              "Проверяй полноту и репрезентативность",
+              cx,
+              574,
+              13,
+              C.whiteSoft,
+              650,
+              "center",
+            );
+          } else if (step === 4) {
+            const charts = [
+              ["ГИСТОГРАММА", "распределение значений"],
+              ["РАССЕИВАНИЕ", "связь двух признаков"],
+              ["ВРЕМЕННОЙ РЯД", "тренд и сезонность"],
+            ];
+            charts.forEach((r, i) => {
+              const y = 92 + i * 155;
+              rounded(42, y, 456, 132, 14, C.panel, C.line);
+              write(r[0], 62, y + 28, 14, C.accent, 800);
+              write(r[1], 62, y + 55, 11, C.muted, 600);
+              if (i === 0) {
+                const v = [14, 24, 38, 52, 68, 58, 43, 28, 14];
+                v.forEach((h, j) =>
+                  rounded(
+                    280 + j * 21,
+                    y + 112 - h,
+                    15,
+                    h,
+                    3,
+                    "rgba(46,172,101,.72)",
+                    null,
+                  ),
+                );
+              }
+              if (i === 1) {
+                line(275, y + 110, 470, y + 110, C.whiteDim, 1);
+                line(275, y + 110, 275, y + 67, C.whiteDim, 1);
+                for (let j = 0; j < 16; j++)
+                  dot(
+                    290 + ((j * 47) % 170),
+                    y + 70 + ((j * 29) % 37),
+                    3.5,
+                    C.accent,
+                  );
+              }
+              if (i === 2) {
+                ctx.save();
+                ctx.strokeStyle = C.accent;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                [
+                  y + 111,
+                  y + 99,
+                  y + 108,
+                  y + 86,
+                  y + 94,
+                  y + 73,
+                  y + 80,
+                  y + 64,
+                ].forEach((yy, j) => {
+                  const xx = 280 + j * 24;
+                  if (!j) ctx.moveTo(xx, yy);
+                  else ctx.lineTo(xx, yy);
+                });
+                ctx.stroke();
+                ctx.restore();
+              }
+            });
+          } else if (step === 5) {
+            const items = [
+              ["ТАБЛИЦЫ", "Excel · Sheets · Calc"],
+              ["SQL", "запросы к реляционным БД"],
+              ["PYTHON", "NumPy · Pandas"],
+              ["СТАТИСТИКА", "SciPy · Statsmodels"],
+            ];
+            items.forEach((r, i) => {
+              const x = 42 + (i % 2) * 232,
+                y = 100 + Math.floor(i / 2) * 172;
+              rounded(x, y, 220, 144, 14, C.panel, C.line);
+              write(r[0], x + 17, y + 48, 15, i === 2 ? C.accent : C.text, 800);
+              write(r[1], x + 17, y + 83, 11, C.muted, 600);
+              dot(x + 182, y + 116, 6, i === 2 ? C.accent : C.whiteDim);
+            });
+            pill("Matplotlib", 46, 460, 112);
+            pill("Seaborn", 170, 460, 104);
+            pill("Scikit-learn", 286, 460, 128);
+            pill("Jupyter", 424, 460, 82);
+            write(
+              "CSV · JSON · XML · Parquet",
+              cx,
+              548,
+              14,
+              C.whiteSoft,
+              700,
+              "center",
+            );
+            write(
+              "Воспроизводимость и документация",
+              cx,
+              578,
+              11,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 6) {
+            const rows = [
+              ["РАЗДЕЛЕНИЕ", "train · validation · test"],
+              ["ОБУЧЕНИЕ", "подбор гиперпараметров"],
+              ["ОЦЕНКА", "метрики · cross-validation"],
+              ["ПРОГНОЗ", "обобщение на новых данных"],
+            ];
+            rows.forEach((r, i) => {
+              const y = 92 + i * 112;
+              card(48, y, 444, 80, r[0], r[1], i === 1);
+              if (i < 3) arrow(cx, y + 82, cx, y + 105, C.accent);
+            });
+            pill("КЛАССИФИКАЦИЯ", 46, 550, 145);
+            pill("РЕГРЕССИЯ", 200, 550, 115);
+            pill("КЛАСТЕРИЗАЦИЯ", 324, 550, 170);
+          } else if (step === 7) {
+            const rows = [
+              ["ЭКОНОМИКА", "финансы · прогнозирование"],
+              ["МЕДИЦИНА", "исследования · диагностика"],
+              ["ОБРАЗОВАНИЕ", "аналитика · профориентация"],
+              ["ПРОМЫШЛЕННОСТЬ", "контроль процессов"],
+              ["БИЗНЕС", "поведение · маркетинг"],
+            ];
+            rows.forEach((r, i) => {
+              const x = 42 + (i % 2) * 232,
+                y = 94 + Math.floor(i / 2) * 102;
+              rounded(x, y, 220, 84, 12, C.panel, C.line);
+              write(r[0], x + 14, y + 31, 13, C.accent, 800);
+              write(r[1], x + 14, y + 57, 10, C.muted, 600);
+            });
+            rounded(42, 408, 456, 150, 15, C.greenSoft, C.greenLine);
+            write("КРИТИЧЕСКАЯ ПРОВЕРКА", cx, 438, 14, C.accent, 800, "center");
+            write(
+              "причинность · смещения · ошибки",
+              cx,
+              474,
+              12,
+              C.text,
+              650,
+              "center",
+            );
+            write(
+              "приватность · прозрачность · этика",
+              cx,
+              506,
+              12,
+              C.text,
+              650,
+              "center",
+            );
+          }
+        }
+
+        function drawPortraitScene(step, p) {
+          const W = 540,
+            H = 960;
+          const titles = [
+            "ПУТЬ ДАННЫХ",
+            "DATASET",
+            "СТАТИСТИКА",
+            "ПОДГОТОВКА",
+            "ВИЗУАЛИЗАЦИЯ",
+            "ИНСТРУМЕНТЫ",
+            "MACHINE LEARNING",
+            "ОТВЕТСТВЕННЫЙ АНАЛИЗ",
+          ];
+          write(titles[step], 34, 58, 16, C.muted, 800);
+          pill(`ШАГ ${step + 1} / 8`, 350, 42, 150);
+          const cx = 270;
+          if (step === 0) {
+            const rows = [
+              ["СБОР ДАННЫХ", "источники и наблюдения", "data"],
+              ["ОЧИСТКА", "ошибки и пропуски", "data"],
+              ["АНАЛИЗ", "статистика и связи", "chart"],
+              ["МОДЕЛЬ", "обучение и оценка", "model"],
+              ["РЕШЕНИЕ", "практическое действие", "shield"],
+            ];
+            rows.forEach((r, i) => {
+              const y = 150 + i * 134;
+              iconBox(r[0], r[1], 78, y, 384, 104, r[2], i === 2);
+              if (i < 4) arrow(cx, y + 106, cx, y + 129, C.accent);
+            });
+            rounded(70, 840, 400, 55, 18, C.greenSoft, C.greenLine);
+            write(
+              "Цикл работы с данными",
+              cx,
+              868,
+              17,
+              C.accent,
+              750,
+              "center",
+            );
+          } else if (step === 1) {
+            write("ТАБЛИЦА НАБЛЮДЕНИЙ", 42, 132, 14, C.accent, 800);
+            const x0 = 42,
+              y0 = 175,
+              widths = [112, 100, 130, 106];
+            const headers = ["ID", "ВОЗРАСТ", "ГОРОД", "TARGET"];
+            let xx = x0;
+            headers.forEach((h, i) => {
+              rounded(
+                xx,
+                y0,
+                widths[i] - 5,
+                42,
+                7,
+                i === 3 ? C.greenSoft : C.panel,
+                i === 3 ? C.greenLine : C.line,
+              );
+              write(
+                h,
+                xx + (widths[i] - 5) / 2,
+                y0 + 21,
+                10,
+                i === 3 ? C.accent : C.whiteSoft,
+                800,
+                "center",
+              );
+              xx += widths[i];
+            });
+            const data = [
+              ["001", "24", "Москва", "0"],
+              ["002", "31", "Казань", "1"],
+              ["003", "28", "Пермь", "0"],
+              ["004", "42", "Тула", "1"],
+            ];
+            data.forEach((r, j) => {
+              let x = x0;
+              r.forEach((v, i) => {
+                rounded(
+                  x,
+                  y0 + 51 + j * 54,
+                  widths[i] - 5,
+                  43,
+                  6,
+                  "rgba(26,26,32,.9)",
+                  C.line,
+                );
+                write(
+                  v,
+                  x + (widths[i] - 5) / 2,
+                  y0 + 72 + j * 54,
+                  13,
+                  i === 3 ? C.accent : C.text,
+                  650,
+                  "center",
+                );
+                x += widths[i];
+              });
+            });
+            line(270, 470, 270, 515, C.accent, 2);
+            write("ПРИЗНАКИ → TARGET", 270, 540, 16, C.accent, 800, "center");
+            rounded(62, 590, 416, 214, 19, C.panel, C.line);
+            write(
+              "ОТ СОВОКУПНОСТИ К ВЫБОРКЕ",
+              270,
+              624,
+              13,
+              C.whiteSoft,
+              800,
+              "center",
+            );
+            ctx.beginPath();
+            ctx.arc(270, 710, 72, 0, Math.PI * 2);
+            ctx.strokeStyle = C.greenLine;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            for (let i = 0; i < 24; i++) {
+              const a = i * 2.4,
+                r = 18 + (i % 5) * 9;
+              dot(270 + Math.cos(a) * r, 710 + Math.sin(a) * r, 4, C.whiteDim);
+            }
+            ctx.beginPath();
+            ctx.arc(270, 710, 37, 0, Math.PI * 2);
+            ctx.fillStyle = C.greenSoft;
+            ctx.fill();
+            ctx.strokeStyle = C.accent;
+            ctx.stroke();
+            write("выборка", 270, 710, 12, C.accent, 800, "center");
+          } else if (step === 2) {
+            rounded(52, 150, 436, 350, 20, C.panel, C.line);
+            write("РАСПРЕДЕЛЕНИЕ", 78, 180, 14, C.whiteSoft, 800);
+            const base = 444;
+            const v = [24, 46, 80, 125, 178, 206, 185, 140, 89, 45];
+            v.forEach((h, i) =>
+              rounded(
+                88 + i * 36,
+                base - h,
+                24,
+                h,
+                5,
+                i === 4 || i === 5 ? C.accent : "rgba(46,172,101,.5)",
+                null,
+              ),
+            );
+            line(80, base, 454, base, C.whiteDim, 1.5);
+            line(270, 226, 270, 460, C.accent, 1.5, [6, 6]);
+            write("μ", 270, 476, 15, C.accent, 800, "center");
+            const metrics = [
+              ["СРЕДНЕЕ", "чувствительно к выбросам"],
+              ["МЕДИАНА", "устойчивее к крайним значениям"],
+              ["МОДА", "частое значение"],
+              ["ДИСПЕРСИЯ", "мера разброса"],
+              ["КОРРЕЛЯЦИЯ", "не доказывает причинность"],
+            ];
+            metrics.forEach((r, i) => {
+              const y = 560 + i * 65;
+              rounded(58, y - 23, 424, 53, 12, "rgba(26,26,32,.9)", C.line);
+              write(r[0], 78, y - 4, 13, C.accent, 800);
+              write(r[1], 78, y + 15, 11, C.muted, 550);
+            });
+            write(
+              "Гипотезы · p-value · доверительные интервалы",
+              270,
+              917,
+              12,
+              C.whiteSoft,
+              600,
+              "center",
+            );
+          } else if (step === 3) {
+            const items = [
+              ["СЫРЫЕ ДАННЫЕ", "дубли · пропуски"],
+              ["ОЧИСТКА", "ошибки · выбросы"],
+              ["ПРЕОБРАЗОВАНИЕ", "нормализация · кодирование"],
+              ["EDA", "аномалии · взаимосвязи"],
+            ];
+            items.forEach((r, i) => {
+              const y = 170 + i * 172;
+              rounded(
+                64,
+                y,
+                412,
+                130,
+                18,
+                i === 1 ? C.greenSoft : C.panel,
+                i === 1 ? C.greenLine : C.line,
+              );
+              write(r[0], 92, y + 37, 15, i === 1 ? C.accent : C.text, 800);
+              write(r[1], 92, y + 77, 13, C.muted, 600);
+              for (let j = 0; j < 4; j++)
+                dot(390 + j * 18, y + 65, 4, i === 1 ? C.accent : C.whiteDim);
+              if (i < 3) arrow(270, y + 132, 270, y + 161, C.accent);
+            });
+            rounded(72, 870, 396, 52, 16, C.greenSoft, C.greenLine);
+            write(
+              "Полнота · согласованность · качество",
+              270,
+              896,
+              13,
+              C.accent,
+              750,
+              "center",
+            );
+          } else if (step === 4) {
+            const labs = ["ГИСТОГРАММА", "РАССЕИВАНИЕ", "ВРЕМЕННОЙ РЯД"];
+            labs.forEach((lab, i) => {
+              const y = 160 + i * 245;
+              rounded(54, y, 432, 205, 18, C.panel, C.line);
+              write(lab, 80, y + 28, 13, C.whiteSoft, 800);
+              if (i === 0) {
+                const a = [22, 45, 74, 108, 145, 124, 90, 56, 29];
+                a.forEach((h, j) =>
+                  rounded(
+                    96 + j * 37,
+                    y + 168 - h,
+                    25,
+                    h,
+                    4,
+                    "rgba(46,172,101,.75)",
+                    null,
+                  ),
+                );
+              }
+              if (i === 1) {
+                line(88, y + 165, 446, y + 165, C.whiteDim, 1);
+                line(88, y + 165, 88, y + 70, C.whiteDim, 1);
+                for (let j = 0; j < 25; j++)
+                  dot(
+                    102 + ((j * 53) % 330),
+                    y + 80 + ((j * 31) % 78),
+                    4,
+                    C.accent,
+                  );
+              }
+              if (i === 2) {
+                line(88, y + 165, 446, y + 165, C.whiteDim, 1);
+                ctx.save();
+                ctx.strokeStyle = C.accent;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const a = [
+                  y + 139,
+                  y + 121,
+                  y + 143,
+                  y + 101,
+                  y + 110,
+                  y + 76,
+                  y + 88,
+                  y + 55,
+                ];
+                a.forEach((yy, j) => {
+                  const xx = 95 + j * 48;
+                  if (j === 0) ctx.moveTo(xx, yy);
+                  else ctx.lineTo(xx, yy);
+                });
+                ctx.stroke();
+                ctx.restore();
+              }
+            });
+          } else if (step === 5) {
+            const tools = [
+              ["ТАБЛИЦЫ", "Excel · Sheets · Calc", "data"],
+              ["SQL", "реляционные БД", "database"],
+              ["PYTHON", "NumPy · Pandas", "model"],
+              ["ВИЗУАЛИЗАЦИЯ", "Matplotlib · Seaborn", "chart"],
+            ];
+            tools.forEach((r, i) =>
+              iconBox(r[0], r[1], 72, 150 + i * 165, 396, 126, r[2], i === 2),
+            );
+            pill("SciPy", 70, 838, 86);
+            pill("Statsmodels", 164, 838, 130);
+            pill("Scikit-learn", 302, 838, 150);
+            write(
+              "Jupyter · CSV · JSON · XML · Parquet",
+              270,
+              912,
+              12,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 6) {
+            const items = [
+              ["РАЗДЕЛЕНИЕ", "train · validation · test"],
+              ["ОБУЧЕНИЕ", "алгоритм и гиперпараметры"],
+              ["ОЦЕНКА", "метрики · кросс-валидация"],
+              ["ПРОГНОЗ", "новые данные"],
+            ];
+            items.forEach((r, i) => {
+              const y = 148 + i * 139;
+              rounded(
+                70,
+                y,
+                400,
+                96,
+                17,
+                i === 1 ? C.greenSoft : C.panel,
+                i === 1 ? C.greenLine : C.line,
+              );
+              write(r[0], 94, y + 34, 14, i === 1 ? C.accent : C.text, 800);
+              write(r[1], 94, y + 65, 12, C.muted, 600);
+              if (i < 3) arrow(270, y + 98, 270, y + 130, C.accent);
+            });
+            rounded(56, 742, 428, 168, 18, C.panel, C.line);
+            write("ТИПЫ ЗАДАЧ", 80, 774, 13, C.accent, 800);
+            pill("Классификация", 74, 804, 144);
+            pill("Регрессия", 230, 804, 110);
+            pill("Кластеры", 350, 804, 110);
+            write(
+              "Тренд · сезонность · аномалии",
+              270,
+              878,
+              13,
+              C.muted,
+              600,
+              "center",
+            );
+          } else if (step === 7) {
+            const areas = [
+              ["ЭКОНОМИКА", "финансы"],
+              ["МЕДИЦИНА", "наука"],
+              ["ОБРАЗОВАНИЕ", "профориентация"],
+              ["ПРОМЫШЛЕННОСТЬ", "процессы"],
+              ["БИЗНЕС", "маркетинг"],
+            ];
+            areas.forEach((r, i) => {
+              const y = 144 + i * 116;
+              rounded(67, y, 406, 84, 15, C.panel, C.line);
+              write(r[0], 92, y + 29, 14, C.accent, 800);
+              write(r[1], 92, y + 57, 12, C.muted, 600);
+            });
+            arrow(270, 740, 270, 779, C.accent);
+            rounded(60, 794, 420, 126, 18, C.greenSoft, C.greenLine);
+            write(
+              "ОТВЕТСТВЕННЫЕ ВЫВОДЫ",
+              270,
+              823,
+              14,
+              C.accent,
+              800,
+              "center",
+            );
+            write(
+              "причинность · смещения · приватность",
+              270,
+              857,
+              12,
+              C.text,
+              600,
+              "center",
+            );
+            write(
+              "прозрачность · ограничения · этика",
+              270,
+              886,
+              12,
+              C.text,
+              600,
+              "center",
+            );
+          }
+        }
+
+        function updateSubtitles(step) {
+          const record = subtitles.find((item) => item.step === step);
+          if (!record || !dom.subtitle) return;
+          const fragment = document.createDocumentFragment();
+          record.segments.forEach((segment) => {
+            if (segment.emphasis) {
+              const span = document.createElement("span");
+              span.className = "subtitle__keyword";
+              span.textContent = segment.text;
+              fragment.appendChild(span);
+            } else {
+              fragment.appendChild(document.createTextNode(segment.text));
+            }
+          });
+          const content = document.createElement("span");
+          content.className = "subtitle__content";
+          content.appendChild(fragment);
+          dom.subtitle.replaceChildren(content);
+        }
+
+        function setMode(mode) {
+          if (mode !== "auto" && mode !== "step") return;
+          if (state.mode === mode) {
+            syncUI();
+            return;
+          }
+          if (mode === "step") {
+            state.mode = "step";
+            state.elapsed = PARAMS.stepDurationMs;
+            state.isPlaying = false;
+            state.manualTransition = false;
+          } else {
+            state.mode = "auto";
+            state.elapsed = 0;
+            state.isPlaying = true;
+            state.manualTransition = false;
+          }
+          syncUI();
+        }
+
+        function nextStep() {
+          if (
+            state.mode !== "step" ||
+            state.isPlaying ||
+            state.currentStep >= subtitles.length - 1
+          )
+            return;
+          state.currentStep += 1;
+          state.elapsed = 0;
+          state.isPlaying = true;
+          state.manualTransition = true;
+          updateSubtitles(state.currentStep + 1);
+          syncUI();
+        }
+
+        function togglePlayPause() {
+          if (
+            state.mode === "step" &&
+            !state.manualTransition &&
+            !state.isPlaying
+          )
+            return;
+          state.isPlaying = !state.isPlaying;
+          state.lastTimestamp = 0;
+          syncUI();
+        }
+
+        function setSpeed(value) {
+          const speed = Number(value);
+          if (!PARAMS.speeds.includes(speed)) return;
+          state.speed = speed;
+          syncUI();
+        }
+
+        function toggleVideoMode(enabled = !state.videoMode) {
+          const next = Boolean(enabled);
+          if (state.videoMode === next) return;
+          state.videoMode = next;
+          document.body.classList.toggle("v916", next);
+          dom.stage.classList.toggle("video-frame", next);
+          if (!next) {
+            dom.stage.style.width = "100%";
+            dom.stage.style.height = "100%";
+          }
+          if (next) {
+            dom.stage.appendChild(dom.subtitle);
+            dom.stage.appendChild(dom.controlBar);
+          } else {
+            dom.subtitleHome.appendChild(dom.subtitle);
+            dom.controlsHome.appendChild(dom.controlBar);
+          }
+          resize();
+          syncUI();
+        }
+
+        function reset() {
+          state.mode = "auto";
+          state.currentStep = 0;
+          state.elapsed = 0;
+          state.isPlaying = true;
+          state.manualTransition = false;
+          updateSubtitles(1);
+          syncUI();
+        }
+
+        function syncUI() {
+          const running = state.isPlaying;
+          dom.playPause.setAttribute(
+            "aria-label",
+            running ? "Пауза" : "Воспроизвести",
+          );
+          dom.playPause.title = running ? "Пауза" : "Воспроизвести";
+          dom.playIcon.innerHTML = running
+            ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z"/>'
+            : '<path d="M8 5v14l11-7z"/>';
+          dom.modeAuto.classList.toggle("active", state.mode === "auto");
+          dom.modeStep.classList.toggle("active", state.mode === "step");
+          dom.modeAuto.setAttribute(
+            "aria-pressed",
+            String(state.mode === "auto"),
+          );
+          dom.modeStep.setAttribute(
+            "aria-pressed",
+            String(state.mode === "step"),
+          );
+          dom.next.disabled =
+            state.mode !== "step" ||
+            state.isPlaying ||
+            state.manualTransition ||
+            state.currentStep >= subtitles.length - 1;
+          dom.speed.value = String(state.speed);
+          dom.videoMode.checked = state.videoMode;
+          dom.stepText.textContent = `Шаг ${state.currentStep + 1} / ${subtitles.length}`;
+          document.body.classList.toggle(
+            "controls-hidden",
+            !state.controlsVisible,
+          );
+        }
+
+        function handleInput(event) {
+          const target = event.target;
+          const editing =
+            target &&
+            (target.isContentEditable ||
+              ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+          if (editing) return;
+          const key = event.key;
+          if (dom.modalWrap.classList.contains("open") && key !== "Escape")
+            return;
+          const desktop = window.matchMedia("(min-width: 768px)").matches;
+          if (!desktop && key !== "Escape") return;
+
+          if (key === "Escape") {
+            if (dom.modalWrap.classList.contains("open")) {
+              settingsModal.close();
+              event.preventDefault();
+            }
+            return;
+          }
+          if (key === " " || key === "Spacebar") {
+            state.controlsVisible = !state.controlsVisible;
+            syncUI();
+            event.preventDefault();
+          } else if (
+            key === "ArrowRight" &&
+            state.mode === "step" &&
+            !dom.next.disabled
+          ) {
+            nextStep();
+            event.preventDefault();
+          } else if (key.toLowerCase() === "r") {
+            reset();
+            event.preventDefault();
+          } else if (key.toLowerCase() === "s") {
+            const next = state.mode === "auto" ? "step" : "auto";
+            setMode(next);
+            event.preventDefault();
+          } else if (key.toLowerCase() === "v") {
+            toggleVideoMode();
+            event.preventDefault();
+          }
+        }
+
+        window.addEventListener(
+          "pagehide",
+          () => {
+            if (state.rafId) cancelAnimationFrame(state.rafId);
+            if (resizeObserver) resizeObserver.disconnect();
+          },
+          { once: true },
+        );
+
+        window.SettingsModal = {
+          init() {
+            const overlay = document.getElementById("modalWrap");
+            const dialog = document.getElementById("modal");
+            const opener = document.querySelector(".js-gear");
+            const closer = document.querySelector("[data-modal-close]");
+            let previouslyFocused = null;
+            function open() {
+              previouslyFocused = document.activeElement;
+              overlay.classList.add("open");
+              overlay.setAttribute("aria-hidden", "false");
+              document.body.classList.add("modal-open");
+              dialog.focus();
+            }
+            function close() {
+              overlay.classList.remove("open");
+              overlay.setAttribute("aria-hidden", "true");
+              document.body.classList.remove("modal-open");
+              if (previouslyFocused && previouslyFocused.focus)
+                previouslyFocused.focus();
+            }
+            opener.addEventListener("click", () =>
+              overlay.classList.contains("open") ? close() : open(),
+            );
+            closer.addEventListener("click", close);
+            overlay.addEventListener("click", (e) => {
+              if (e.target === overlay) close();
+            });
+            overlay.querySelectorAll("[data-mode]").forEach((button) =>
+              button.addEventListener("click", () => {
+                overlay.dispatchEvent(
+                  new CustomEvent("settings:mode", {
+                    detail: { mode: button.dataset.mode },
+                  }),
+                );
+              }),
+            );
+            document
+              .getElementById("mNext")
+              .addEventListener("click", () =>
+                overlay.dispatchEvent(new CustomEvent("settings:next-step")),
+              );
+            document.getElementById("mSpeed").addEventListener("change", (e) =>
+              overlay.dispatchEvent(
+                new CustomEvent("settings:speed", {
+                  detail: { value: Number(e.target.value) },
+                }),
+              ),
+            );
+            document.getElementById("mNine").addEventListener("change", (e) =>
+              overlay.dispatchEvent(
+                new CustomEvent("settings:video-mode", {
+                  detail: { enabled: e.target.checked },
+                }),
+              ),
+            );
+            document
+              .getElementById("mReset")
+              .addEventListener("click", () =>
+                overlay.dispatchEvent(new CustomEvent("settings:reset")),
+              );
+            return { open, close };
+          },
+        };
+
+        try {
+          init();
+        } catch (error) {
+          console.error(error);
+          const message = document.createElement("p");
+          message.textContent =
+            "Не удалось запустить визуализацию. Обновите страницу или откройте файл в современном браузере.";
+          message.style.cssText =
+            "position:fixed;inset:20px;z-index:30;color:#FFFFFF;background:#1A1A20;padding:20px;border-radius:14px;font:600 16px system-ui";
+          document.body.appendChild(message);
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Структура робототехнических и IoT-систем: контроллеры, датчики, исполнительные механизмы, управление и связь."
+      content="Этапы анализа данных: сбор, подготовка, статистика, визуализация, моделирование и ответственная интерпретация результатов."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Робототехника и интернет вещей (IoT)</title>
+    <title>Анализ данных и Data Science</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Робототехника и интернет вещей (IoT)</h1>
+        <h1 id="appTitle">Анализ данных и Data Science</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,75 +637,74 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Система",
-            subtitle:
-              "Робот воспринимает среду, принимает решение и выполняет действие.",
-            detail: "Входные данные • решение • действие",
-            icon: "robot",
-            nodes: ["Сенсоры", "Контроллер", "Привод"],
-          },
-          {
-            heading: "Контроллер",
-            subtitle:
-              "Контроллер объединяет вычисления, память, питание и интерфейсы.",
-            detail: "Процессор • память • GPIO",
-            icon: "robot",
-            nodes: ["CPU", "Память", "GPIO"],
-          },
-          {
-            heading: "Датчики",
-            subtitle:
-              "Датчики преобразуют физические параметры в цифровые данные.",
-            detail: "Температура • расстояние • свет",
+            heading: "Сбор данных",
+            subtitle: "Наблюдения и признаки формируют исходный набор данных.",
+            detail: "Источники • наблюдения • признаки",
             icon: "chart",
-            nodes: ["Температура", "Расстояние", "Свет"],
+            nodes: ["Источники", "Признаки", "Dataset"],
           },
           {
-            heading: "Алгоритм",
+            heading: "Подготовка",
             subtitle:
-              "Алгоритм сравнивает измерения с заданными условиями и порогами.",
-            detail: "Условие • порог • решение",
-            icon: "code",
-            nodes: ["Условие", "Порог", "Решение"],
+              "Очистка устраняет пропуски, ошибки и повторяющиеся записи.",
+            detail: "Валидация • фильтрация • форматы",
+            icon: "chart",
+            nodes: ["Пропуски", "Ошибки", "Дубликаты"],
           },
           {
-            heading: "Привод",
+            heading: "Статистика",
             subtitle:
-              "Исполнительные механизмы выполняют команды системы управления.",
-            detail: "Мотор • серво • реле",
-            icon: "robot",
-            nodes: ["Мотор", "Серво", "Реле"],
+              "Статистика описывает выборку с помощью мер центра и разброса.",
+            detail: "Среднее • медиана • дисперсия",
+            icon: "chart",
+            nodes: ["Среднее", "Медиана", "Разброс"],
           },
           {
-            heading: "Обратная связь",
+            heading: "Связи",
             subtitle:
-              "Обратная связь помогает корректировать работу автоматизированной системы.",
-            detail: "Измерение • команда • коррекция",
+              "Корреляция показывает связь, но не доказывает причинность.",
+            detail: "Зависимости • гипотезы • ограничения",
             icon: "network",
-            nodes: ["Измерение", "Команда", "Коррекция"],
+            nodes: ["Корреляция", "Зависимость", "Причинность"],
           },
           {
-            heading: "IoT",
+            heading: "Визуализация",
             subtitle:
-              "IoT соединяет устройства, шлюзы и сервисы для обмена телеметрией.",
-            detail: "Wi-Fi • MQTT • облако",
-            icon: "network",
-            nodes: ["Wi-Fi", "MQTT", "Облако"],
+              "Графики раскрывают распределения, тенденции и необычные значения.",
+            detail: "Гистограммы • диаграммы • ряды",
+            icon: "chart",
+            nodes: ["Гистограмма", "Тренд", "Выбросы"],
           },
           {
-            heading: "Надёжность",
+            heading: "Модели",
             subtitle:
-              "Мониторинг, тестирование и защита повышают надёжность системы.",
-            detail: "Диагностика • резерв • безопасность",
+              "Модели машинного обучения ищут закономерности и строят прогнозы.",
+            detail: "Обучение • признаки • прогноз",
+            icon: "brain",
+            nodes: ["Обучение", "Модель", "Прогноз"],
+          },
+          {
+            heading: "Оценка",
+            subtitle:
+              "Тестовая выборка и метрики помогают оценить качество модели.",
+            detail: "Переобучение • проверка • метрики",
             icon: "shield",
-            nodes: ["Диагностика", "Резерв", "Защита"],
+            nodes: ["Метрики", "Тест", "Проверка"],
+          },
+          {
+            heading: "Интерпретация",
+            subtitle:
+              "Проверяй смещения, ограничения и конфиденциальность аналитических данных.",
+            detail: "Bias • этика • приватность",
+            icon: "shield",
+            nodes: ["Смещения", "Этика", "Приватность"],
           },
         ],
         palette: {

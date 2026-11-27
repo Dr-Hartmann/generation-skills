@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Реляционные и другие модели данных, проектирование схем, SQL, транзакции, надёжность и защита информации."
+      content="Правила безопасного поведения школьников при предупреждении об угрозе, обнаружении беспилотника или его обломков."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Базы данных и хранение информации</title>
+    <title>Беспилотная опасность</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Базы данных и хранение информации</h1>
+        <h1 id="appTitle">Беспилотная опасность</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,72 +637,72 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Хранение",
+            heading: "Распознавание",
             subtitle:
-              "СУБД хранит, организует и предоставляет доступ к информации.",
-            detail: "Запись • поиск • обновление",
-            icon: "database",
-            nodes: ["СУБД", "Таблицы", "Запросы"],
+              "Необычный объект или официальное сообщение — повод соблюдать осторожность.",
+            detail: "Наблюдение • оповещение • взрослые",
+            icon: "drone",
+            nodes: ["Объект", "Оповещение", "Взрослые"],
           },
           {
-            heading: "Модель",
-            subtitle: "Сущности и атрибуты описывают объекты и их свойства.",
-            detail: "Сущности • поля • связи",
-            icon: "network",
-            nodes: ["Сущности", "Поля", "Связи"],
-          },
-          {
-            heading: "Таблицы",
-            subtitle: "Связанные таблицы образуют реляционную модель данных.",
-            detail: "Строки • столбцы • схема",
-            icon: "database",
-            nodes: ["Строки", "Столбцы", "Схема"],
-          },
-          {
-            heading: "Ключи",
+            heading: "Дистанция",
             subtitle:
-              "Первичные и внешние ключи поддерживают целостность связей.",
-            detail: "Primary Key • Foreign Key",
-            icon: "network",
-            nodes: ["PK", "FK", "Ограничения"],
-          },
-          {
-            heading: "SQL",
-            subtitle:
-              "SQL создаёт структуру, изменяет записи и извлекает данные.",
-            detail: "SELECT • JOIN • группировка",
-            icon: "code",
-            nodes: ["SELECT", "JOIN", "GROUP BY"],
-          },
-          {
-            heading: "Транзакции",
-            subtitle:
-              "Транзакции ACID обеспечивают надёжное выполнение изменений.",
-            detail: "Атомарность • изоляция • фиксация",
-            icon: "database",
-            nodes: ["ACID", "COMMIT", "ROLLBACK"],
-          },
-          {
-            heading: "Надёжность",
-            subtitle:
-              "Индексы ускоряют поиск, резервные копии помогают восстановлению.",
-            detail: "Индексы • backup • restore",
-            icon: "database",
-            nodes: ["Индексы", "Backup", "Restore"],
-          },
-          {
-            heading: "Защита",
-            subtitle: "Роли, шифрование и аудит защищают данные от доступа.",
-            detail: "Права • шифрование • журнал",
+              "Не приближайся к аппарату, обломкам и подозрительным предметам.",
+            detail: "Не подходить • не трогать • не перемещать",
             icon: "shield",
-            nodes: ["Роли", "Шифрование", "Аудит"],
+            nodes: ["Дистанция", "Обломки", "Предметы"],
+          },
+          {
+            heading: "Остановка",
+            subtitle: "Прекрати занятия на открытом месте и слушай взрослых.",
+            detail: "Спокойствие • остановка • указания",
+            icon: "shield",
+            nodes: ["Остановка", "Спокойствие", "Указания"],
+          },
+          {
+            heading: "Укрытие",
+            subtitle:
+              "Перейди в предусмотренное безопасное помещение, если путь безопасен.",
+            detail: "Помещение • план школы • помощь",
+            icon: "shield",
+            nodes: ["Помещение", "Безопасность", "Маршрут"],
+          },
+          {
+            heading: "В школе",
+            subtitle: "В школе двигайся организованно вместе с педагогом.",
+            detail: "Педагог • группа • порядок",
+            icon: "network",
+            nodes: ["Педагог", "Группа", "Порядок"],
+          },
+          {
+            heading: "Ожидание",
+            subtitle: "В укрытии держись подальше от окон и жди указаний.",
+            detail: "Внутренняя зона • ожидание • инструкции",
+            icon: "shield",
+            nodes: ["Окна", "Укрытие", "Ожидание"],
+          },
+          {
+            heading: "Сообщение",
+            subtitle:
+              "Сообщи взрослому или службам только из безопасного места.",
+            detail: "112 • место • время",
+            icon: "phone",
+            nodes: ["112", "Место", "Время"],
+          },
+          {
+            heading: "Отмена угрозы",
+            subtitle:
+              "Покидай укрытие после официального разрешения ответственных служб.",
+            detail: "Официальный сигнал • разрешение • возвращение",
+            icon: "check",
+            nodes: ["Отбой", "Разрешение", "Возврат"],
           },
         ],
         palette: {

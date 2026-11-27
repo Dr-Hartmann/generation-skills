@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Проектирование, программирование, тестирование и выпуск приложений для Android, iOS и других мобильных устройств."
+      content="Правила безопасного поведения вблизи железнодорожных путей и порядок их пересечения в разрешённых местах."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Мобильная разработка</title>
+    <title>Пересечение железнодорожных путей</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Мобильная разработка</h1>
+        <h1 id="appTitle">Пересечение железнодорожных путей</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,74 +637,70 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Ограничения",
+            heading: "Опасная зона",
             subtitle:
-              "Мобильные устройства ограничены ресурсами, экраном и энергией.",
-            detail: "Процессор • дисплей • батарея",
-            icon: "phone",
-            nodes: ["Ресурсы", "Экран", "Батарея"],
+              "Железнодорожные пути являются зоной повышенной опасности.",
+            detail: "Поезда • инфраструктура • правила",
+            icon: "train",
+            nodes: ["Пути", "Поезд", "Сигналы"],
           },
           {
-            heading: "Платформы",
-            subtitle: "Android и iOS задают платформенные API и требования.",
-            detail: "Платформа • API • экосистема",
-            icon: "phone",
-            nodes: ["Android", "iOS", "API"],
+            heading: "Переход",
+            subtitle: "Пересекай пути только по оборудованным переходам.",
+            detail: "Мост • тоннель • настил",
+            icon: "train",
+            nodes: ["Мост", "Тоннель", "Настил"],
           },
           {
-            heading: "Подход",
-            subtitle:
-              "Нативный, кроссплатформенный и веб-подходы решают разные задачи.",
-            detail: "Нативный • общий код • PWA",
-            icon: "phone",
-            nodes: ["Нативный", "Кроссплатформа", "Web"],
+            heading: "Сигналы",
+            subtitle: "Соблюдай сигналы светофора и положение шлагбаума.",
+            detail: "Светофор • знак • запрет",
+            icon: "train",
+            nodes: ["Светофор", "Шлагбаум", "Знак"],
           },
           {
-            heading: "Инструменты",
+            heading: "Внимание",
             subtitle:
-              "IDE, SDK и фреймворки формируют инструментарий разработчика.",
-            detail: "Сборка • отладка • эмулятор",
-            icon: "code",
-            nodes: ["IDE", "SDK", "Framework"],
-          },
-          {
-            heading: "Архитектура",
-            subtitle:
-              "Архитектура связывает интерфейс, логику, API и хранилище.",
-            detail: "UI • сервисы • данные",
-            icon: "network",
-            nodes: ["UI", "API", "Данные"],
-          },
-          {
-            heading: "Разрешения",
-            subtitle:
-              "Разрешения управляют безопасным доступом к датчикам устройства.",
-            detail: "GPS • камера • микрофон",
-            icon: "phone",
-            nodes: ["GPS", "Камера", "Микрофон"],
-          },
-          {
-            heading: "Тестирование",
-            subtitle:
-              "Тестирование проверяет совместимость, удобство и энергопотребление.",
-            detail: "Unit • UI • устройства",
+              "Перед переходом остановись и убери отвлекающие устройства.",
+            detail: "Остановка • наушники • телефон",
             icon: "shield",
-            nodes: ["Unit", "UI", "Устройства"],
+            nodes: ["Стоп", "Внимание", "Телефон"],
           },
           {
-            heading: "Релиз",
+            heading: "Проверка",
+            subtitle: "Посмотри в обе стороны и прислушайся к сигналам.",
+            detail: "Зрение • слух • осторожность",
+            icon: "eye",
+            nodes: ["Взгляд", "Слух", "Проверка"],
+          },
+          {
+            heading: "Поезд",
+            subtitle: "Не выходи на пути перед приближающимся поездом.",
+            detail: "Сигнал • дистанция • ожидание",
+            icon: "train",
+            nodes: ["Поезд", "Дистанция", "Ожидание"],
+          },
+          {
+            heading: "Запреты",
+            subtitle: "Не заходи под вагоны и не стой рядом с путями.",
+            detail: "Вагоны • путь • запрет",
+            icon: "shield",
+            nodes: ["Вагоны", "Пути", "Запрет"],
+          },
+          {
+            heading: "Помощь",
             subtitle:
-              "Релиз включает публикацию, мониторинг и регулярные обновления.",
-            detail: "Store • версия • поддержка",
+              "При опасности отойди в безопасное место и обратись к взрослым.",
+            detail: "Взрослые • службы • помощь",
             icon: "phone",
-            nodes: ["Store", "Версия", "Update"],
+            nodes: ["Взрослый", "Службы", "Помощь"],
           },
         ],
         palette: {

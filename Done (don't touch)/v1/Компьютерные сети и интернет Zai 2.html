@@ -1,0 +1,2054 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Компьютерные сети и интернет</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --accent-deep: #1e7a47;
+        --text: #ffffff;
+        --muted: #a0a0a0;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        height: 100vh;
+        height: 100dvh;
+      }
+      body {
+        margin: 0;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 12px;
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.38;
+      }
+      .app {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: calc(16px + env(safe-area-inset-top))
+          calc(80px + env(safe-area-inset-right))
+          calc(25vh + env(safe-area-inset-bottom))
+          calc(16px + env(safe-area-inset-left));
+      }
+      .stage {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+      }
+      .topic h1 {
+        margin: 0;
+        font-size: clamp(19px, 1.4vw + 13px, 27px);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: 0.01em;
+      }
+      .viz {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        margin-top: 12px;
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .slot:empty {
+        display: none !important;
+      }
+      .sidebar {
+        display: none;
+      }
+      .subSlotMobile {
+        margin-top: 14px;
+      }
+      .panelSlotMobile {
+        margin-top: 24px;
+      }
+      .panelSlotStage {
+        display: none;
+      }
+      .subtitle {
+        background: rgba(0, 0, 0, 0.5);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        border-radius: 14px;
+        padding: 12px 16px;
+        font-size: clamp(16px, 4.5vw, 22px);
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--text);
+        text-align: center;
+        min-height: 5.1em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .subtitle__text {
+        display: block;
+        min-width: 0;
+      }
+      .subtitle__keyword {
+        color: var(--accent);
+      }
+      .subtitle--enter {
+        animation: subIn 0.32s ease;
+      }
+      @keyframes subIn {
+        from {
+          opacity: 0;
+          transform: translateY(9px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .panel {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        transition: opacity 0.25s ease;
+      }
+      .ctlBtn {
+        width: 56px;
+        height: 56px;
+        min-width: 48px;
+        min-height: 48px;
+        border-radius: 16px;
+        background: rgba(26, 26, 32, 0.85);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(160, 160, 160, 0.18);
+        display: grid;
+        place-items: center;
+        transition:
+          border-color 0.2s ease,
+          transform 0.15s ease,
+          background 0.2s ease;
+      }
+      .ctlBtn:hover {
+        border-color: rgba(46, 172, 101, 0.65);
+      }
+      .ctlBtn:active {
+        transform: scale(0.94);
+      }
+      .ctlBtn svg {
+        width: 26px;
+        height: 26px;
+        fill: var(--text);
+      }
+      .ctlBtn.small {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+      }
+      .ctlBtn.small svg {
+        width: 22px;
+        height: 22px;
+      }
+      .icoPause {
+        display: none;
+      }
+      .panel.is-playing .icoPlay {
+        display: none;
+      }
+      .panel.is-playing .icoPause {
+        display: block;
+      }
+      body.ui-hidden .panel {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .frameWrap {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .frameWrap[hidden] {
+        display: none;
+      }
+      .frameGlow {
+        position: absolute;
+        width: 52%;
+        height: 52%;
+        border-radius: 50%;
+        filter: blur(90px);
+        pointer-events: none;
+      }
+      .frameGlowA {
+        left: 6%;
+        top: 8%;
+        background: var(--accent);
+        opacity: 0.14;
+      }
+      .frameGlowB {
+        right: 4%;
+        bottom: 6%;
+        background: var(--accent-deep);
+        opacity: 0.18;
+      }
+      .frame {
+        position: relative;
+        background: rgba(26, 26, 32, 0.55);
+        border: 1px solid rgba(46, 172, 101, 0.4);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 0 44px rgba(30, 122, 71, 0.35);
+      }
+      .frameCanvas {
+        position: absolute;
+        inset: 0;
+      }
+      .frameSub {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 88px;
+      }
+      .frameSub .subtitle {
+        min-height: 4.2em;
+      }
+      .frameCtrl {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 10px;
+      }
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(15, 15, 19, 0.66);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.24s ease;
+      }
+      .backdrop--open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .settings {
+        position: fixed;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        left: calc(16px + env(safe-area-inset-left));
+        right: calc(80px + env(safe-area-inset-right));
+        top: 50%;
+        transform: translateY(-50%) scale(0.95);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease,
+          visibility 0s linear 0.22s;
+        background: rgba(26, 26, 32, 0.97);
+        border: 1px solid rgba(160, 160, 160, 0.16);
+        border-radius: 20px;
+        max-height: min(90dvh, 660px);
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      .settings--open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(-50%) scale(1);
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease;
+      }
+      .settingsHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px 12px;
+        border-bottom: 1px solid rgba(160, 160, 160, 0.14);
+      }
+      .settingsHead h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .settingsBody {
+        padding: 12px 18px 18px;
+        overflow: auto;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+      }
+      .rowLabel {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .stepValue {
+        font-weight: 800;
+      }
+      .seg {
+        display: flex;
+        background: rgba(15, 15, 19, 0.7);
+        border: 1px solid rgba(160, 160, 160, 0.16);
+        border-radius: 12px;
+        padding: 3px;
+        gap: 3px;
+      }
+      .seg button {
+        min-width: 48px;
+        min-height: 48px;
+        padding: 0 14px;
+        border-radius: 9px;
+        font-weight: 800;
+        color: var(--muted);
+        transition:
+          background 0.18s ease,
+          color 0.18s ease;
+      }
+      .seg button.is-active {
+        background: rgba(46, 172, 101, 0.22);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(46, 172, 101, 0.6);
+      }
+      .accentBtn,
+      .ghostBtn {
+        min-height: 48px;
+        width: 100%;
+        border-radius: 12px;
+        font-weight: 800;
+        transition: background 0.18s ease;
+      }
+      .accentBtn {
+        background: rgba(46, 172, 101, 0.2);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(46, 172, 101, 0.65);
+      }
+      .accentBtn:not(:disabled):hover {
+        background: rgba(46, 172, 101, 0.3);
+      }
+      .ghostBtn {
+        background: rgba(160, 160, 160, 0.1);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(160, 160, 160, 0.2);
+      }
+      .ghostBtn:hover {
+        background: rgba(160, 160, 160, 0.16);
+      }
+      .switch {
+        display: grid;
+        place-items: center;
+        width: 64px;
+        height: 48px;
+        border-radius: 12px;
+      }
+      .switchTrack {
+        width: 52px;
+        height: 30px;
+        border-radius: 15px;
+        background: rgba(160, 160, 160, 0.25);
+        position: relative;
+        transition: background 0.2s ease;
+      }
+      .switchThumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--text);
+        transition: left 0.2s ease;
+      }
+      .switch[aria-checked="true"] .switchTrack {
+        background: rgba(46, 172, 101, 0.5);
+      }
+      .switch[aria-checked="true"] .switchThumb {
+        left: 25px;
+      }
+      .keys {
+        margin-top: 10px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(160, 160, 160, 0.14);
+      }
+      .keys h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--muted);
+      }
+      .keyRow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 5px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .keyRow kbd {
+        min-width: 56px;
+        text-align: center;
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: rgba(15, 15, 19, 0.8);
+        box-shadow: inset 0 0 0 1px rgba(160, 160, 160, 0.25);
+        font-family: inherit;
+        font-weight: 800;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .fatal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        padding: 24px;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .fatal[hidden] {
+        display: none;
+      }
+      @media (min-width: 768px) {
+        .app {
+          flex-direction: row;
+          gap: 20px;
+          padding: calc(20px + env(safe-area-inset-top))
+            calc(24px + env(safe-area-inset-right))
+            calc(20px + env(safe-area-inset-bottom))
+            calc(24px + env(safe-area-inset-left));
+        }
+        .viz {
+          margin-top: 16px;
+        }
+        .sidebar {
+          display: flex;
+          flex-direction: column;
+          flex: 0 0 auto;
+          width: clamp(320px, 30vw, 380px);
+          background: rgba(26, 26, 32, 0.5);
+          border: 1px solid rgba(160, 160, 160, 0.12);
+          border-radius: 18px;
+          padding: clamp(18px, 2vw, 26px);
+        }
+        .sidebarSub {
+          flex: 1;
+          display: flex;
+          align-items: center;
+        }
+        .sidebarSub .subtitle {
+          width: 100%;
+        }
+        .subSlotMobile,
+        .panelSlotMobile {
+          display: none;
+        }
+        .panelSlotStage {
+          display: flex;
+          justify-content: center;
+          padding-top: 16px;
+        }
+        .settings {
+          left: 50%;
+          right: auto;
+          width: min(430px, calc(100vw - 48px));
+          transform: translate(-50%, -50%) scale(0.95);
+        }
+        .settings--open {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+      body.videomode .sidebar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <div class="stage">
+        <header class="topic"><h1>Компьютерные сети и интернет</h1></header>
+        <div class="viz" id="vizArea">
+          <canvas
+            id="scene"
+            role="img"
+            aria-label="Анимация: путь данных от устройства пользователя к веб-серверу и обратно"
+          ></canvas>
+          <div class="frameWrap" id="frameWrap" hidden>
+            <div class="frameGlow frameGlowA" aria-hidden="true"></div>
+            <div class="frameGlow frameGlowB" aria-hidden="true"></div>
+            <div class="frame" id="frame">
+              <div class="frameCanvas" id="frameCanvasSlot"></div>
+              <div class="frameSub" id="frameSubtitleSlot"></div>
+              <div class="frameCtrl" id="frameControlsSlot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="slot panelSlotStage" id="panelSlotStage"></div>
+      </div>
+      <aside class="sidebar" id="sidebar" aria-label="Пояснение">
+        <div class="slot sidebarSub" id="subtitleSlotSidebar"></div>
+      </aside>
+      <div class="slot subSlotMobile" id="subtitleSlotMobile"></div>
+      <div class="slot panelSlotMobile" id="panelSlotMobile"></div>
+    </div>
+    <div class="subtitle" id="subtitle" aria-live="polite"></div>
+    <div class="panel is-playing" id="panel">
+      <button class="ctlBtn" id="btnPlay" aria-label="Пауза">
+        <svg class="icoPlay" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg class="icoPause" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+        </svg>
+      </button>
+      <button
+        class="ctlBtn"
+        id="btnSettings"
+        aria-label="Настройки"
+        aria-expanded="false"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="backdrop" id="backdrop"></div>
+    <section
+      class="settings"
+      id="settings"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsTitle"
+    >
+      <header class="settingsHead">
+        <h2 id="settingsTitle">Настройки</h2>
+        <button
+          class="ctlBtn small"
+          id="btnClose"
+          aria-label="Закрыть настройки"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </button>
+      </header>
+      <div class="settingsBody">
+        <div class="row">
+          <span class="rowLabel">Прогресс</span
+          ><span class="stepValue" id="stepIndicator">Шаг 1 / 9</span>
+        </div>
+        <div class="row">
+          <span class="rowLabel">Режим</span>
+          <div class="seg" id="modeSeg">
+            <button type="button" data-mode="AUTO" aria-pressed="true">
+              AUTO
+            </button>
+            <button type="button" data-mode="STEP" aria-pressed="false">
+              STEP
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <button type="button" class="accentBtn" id="btnNext">
+            Следующий шаг ▶
+          </button>
+        </div>
+        <div class="row">
+          <span class="rowLabel">Скорость</span>
+          <div class="seg" id="speedSeg">
+            <button type="button" data-speed="0.5" aria-pressed="false">
+              0.5×
+            </button>
+            <button type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" data-speed="2" aria-pressed="false">
+              2×
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="rowLabel">Вертикальная рамка</span>
+          <button
+            type="button"
+            class="switch"
+            id="btnFrame"
+            role="switch"
+            aria-checked="false"
+            aria-label="Вертикальная рамка"
+          >
+            <span class="switchTrack"><span class="switchThumb"></span></span>
+          </button>
+        </div>
+        <div class="row">
+          <button type="button" class="ghostBtn" id="btnReset">Reset</button>
+        </div>
+        <div class="keys">
+          <h3>Горячие клавиши</h3>
+          <div class="keyRow">
+            <kbd>Space</kbd><span>скрыть или показать контролы</span>
+          </div>
+          <div class="keyRow">
+            <kbd>→</kbd><span>следующий шаг, только в режиме STEP</span>
+          </div>
+          <div class="keyRow">
+            <kbd>R</kbd><span>сброс воспроизведения</span>
+          </div>
+          <div class="keyRow">
+            <kbd>S</kbd><span>переключить AUTO и STEP</span>
+          </div>
+          <div class="keyRow"><kbd>V</kbd><span>вертикальная рамка</span></div>
+          <div class="keyRow"><kbd>Esc</kbd><span>закрыть настройки</span></div>
+        </div>
+      </div>
+    </section>
+    <div class="fatal" id="fatal" hidden></div>
+    <script>
+      "use strict";
+      const COLORS = {
+        bg: "#0F0F13",
+        panel: "#1A1A20",
+        accent: "#2EAC65",
+        deep: "#1E7A47",
+        text: "#FFFFFF",
+        muted: "#A0A0A0",
+      };
+      const SUBTITLES = [
+        {
+          step: 1,
+          segments: [
+            { text: "Ваше устройство подключается к " },
+            { text: "домашней сети", emphasis: true },
+            { text: " через Wi-Fi роутер." },
+          ],
+        },
+        {
+          step: 2,
+          segments: [
+            { text: "Роутер передаёт запрос " },
+            { text: "провайдеру", emphasis: true },
+            { text: ", а тот — в глобальную сеть." },
+          ],
+        },
+        {
+          step: 3,
+          segments: [
+            { text: "Браузер спрашивает у " },
+            { text: "DNS-сервера", emphasis: true },
+            { text: " " },
+            { text: "IP-адрес", emphasis: true },
+            { text: " сайта example.ru." },
+          ],
+        },
+        {
+          step: 4,
+          segments: [
+            { text: "DNS отвечает: веб-сервер находится по адресу " },
+            { text: "203.0.113.10", emphasis: true },
+            { text: "." },
+          ],
+        },
+        {
+          step: 5,
+          segments: [
+            { text: "Устройство и сервер устанавливают " },
+            { text: "TCP-соединение", emphasis: true },
+            { text: ": три проверочных пакета." },
+          ],
+        },
+        {
+          step: 6,
+          segments: [
+            {
+              text: "Протокол TLS шифрует канал, превращая HTTP в безопасный ",
+            },
+            { text: "HTTPS", emphasis: true },
+            { text: "." },
+          ],
+        },
+        {
+          step: 7,
+          segments: [
+            { text: "HTTP-запрос летит " },
+            { text: "пакетами", emphasis: true },
+            { text: " через маршрутизаторы по выбранному маршруту." },
+          ],
+        },
+        {
+          step: 8,
+          segments: [
+            { text: "Сервер обрабатывает запрос и отправляет " },
+            { text: "ответ", emphasis: true },
+            { text: " обратно устройству." },
+          ],
+        },
+        {
+          step: 9,
+          segments: [
+            { text: "Браузер собирает страницу из полученных данных — " },
+            { text: "сайт открыт", emphasis: true },
+            { text: "." },
+          ],
+        },
+      ];
+      const NODE_META = {
+        device: { label: "Ваше устройство", sub: "браузер", icon: "laptop" },
+        router: { label: "Роутер", sub: "домашняя сеть", icon: "router" },
+        isp: { label: "Провайдер", sub: "оператор связи", icon: "building" },
+        dns: { label: "DNS-сервер", sub: "доменные имена", icon: "db" },
+        r1: { label: "Маршрутизатор", sub: "выбор маршрута", icon: "swap" },
+        r2: { label: "Маршрутизатор", sub: "выбор маршрута", icon: "swap" },
+        server: { label: "Веб-сервер", sub: "сайт", icon: "server" },
+      };
+      const EDGES = [
+        ["device", "router"],
+        ["router", "isp"],
+        ["isp", "dns"],
+        ["isp", "r1"],
+        ["isp", "r2"],
+        ["r1", "r2"],
+        ["r1", "server"],
+        ["r2", "server"],
+      ];
+      const EDGE_IDS = EDGES.map((e) => e[0] + "-" + e[1]);
+      const R_FULL = ["device", "router", "isp", "r1", "server"];
+      const R_FULL2 = ["device", "router", "isp", "r2", "server"];
+      const R_REV1 = ["server", "r1", "isp", "router", "device"];
+      const R_REV2 = ["server", "r2", "isp", "router", "device"];
+      const R_DNS_Q = ["device", "router", "isp", "dns"];
+      const R_DNS_A = ["dns", "isp", "router", "device"];
+      const PRESETS = {
+        wide: {
+          name: "wide",
+          w: 1600,
+          h: 900,
+          nodes: {
+            device: { x: 150, y: 640, r: 64, lp: "below" },
+            router: { x: 470, y: 640, r: 58, lp: "below" },
+            isp: { x: 800, y: 640, r: 64, lp: "below" },
+            dns: { x: 800, y: 170, r: 58, lp: "above" },
+            r1: { x: 1090, y: 400, r: 48, lp: "above" },
+            r2: { x: 1230, y: 640, r: 48, lp: "below" },
+            server: { x: 1430, y: 370, r: 64, lp: "above" },
+          },
+          cloud: {
+            x: 1150,
+            y: 455,
+            rx: 250,
+            ry: 150,
+            labelX: 1120,
+            labelY: 545,
+          },
+          mockup: { x: 460, y: 330, w: 560, h: 400 },
+        },
+        compact: {
+          name: "compact",
+          w: 900,
+          h: 1000,
+          nodes: {
+            device: { x: 450, y: 875, r: 60, lp: "below" },
+            router: { x: 450, y: 715, r: 54, lp: "below" },
+            isp: { x: 450, y: 535, r: 60, lp: "below" },
+            dns: { x: 790, y: 535, r: 54, lp: "below" },
+            r1: { x: 245, y: 295, r: 44, lp: "below" },
+            r2: { x: 655, y: 295, r: 44, lp: "below" },
+            server: { x: 450, y: 140, r: 60, lp: "above" },
+          },
+          cloud: { x: 450, y: 295, rx: 250, ry: 110, labelX: 450, labelY: 240 },
+          mockup: { x: 450, y: 305, w: 560, h: 390 },
+        },
+        tall: {
+          name: "tall",
+          w: 760,
+          h: 1200,
+          nodes: {
+            device: { x: 380, y: 1075, r: 56, lp: "below" },
+            router: { x: 380, y: 865, r: 50, lp: "below" },
+            isp: { x: 380, y: 660, r: 56, lp: "below" },
+            dns: { x: 630, y: 660, r: 50, lp: "below" },
+            r1: { x: 215, y: 390, r: 42, lp: "below" },
+            r2: { x: 545, y: 390, r: 42, lp: "below" },
+            server: { x: 380, y: 150, r: 56, lp: "above" },
+          },
+          cloud: { x: 380, y: 390, rx: 215, ry: 105, labelX: 380, labelY: 300 },
+          mockup: { x: 380, y: 300, w: 500, h: 340 },
+        },
+      };
+      const CHIP_ANCHOR = {
+        wide: {
+          q: "right",
+          ip: "above",
+          get: "above",
+          lock1: "above",
+          ok: "left",
+          lock2: "left",
+        },
+        compact: {
+          q: "left",
+          ip: "right",
+          get: "right",
+          lock1: "right",
+          ok: "right",
+          lock2: "right",
+        },
+        tall: {
+          q: "left",
+          ip: "right",
+          get: "right",
+          lock1: "right",
+          ok: "right",
+          lock2: "right",
+        },
+      };
+      const CHIPS = {
+        q: { node: "dns", text: "?", bounce: true },
+        ip: { node: "device", text: "IP 203.0.113.10" },
+        get: { node: "device", text: "GET /" },
+        ok: { node: "server", text: "200 OK" },
+        lock1: { node: "device", icon: "lock" },
+        lock2: { node: "server", icon: "lock" },
+      };
+      const STEPS = [
+        {
+          dwell: 3.4,
+          n: { device: 1, router: 1 },
+          e: { "device-router": 1 },
+          wifi: 1,
+          chips: [],
+          spawn: [{ route: ["device", "router"], period: 1.7 }],
+        },
+        {
+          dwell: 3.2,
+          n: { device: 0.35, router: 1, isp: 1 },
+          e: { "device-router": 0.4, "router-isp": 1 },
+          wifi: 0.2,
+          chips: [],
+          spawn: [{ route: ["router", "isp"], period: 1.7 }],
+        },
+        {
+          dwell: 3.8,
+          n: { device: 0.4, router: 0.4, isp: 0.75, dns: 1 },
+          e: { "device-router": 0.35, "router-isp": 0.5, "isp-dns": 1 },
+          wifi: 0.15,
+          chips: ["q"],
+          spawn: [{ route: R_DNS_Q, period: 2.5, style: "query" }],
+        },
+        {
+          dwell: 3.6,
+          n: { device: 0.9, router: 0.5, isp: 0.75, dns: 1 },
+          e: { "device-router": 0.6, "router-isp": 0.5, "isp-dns": 1 },
+          wifi: 0.15,
+          chips: ["ip"],
+          spawn: [{ route: R_DNS_A, period: 2.5, style: "reply" }],
+        },
+        {
+          dwell: 5.0,
+          n: { device: 1, isp: 0.55, r1: 0.65, server: 1 },
+          e: {
+            "device-router": 0.5,
+            "router-isp": 0.5,
+            "isp-r1": 0.75,
+            "r1-server": 0.95,
+          },
+          wifi: 0.15,
+          chips: [],
+          spawn: [{ kind: "handshake", period: 4.2, dur: 1.3 }],
+        },
+        {
+          dwell: 3.8,
+          n: { device: 1, isp: 0.55, r1: 0.6, server: 1 },
+          e: {
+            "device-router": 0.5,
+            "router-isp": 0.5,
+            "isp-r1": 0.7,
+            "r1-server": 0.9,
+          },
+          wifi: 0.15,
+          chips: ["lock1", "lock2"],
+          spawn: [
+            { route: R_FULL, period: 2.6, style: "secure", lane: -1 },
+            {
+              route: R_REV1,
+              period: 2.6,
+              style: "secure",
+              phase: 1.3,
+              lane: 1,
+            },
+          ],
+        },
+        {
+          dwell: 4.2,
+          n: { device: 1, isp: 0.6, r1: 0.85, r2: 0.55, server: 0.85 },
+          e: {
+            "device-router": 0.6,
+            "router-isp": 0.6,
+            "isp-r1": 0.9,
+            "isp-r2": 0.55,
+            "r1-server": 0.9,
+            "r2-server": 0.6,
+          },
+          wifi: 0.15,
+          chips: ["get"],
+          spawn: [
+            { route: R_FULL, period: 2.2 },
+            { route: R_FULL2, period: 3.3 },
+          ],
+        },
+        {
+          dwell: 4.2,
+          n: { device: 0.9, isp: 0.55, r1: 0.6, server: 1 },
+          e: {
+            "device-router": 0.6,
+            "router-isp": 0.6,
+            "isp-r1": 0.7,
+            "isp-r2": 0.45,
+            "r1-server": 0.7,
+            "r2-server": 0.5,
+          },
+          wifi: 0.15,
+          chips: ["ok"],
+          spawn: [
+            { route: R_REV1, period: 2.4, style: "reply" },
+            { route: R_REV2, period: 3.6, style: "reply" },
+          ],
+        },
+        {
+          dwell: 5.2,
+          n: {
+            device: 0.55,
+            router: 0.5,
+            isp: 0.55,
+            dns: 0.45,
+            r1: 0.5,
+            r2: 0.5,
+            server: 0.6,
+          },
+          e: {
+            "device-router": 0.45,
+            "router-isp": 0.45,
+            "isp-r1": 0.45,
+            "isp-r2": 0.4,
+            "r1-server": 0.45,
+            "r2-server": 0.4,
+          },
+          wifi: 0.15,
+          chips: [],
+          spawn: [],
+          mockup: 1,
+        },
+      ];
+      const ALL_NODES = Object.keys(NODE_META);
+      const ALL_CHIPS = Object.keys(CHIPS);
+      function targetsFor(i) {
+        const c = STEPS[i];
+        const n = {},
+          e = {},
+          c2 = {};
+        ALL_NODES.forEach((k) => {
+          n[k] = c.n[k] || 0;
+        });
+        EDGE_IDS.forEach((k) => {
+          e[k] = c.e[k] || 0;
+        });
+        ALL_CHIPS.forEach((k) => {
+          c2[k] = c.chips.indexOf(k) >= 0 ? 1 : 0;
+        });
+        return { n: n, e: e, c: c2, wifi: c.wifi || 0, mock: c.mockup || 0 };
+      }
+      function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+      function clamp01(v) {
+        return v < 0 ? 0 : v > 1 ? 1 : v;
+      }
+      const el = {};
+      [
+        "app",
+        "vizArea",
+        "frameWrap",
+        "frame",
+        "frameCanvasSlot",
+        "frameSubtitleSlot",
+        "frameControlsSlot",
+        "panelSlotStage",
+        "subtitleSlotSidebar",
+        "subtitleSlotMobile",
+        "panelSlotMobile",
+        "subtitle",
+        "panel",
+        "btnPlay",
+        "btnSettings",
+        "btnClose",
+        "backdrop",
+        "settings",
+        "stepIndicator",
+        "modeSeg",
+        "speedSeg",
+        "btnNext",
+        "btnFrame",
+        "btnReset",
+        "scene",
+        "fatal",
+      ].forEach((id) => {
+        el[id] = document.getElementById(id);
+      });
+      let ctx = null;
+      const view = { w: 0, h: 0, padBottom: 0 };
+      const state = {
+        started: false,
+        mode: "AUTO",
+        isPlaying: true,
+        currentStep: 0,
+        speed: 1,
+        videoMode: false,
+        time: 0,
+        stepTime: 0,
+        dash: 0,
+        transition: {
+          active: false,
+          p: 0,
+          fromN: {},
+          fromE: {},
+          fromC: {},
+          fromW: 0,
+          fromM: 0,
+          to: null,
+        },
+        glowN: {},
+        glowE: {},
+        chipA: {},
+        wifiA: 0,
+        mockA: 0,
+        packets: [],
+        spawnCount: {},
+        flashes: {},
+        uiHidden: false,
+        settingsOpen: false,
+      };
+      const mqDesktop = window.matchMedia("(min-width: 768px)");
+      function pickPreset() {
+        const a = view.w / Math.max(1, view.h);
+        if (a >= 1.25) return PRESETS.wide;
+        if (a < 0.75) return PRESETS.tall;
+        return PRESETS.compact;
+      }
+      function placeNodes() {
+        const desktop = mqDesktop.matches;
+        el.frameWrap.hidden = !state.videoMode;
+        document.body.classList.toggle("videomode", state.videoMode);
+        if (state.videoMode) {
+          el.frameCanvasSlot.appendChild(el.scene);
+          el.frameSubtitleSlot.appendChild(el.subtitle);
+          el.frameControlsSlot.appendChild(el.panel);
+        } else if (desktop) {
+          el.vizArea.appendChild(el.scene);
+          el.subtitleSlotSidebar.appendChild(el.subtitle);
+          el.panelSlotStage.appendChild(el.panel);
+        } else {
+          el.vizArea.appendChild(el.scene);
+          el.subtitleSlotMobile.appendChild(el.subtitle);
+          el.panelSlotMobile.appendChild(el.panel);
+        }
+        resize();
+      }
+      function resize() {
+        if (state.videoMode) {
+          const wrapW = el.frameWrap.clientWidth,
+            wrapH = el.frameWrap.clientHeight;
+          if (wrapW > 0 && wrapH > 0) {
+            const fw = Math.min(wrapW, (wrapH * 9) / 16);
+            el.frame.style.width = fw + "px";
+            el.frame.style.height = (fw * 16) / 9 + "px";
+          }
+          view.padBottom =
+            (el.frameSubtitleSlot.offsetHeight || 0) +
+            (el.frameControlsSlot.offsetHeight || 0) +
+            16;
+        } else {
+          view.padBottom = 0;
+        }
+        const parent = el.scene.parentElement;
+        if (!parent) return;
+        const w = parent.clientWidth,
+          h = parent.clientHeight;
+        if (w < 2 || h < 2) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        el.scene.width = Math.round(w * dpr);
+        el.scene.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        view.w = w;
+        view.h = h;
+      }
+      function beginTransition(i) {
+        state.transition = {
+          active: true,
+          p: 0,
+          fromN: Object.assign({}, state.glowN),
+          fromE: Object.assign({}, state.glowE),
+          fromC: Object.assign({}, state.chipA),
+          fromW: state.wifiA,
+          fromM: state.mockA,
+          to: targetsFor(i),
+        };
+        state.currentStep = i;
+        state.stepTime = 0;
+        state.spawnCount = {};
+        state.packets.forEach((p) => {
+          p.dying = true;
+        });
+        updateSubtitles(i);
+        renderControls();
+      }
+      function nextStep(wrap) {
+        const last = STEPS.length - 1;
+        let target = state.currentStep + 1;
+        if (target > last) {
+          if (!wrap) return;
+          target = 0;
+        }
+        beginTransition(target);
+      }
+      function onStep() {
+        if (state.mode !== "STEP") return;
+        if (state.transition.active) return;
+        if (state.currentStep >= STEPS.length - 1) return;
+        nextStep(false);
+      }
+      function setMode(m) {
+        if (m === state.mode) return;
+        state.mode = m;
+        if (m === "AUTO") state.isPlaying = true;
+        renderControls();
+      }
+      function setPlaying(v) {
+        state.isPlaying = v;
+        renderControls();
+      }
+      function setSpeed(v) {
+        state.speed = v;
+        renderControls();
+      }
+      function reset() {
+        state.mode = "AUTO";
+        state.isPlaying = true;
+        beginTransition(0);
+      }
+      function toggleVideoMode() {
+        state.videoMode = !state.videoMode;
+        placeNodes();
+        renderControls();
+      }
+      function startAuto() {
+        state.mode = "AUTO";
+        state.isPlaying = true;
+        renderControls();
+      }
+      function updateSubtitles(step) {
+        const sub = SUBTITLES[step];
+        el.subtitle.replaceChildren();
+        const wrap = document.createElement("div");
+        wrap.className = "subtitle__text";
+        sub.segments.forEach((seg) => {
+          const span = document.createElement("span");
+          if (seg.emphasis) span.className = "subtitle__keyword";
+          span.textContent = seg.text;
+          wrap.appendChild(span);
+        });
+        el.subtitle.appendChild(wrap);
+        el.subtitle.classList.remove("subtitle--enter");
+        void el.subtitle.offsetWidth;
+        el.subtitle.classList.add("subtitle--enter");
+      }
+      function openSettings() {
+        state.settingsOpen = true;
+        el.settings.classList.add("settings--open");
+        el.backdrop.classList.add("backdrop--open");
+        renderControls();
+        el.btnClose.focus();
+      }
+      function closeSettings() {
+        state.settingsOpen = false;
+        el.settings.classList.remove("settings--open");
+        el.backdrop.classList.remove("backdrop--open");
+        el.btnSettings.focus();
+      }
+      function renderControls() {
+        el.panel.classList.toggle("is-playing", state.isPlaying);
+        el.btnPlay.setAttribute(
+          "aria-label",
+          state.isPlaying ? "Пауза" : "Воспроизвести",
+        );
+        el.stepIndicator.textContent =
+          "Шаг " + (state.currentStep + 1) + " / " + STEPS.length;
+        Array.prototype.forEach.call(el.modeSeg.children, (b) => {
+          const active = b.dataset.mode === state.mode;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-pressed", String(active));
+        });
+        Array.prototype.forEach.call(el.speedSeg.children, (b) => {
+          const active = parseFloat(b.dataset.speed) === state.speed;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-pressed", String(active));
+        });
+        el.btnNext.disabled = !(
+          state.mode === "STEP" &&
+          !state.transition.active &&
+          state.currentStep < STEPS.length - 1
+        );
+        el.btnFrame.setAttribute("aria-checked", String(state.videoMode));
+        el.btnSettings.setAttribute(
+          "aria-expanded",
+          String(state.settingsOpen),
+        );
+      }
+      function handleInput(event) {
+        const t = event.target;
+        if (
+          t &&
+          (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))
+        )
+          return;
+        if (event.key === "Escape" && state.settingsOpen) {
+          closeSettings();
+          return;
+        }
+        if (event.repeat) return;
+        switch (event.code) {
+          case "Space":
+            event.preventDefault();
+            state.uiHidden = !state.uiHidden;
+            document.body.classList.toggle("ui-hidden", state.uiHidden);
+            break;
+          case "ArrowRight":
+            if (state.mode === "STEP") {
+              event.preventDefault();
+              onStep();
+            }
+            break;
+          case "KeyR":
+            reset();
+            break;
+          case "KeyS":
+            setMode(state.mode === "AUTO" ? "STEP" : "AUTO");
+            break;
+          case "KeyV":
+            toggleVideoMode();
+            break;
+        }
+      }
+      function makePacket(route, style, phase, lane, dur) {
+        const p = pickPreset();
+        const pts = route.map((id) => {
+          const n = p.nodes[id];
+          return { x: n.x, y: n.y };
+        });
+        if (lane && pts.length > 1) {
+          const dx = pts[1].x - pts[0].x,
+            dy = pts[1].y - pts[0].y;
+          const len = Math.hypot(dx, dy) || 1;
+          const ox = (-dy / len) * 9 * lane,
+            oy = (dx / len) * 9 * lane;
+          pts.forEach((pt) => {
+            pt.x += ox;
+            pt.y += oy;
+          });
+        }
+        const lens = [0];
+        let total = 0;
+        for (let i = 1; i < pts.length; i++) {
+          total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+          lens.push(total);
+        }
+        return {
+          route: route.slice(),
+          pts: pts,
+          nodeT: lens.map((v) => (total ? v / total : 0)),
+          total: total,
+          t: phase > 0 ? -phase / dur : 0,
+          dur: dur,
+          style: style || "data",
+          nextNode: 1,
+          alpha: 0,
+          dying: false,
+          label: null,
+        };
+      }
+      function spawnStepPackets() {
+        const cfg = STEPS[state.currentStep];
+        (cfg.spawn || []).forEach((sp, idx) => {
+          const id = "sp" + idx;
+          if (sp.kind === "handshake") {
+            const cycles = Math.floor(state.stepTime / sp.period);
+            if ((state.spawnCount[id] || 0) < cycles) {
+              state.spawnCount[id] = (state.spawnCount[id] || 0) + 1;
+              const seq = [
+                { route: R_FULL, label: "SYN", lane: -1 },
+                { route: R_REV1, label: "SYN+ACK", lane: 1 },
+                { route: R_FULL, label: "ACK", lane: -1 },
+              ];
+              seq.forEach((sq, k) => {
+                const pk = makePacket(
+                  sq.route,
+                  "hs",
+                  k * sp.dur,
+                  sq.lane,
+                  sp.dur,
+                );
+                pk.label = sq.label;
+                pk.t = -(k * sp.dur) / sp.dur;
+                state.packets.push(pk);
+              });
+            }
+            return;
+          }
+          const count = Math.floor(state.stepTime / sp.period);
+          if ((state.spawnCount[id] || 0) < count) {
+            state.spawnCount[id] = (state.spawnCount[id] || 0) + 1;
+            state.packets.push(
+              makePacket(
+                sp.route,
+                sp.style || "data",
+                sp.phase || 0,
+                sp.lane || 0,
+                (sp.route.length - 1) * 0.5,
+              ),
+            );
+          }
+        });
+      }
+      function update(dtRaw) {
+        if (!state.started || !state.isPlaying) return;
+        const dt = Math.min(dtRaw, 0.05) * state.speed;
+        state.time += dt;
+        state.stepTime += dt;
+        state.dash += dt * 26;
+        const tr = state.transition;
+        if (tr.active) {
+          tr.p = Math.min(1, tr.p + dt / 0.6);
+          const k = easeInOutCubic(tr.p);
+          ALL_NODES.forEach((id) => {
+            const to = tr.to.n[id] || 0;
+            state.glowN[id] =
+              (tr.fromN[id] || 0) + (to - (tr.fromN[id] || 0)) * k;
+          });
+          EDGE_IDS.forEach((id) => {
+            const to = tr.to.e[id] || 0;
+            state.glowE[id] =
+              (tr.fromE[id] || 0) + (to - (tr.fromE[id] || 0)) * k;
+          });
+          ALL_CHIPS.forEach((id) => {
+            const to = tr.to.c[id] || 0;
+            state.chipA[id] =
+              (tr.fromC[id] || 0) + (to - (tr.fromC[id] || 0)) * k;
+          });
+          state.wifiA = tr.fromW + (tr.to.wifi - tr.fromW) * k;
+          state.mockA = tr.fromM + (tr.to.mock - tr.fromM) * k;
+          if (tr.p >= 1) {
+            state.glowN = Object.assign({}, tr.to.n);
+            state.glowE = Object.assign({}, tr.to.e);
+            state.chipA = Object.assign({}, tr.to.c);
+            state.wifiA = tr.to.wifi;
+            state.mockA = tr.to.mock;
+            state.transition.active = false;
+            renderControls();
+          }
+        }
+        spawnStepPackets();
+        for (let i = state.packets.length - 1; i >= 0; i--) {
+          const p = state.packets[i];
+          if (p.t < 1) {
+            p.t += dt / p.dur;
+            while (p.nextNode < p.nodeT.length && p.t >= p.nodeT[p.nextNode]) {
+              state.flashes[p.route[p.nextNode]] = 1;
+              p.nextNode++;
+            }
+            if (p.t >= 1) {
+              state.flashes[p.route[p.route.length - 1]] = 1;
+              p.dying = true;
+            }
+          }
+          if (p.dying) {
+            p.alpha = Math.max(0, p.alpha - dt * 4);
+            if (p.alpha <= 0) {
+              state.packets.splice(i, 1);
+              continue;
+            }
+          } else {
+            p.alpha = Math.min(
+              1,
+              Math.max(0, p.t) * 7,
+              Math.max(0, 1 - p.t) * 7,
+            );
+          }
+        }
+        Object.keys(state.flashes).forEach((k) => {
+          state.flashes[k] = Math.max(0, state.flashes[k] - dt * 2.4);
+          if (state.flashes[k] === 0) delete state.flashes[k];
+        });
+        if (
+          state.mode === "AUTO" &&
+          !state.transition.active &&
+          state.stepTime > STEPS[state.currentStep].dwell
+        ) {
+          nextStep(true);
+        }
+      }
+      function rr(x, y, w, h, r) {
+        ctx.beginPath();
+        const rad = Math.min(r, w / 2, h / 2);
+        ctx.moveTo(x + rad, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rad);
+        ctx.arcTo(x + w, y + h, x, y + h, rad);
+        ctx.arcTo(x, y + h, x, y, rad);
+        ctx.arcTo(x, y, x + w, y, rad);
+        ctx.closePath();
+      }
+      function drawIcon(type, x, y, r, glow, s) {
+        const a = 0.55 + 0.45 * glow;
+        ctx.strokeStyle = "rgba(255,255,255," + a.toFixed(3) + ")";
+        ctx.fillStyle = "rgba(255,255,255," + a.toFixed(3) + ")";
+        ctx.lineWidth = Math.max(1.4, r * 0.14);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        if (type === "laptop") {
+          rr(x - r * 0.62, y - r * 0.52, r * 1.24, r * 0.82, r * 0.14);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.88, y + r * 0.52);
+          ctx.lineTo(x + r * 0.88, y + r * 0.52);
+          ctx.stroke();
+        } else if (type === "router") {
+          rr(x - r * 0.72, y - r * 0.12, r * 1.44, r * 0.6, r * 0.14);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.42, y - r * 0.12);
+          ctx.lineTo(x - r * 0.58, y - r * 0.72);
+          ctx.moveTo(x + r * 0.42, y - r * 0.12);
+          ctx.lineTo(x + r * 0.58, y - r * 0.72);
+          ctx.stroke();
+          ctx.fillStyle = COLORS.accent;
+          ctx.beginPath();
+          ctx.arc(x - r * 0.34, y + r * 0.18, r * 0.08, 0, Math.PI * 2);
+          ctx.arc(x + r * 0.02, y + r * 0.18, r * 0.08, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (type === "building") {
+          rr(x - r * 0.56, y - r * 0.62, r * 1.12, r * 1.26, r * 0.1);
+          ctx.stroke();
+          for (let gy = 0; gy < 3; gy++) {
+            for (let gx = 0; gx < 2; gx++) {
+              ctx.beginPath();
+              ctx.arc(
+                x + (gx ? r * 0.26 : -r * 0.26),
+                y - r * 0.32 + gy * r * 0.36,
+                r * 0.08,
+                0,
+                Math.PI * 2,
+              );
+              ctx.fill();
+            }
+          }
+        } else if (type === "db") {
+          ctx.beginPath();
+          ctx.ellipse(x, y - r * 0.5, r * 0.62, r * 0.22, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.62, y - r * 0.5);
+          ctx.lineTo(x - r * 0.62, y + r * 0.5);
+          ctx.moveTo(x + r * 0.62, y - r * 0.5);
+          ctx.lineTo(x + r * 0.62, y + r * 0.5);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(x, y + r * 0.5, r * 0.62, r * 0.22, 0, 0, Math.PI);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(
+            x,
+            y - r * 0.06,
+            r * 0.62,
+            r * 0.22,
+            0,
+            0.15 * Math.PI,
+            0.85 * Math.PI,
+          );
+          ctx.stroke();
+        } else if (type === "swap") {
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.62, y - r * 0.2);
+          ctx.lineTo(x + r * 0.5, y - r * 0.2);
+          ctx.moveTo(x + r * 0.5, y - r * 0.2);
+          ctx.lineTo(x + r * 0.28, y - r * 0.42);
+          ctx.moveTo(x + r * 0.5, y - r * 0.2);
+          ctx.lineTo(x + r * 0.28, y + 0.02 * r);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + r * 0.62, y + r * 0.24);
+          ctx.lineTo(x - r * 0.5, y + r * 0.24);
+          ctx.moveTo(x - r * 0.5, y + r * 0.24);
+          ctx.lineTo(x - r * 0.28, y + 0.02 * r);
+          ctx.moveTo(x - r * 0.5, y + r * 0.24);
+          ctx.lineTo(x - r * 0.28, y + r * 0.46);
+          ctx.stroke();
+        } else if (type === "server") {
+          rr(x - r * 0.5, y - r * 0.66, r * 1.0, r * 1.32, r * 0.12);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x - r * 0.3, y - r * 0.28);
+          ctx.lineTo(x + r * 0.3, y - r * 0.28);
+          ctx.moveTo(x - r * 0.3, y + r * 0.06);
+          ctx.lineTo(x + r * 0.3, y + r * 0.06);
+          ctx.stroke();
+          ctx.fillStyle = COLORS.accent;
+          ctx.beginPath();
+          ctx.arc(x, y + r * 0.4, r * 0.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      function drawChipBox(cx, cy, text, alpha, bounce, preset) {
+        const fs = Math.max(10, 26 * view.px);
+        ctx.font = "700 " + fs + "px system-ui,sans-serif";
+        const tw = ctx.measureText(text).width;
+        const padX = Math.max(10, 20 * view.px);
+        const h = Math.max(22, 44 * view.px);
+        const w = tw + padX * 2;
+        const by = bounce ? Math.sin(state.time * 3.2) * 6 * view.px : 0;
+        const y = cy + by;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "rgba(26,26,32,0.95)";
+        ctx.strokeStyle = "rgba(46,172,101," + (0.7 * alpha).toFixed(3) + ")";
+        ctx.lineWidth = 1.4;
+        ctx.shadowColor = COLORS.deep;
+        ctx.shadowBlur = 14 * alpha;
+        rr(cx - w / 2, y - h / 2, w, h, h / 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = COLORS.text;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, cx, y + fs * 0.05);
+        ctx.globalAlpha = 1;
+        return w;
+      }
+      function drawLockChip(node, alpha, anchor, preset) {
+        if (alpha < 0.02) return;
+        const n = preset.nodes[node];
+        const s = view.px;
+        const size = Math.max(30, 56 * s);
+        let cx = X(n.x),
+          cy = Y(n.y);
+        if (anchor === "above") {
+          cy = Y(n.y - n.r) - size * 0.8;
+        } else if (anchor === "below") {
+          cy = Y(n.y + n.r) + size * 0.8;
+        } else if (anchor === "right") {
+          cx = X(n.x + n.r) + size * 0.75;
+        } else if (anchor === "left") {
+          cx = X(n.x - n.r) - size * 0.75;
+        }
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "rgba(26,26,32,0.95)";
+        ctx.strokeStyle = "rgba(46,172,101," + (0.7 * alpha).toFixed(3) + ")";
+        ctx.lineWidth = 1.4;
+        ctx.shadowColor = COLORS.deep;
+        ctx.shadowBlur = 14 * alpha;
+        rr(cx - size / 2, cy - size / 2, size, size, size * 0.3);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        const u = size / 56;
+        ctx.strokeStyle = COLORS.accent;
+        ctx.fillStyle = COLORS.accent;
+        ctx.lineWidth = Math.max(1.6, 3 * u);
+        ctx.beginPath();
+        ctx.arc(cx, cy - 6 * u, 7 * u, Math.PI, 0);
+        ctx.stroke();
+        rr(cx - 10 * u, cy - 6 * u, 20 * u, 16 * u, 3 * u);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      let X = function (x) {
+          return x;
+        },
+        Y = function (y) {
+          return y;
+        },
+        SC = 1;
+      function draw() {
+        ctx.clearRect(0, 0, view.w, view.h);
+        if (view.w < 2 || view.h < 2) return;
+        const preset = pickPreset();
+        const availH = view.h - (view.padBottom || 0);
+        const s = Math.min(view.w / preset.w, availH / preset.h);
+        const ox = (view.w - preset.w * s) / 2,
+          oy = (availH - preset.h * s) / 2;
+        SC = s;
+        view.px = s;
+        X = function (x) {
+          return ox + x * s;
+        };
+        Y = function (y) {
+          return oy + y * s;
+        };
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        const cloud = preset.cloud;
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(
+          X(cloud.x),
+          Y(cloud.y),
+          cloud.rx * s,
+          cloud.ry * s,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fillStyle = "rgba(46,172,101,0.06)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(46,172,101,0.22)";
+        ctx.setLineDash([14 * s, 18 * s]);
+        ctx.lineDashOffset = -state.dash * s;
+        ctx.lineWidth = Math.max(1, 2.4 * s);
+        ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle = "rgba(160,160,160,0.75)";
+        ctx.font = "700 " + Math.max(10, 26 * s) + "px system-ui,sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Интернет", X(cloud.labelX), Y(cloud.labelY));
+        EDGES.forEach((pair) => {
+          const id = pair[0] + "-" + pair[1];
+          const a = preset.nodes[pair[0]],
+            b = preset.nodes[pair[1]];
+          const isWifi = id === "device-router";
+          ctx.save();
+          if (isWifi) ctx.setLineDash([12 * s, 14 * s]);
+          ctx.lineDashOffset = -state.dash * s * 0.4;
+          ctx.strokeStyle = "rgba(160,160,160,0.20)";
+          ctx.lineWidth = Math.max(1.2, 2.6 * s);
+          ctx.beginPath();
+          ctx.moveTo(X(a.x), Y(a.y));
+          ctx.lineTo(X(b.x), Y(b.y));
+          ctx.stroke();
+          const e = state.glowE[id] || 0;
+          if (e > 0.02) {
+            if (isWifi) ctx.setLineDash([12 * s, 14 * s]);
+            ctx.strokeStyle =
+              "rgba(46,172,101," + (0.25 + 0.75 * e).toFixed(3) + ")";
+            ctx.lineWidth = Math.max(1.6, 3 * s) + e * 1.8;
+            ctx.shadowColor = COLORS.deep;
+            ctx.shadowBlur = (8 + 22 * e) * Math.max(s, 0.6);
+            ctx.beginPath();
+            ctx.moveTo(X(a.x), Y(a.y));
+            ctx.lineTo(X(b.x), Y(b.y));
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+          ctx.restore();
+        });
+        const rn = preset.nodes.router;
+        if (state.wifiA > 0.02) {
+          ctx.save();
+          const cx = X(rn.x),
+            cy = Y(rn.y - rn.r - 10 * s);
+          for (let k = 0; k < 3; k++) {
+            const pulse = 0.5 + 0.45 * Math.sin(state.time * 3.6 - k * 0.9);
+            ctx.strokeStyle =
+              "rgba(46,172,101," +
+              ((0.2 + 0.62 * state.wifiA) * pulse).toFixed(3) +
+              ")";
+            ctx.lineWidth = Math.max(1.4, 5.5 * s * (1 - k * 0.14));
+            ctx.beginPath();
+            ctx.arc(
+              cx,
+              cy,
+              (24 + k * 19) * s,
+              Math.PI * (-5 / 6),
+              Math.PI * (-1 / 6),
+            );
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        state.packets.forEach((p) => {
+          if (p.t < 0) return;
+          const posAt = (t) => {
+            const d = clamp01(t) * p.total;
+            let i = 1;
+            while (i < p.nodeT.length - 1 && p.nodeT[i] < d / p.total) i++;
+            const t0 = p.nodeT[i - 1],
+              t1 = p.nodeT[i];
+            const k = t1 > t0 ? clamp01((d / p.total - t0) / (t1 - t0)) : 0;
+            const a = p.pts[i - 1],
+              b = p.pts[i];
+            return { x: X(a.x + (b.x - a.x) * k), y: Y(a.y + (b.y - a.y) * k) };
+          };
+          for (let g = 3; g >= 1; g--) {
+            const gt = p.t - g * 0.05;
+            if (gt <= 0) continue;
+            const gp = posAt(gt);
+            ctx.globalAlpha = (p.alpha * 0.32) / g;
+            ctx.fillStyle = COLORS.accent;
+            ctx.beginPath();
+            ctx.arc(
+              gp.x,
+              gp.y,
+              Math.max(2.5, 7 * s * (1 - g * 0.18)),
+              0,
+              Math.PI * 2,
+            );
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+          const pp = posAt(Math.min(p.t, 1));
+          const r = Math.max(3.5, 8.5 * s);
+          ctx.shadowColor = p.style === "reply" ? COLORS.deep : COLORS.accent;
+          ctx.shadowBlur = Math.max(6, 16 * s);
+          ctx.fillStyle =
+            p.style === "reply" || p.style === "secure"
+              ? COLORS.text
+              : COLORS.accent;
+          ctx.beginPath();
+          ctx.arc(pp.x, pp.y, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          if (p.style === "secure") {
+            ctx.strokeStyle = COLORS.accent;
+            ctx.lineWidth = Math.max(1.2, 2.4 * s);
+            ctx.beginPath();
+            ctx.arc(pp.x, pp.y, r + 2.6 * s, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          if (p.label) {
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = COLORS.text;
+            ctx.font = "700 " + Math.max(9, 20 * s) + "px system-ui,sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.shadowColor = COLORS.bg;
+            ctx.shadowBlur = 6;
+            ctx.fillText(p.label, pp.x, pp.y - r - 4 * s);
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+          }
+        });
+        ALL_NODES.forEach((id) => {
+          const n = preset.nodes[id];
+          const glow = state.glowN[id] || 0;
+          const cx = X(n.x),
+            cy = Y(n.y),
+            r = n.r * s;
+          ctx.shadowColor = COLORS.deep;
+          ctx.shadowBlur = glow > 0.03 ? 26 * glow * Math.max(s, 0.6) + 4 : 0;
+          ctx.fillStyle = "rgba(26,26,32,0.92)";
+          ctx.strokeStyle =
+            glow > 0.03 ? COLORS.accent : "rgba(160,160,160,0.32)";
+          ctx.lineWidth = Math.max(1.4, 2.4 * s) + glow * 1.6;
+          if (id === "r1" || id === "r2") {
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          } else {
+            rr(cx - r, cy - r, r * 2, r * 2, r * 0.42);
+          }
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          drawIcon(NODE_META[id].icon, cx, cy, r * 0.62, glow, s);
+          const flash = state.flashes[id] || 0;
+          if (flash > 0.01) {
+            ctx.strokeStyle =
+              "rgba(46,172,101," + (flash * 0.55).toFixed(3) + ")";
+            ctx.lineWidth = Math.max(1.2, 2.2 * s);
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * (1 + (1 - flash) * 0.55), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          const fsL = Math.max(10, 30 * s),
+            fsS = Math.max(9, 23 * s);
+          ctx.textAlign = "center";
+          ctx.shadowColor = COLORS.bg;
+          ctx.shadowBlur = 8;
+          if (n.lp === "above") {
+            const ly = cy - r - fsL * 0.75;
+            ctx.fillStyle = "rgba(255,255,255,0.95)";
+            ctx.font = "700 " + fsL + "px system-ui,sans-serif";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillText(NODE_META[id].label, cx, ly);
+            ctx.fillStyle = "rgba(160,160,160,0.85)";
+            ctx.font = "600 " + fsS + "px system-ui,sans-serif";
+            ctx.fillText(NODE_META[id].sub, cx, ly - fsS * 1.25);
+          } else {
+            const ly = cy + r + fsL * 1.05;
+            ctx.fillStyle = "rgba(255,255,255,0.95)";
+            ctx.font = "700 " + fsL + "px system-ui,sans-serif";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillText(NODE_META[id].label, cx, ly);
+            ctx.fillStyle = "rgba(160,160,160,0.85)";
+            ctx.font = "600 " + fsS + "px system-ui,sans-serif";
+            ctx.fillText(NODE_META[id].sub, cx, ly + fsS * 1.2);
+          }
+          ctx.shadowBlur = 0;
+        });
+        const anchors = CHIP_ANCHOR[preset.name];
+        ALL_CHIPS.forEach((id) => {
+          const alpha = state.chipA[id] || 0;
+          if (alpha < 0.02) return;
+          const chip = CHIPS[id];
+          const n = preset.nodes[chip.node];
+          const anchor = anchors[id] || "above";
+          if (chip.icon) {
+            drawLockChip(chip.node, alpha, anchor, preset);
+            return;
+          }
+          let cx = X(n.x),
+            cy = Y(n.y);
+          if (anchor === "above") {
+            cy = Y(n.y - n.r) - Math.max(14, 26 * s);
+          } else if (anchor === "below") {
+            cy = Y(n.y + n.r) + Math.max(14, 26 * s);
+          } else if (anchor === "right") {
+            cx = X(n.x + n.r) + Math.max(16, 30 * s);
+          } else if (anchor === "left") {
+            cx = X(n.x - n.r) - Math.max(16, 30 * s);
+          }
+          drawChipBox(cx, cy, chip.text, alpha, chip.bounce, preset);
+        });
+        if (state.currentStep === 4 && state.stepTime < STEPS[4].dwell) {
+          const cycle = state.stepTime % 4.2;
+          const segs = [
+            { a: 0, b: 1.3, text: "SYN", node: "device" },
+            { a: 1.3, b: 2.6, text: "SYN+ACK", node: "server" },
+            { a: 2.6, b: 3.9, text: "ACK", node: "device" },
+          ];
+          segs.forEach((sg) => {
+            const inT = Math.min(cycle - sg.a, sg.b - cycle, 0.18);
+            const alpha = clamp01(inT / 0.18);
+            if (alpha <= 0.01) return;
+            const n = preset.nodes[sg.node];
+            const anchor = sg.node === "device" ? anchors.ip : anchors.ok;
+            let cx = X(n.x),
+              cy = Y(n.y);
+            if (anchor === "above") {
+              cy = Y(n.y - n.r) - Math.max(14, 26 * s);
+            } else if (anchor === "below") {
+              cy = Y(n.y + n.r) + Math.max(14, 26 * s);
+            } else if (anchor === "right") {
+              cx = X(n.x + n.r) + Math.max(16, 30 * s);
+            } else if (anchor === "left") {
+              cx = X(n.x - n.r) - Math.max(16, 30 * s);
+            }
+            drawChipBox(cx, cy, sg.text, alpha, false, preset);
+          });
+        }
+        if (state.mockA > 0.02) {
+          const m = preset.mockup;
+          const mx = X(m.x),
+            my = Y(m.y),
+            mw = m.w * s,
+            mh = m.h * s;
+          const bt = state.stepTime;
+          ctx.save();
+          ctx.globalAlpha = state.mockA;
+          ctx.shadowColor = COLORS.deep;
+          ctx.shadowBlur = 30 * state.mockA;
+          ctx.fillStyle = "rgba(26,26,32,0.97)";
+          ctx.strokeStyle =
+            "rgba(46,172,101," + (0.5 * state.mockA).toFixed(3) + ")";
+          ctx.lineWidth = 1.5;
+          rr(mx - mw / 2, my - mh / 2, mw, mh, 26 * s);
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          const barY = my - mh / 2 + 52 * s;
+          ctx.fillStyle = "rgba(160,160,160,0.6)";
+          for (let d = 0; d < 3; d++) {
+            ctx.beginPath();
+            ctx.arc(
+              mx - mw / 2 + 26 * s + d * 22 * s,
+              barY - 14 * s,
+              6.5 * s,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fill();
+          }
+          ctx.fillStyle = "rgba(15,15,19,0.85)";
+          ctx.strokeStyle = "rgba(160,160,160,0.3)";
+          rr(mx - mw / 2 + 84 * s, barY - 31 * s, mw - 118 * s, 34 * s, 17 * s);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = COLORS.accent;
+          ctx.font = "700 " + Math.max(10, 22 * s) + "px system-ui,sans-serif";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            "https://example.ru",
+            mx - mw / 2 + 100 * s,
+            barY - 14 * s,
+          );
+          ctx.strokeStyle = "rgba(160,160,160,0.2)";
+          ctx.beginPath();
+          ctx.moveTo(mx - mw / 2, barY);
+          ctx.lineTo(mx + mw / 2, barY);
+          ctx.stroke();
+          ctx.textBaseline = "middle";
+          const blocks = [
+            { d: 0.15, h: 40, fill: "rgba(46,172,101,0.65)" },
+            { d: 0.45, h: 96, fill: "rgba(160,160,160,0.15)" },
+            { d: 0.75, h: 14, fill: "rgba(160,160,160,0.28)", wf: 0.92 },
+            { d: 0.95, h: 14, fill: "rgba(160,160,160,0.28)", wf: 0.78 },
+            { d: 1.15, h: 14, fill: "rgba(160,160,160,0.28)", wf: 0.85 },
+          ];
+          let yy = barY + 24 * s;
+          const innerW = mw - 64 * s;
+          blocks.forEach((bl) => {
+            const a = clamp01((bt - bl.d) / 0.45);
+            const aa = easeOutCubic(a);
+            const w = bl.wf ? innerW * bl.wf : innerW;
+            rr(
+              mx - innerW / 2 + (innerW - w) / 2,
+              yy + (1 - aa) * 12 * s,
+              w,
+              bl.h * s,
+              10 * s,
+            );
+            ctx.fillStyle = bl.fill;
+            ctx.globalAlpha = state.mockA * aa;
+            ctx.fill();
+            ctx.globalAlpha = state.mockA;
+            yy += bl.h * s + 16 * s;
+          });
+          const ba = clamp01((bt - 1.45) / 0.45);
+          const baa = easeOutCubic(ba);
+          rr(mx - innerW / 2, yy + (1 - baa) * 12 * s, 150 * s, 40 * s, 10 * s);
+          ctx.fillStyle = "rgba(46,172,101,0.85)";
+          ctx.globalAlpha = state.mockA * baa;
+          ctx.fill();
+          ctx.globalAlpha = state.mockA;
+          ctx.restore();
+        }
+      }
+      let lastTs = 0;
+      function loop(ts) {
+        const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0;
+        lastTs = ts;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+      function init() {
+        ctx = el.scene.getContext("2d");
+        if (!ctx) throw new Error("canvas context unavailable");
+        const t0 = targetsFor(0);
+        state.glowN = t0.n;
+        state.glowE = t0.e;
+        state.chipA = t0.c;
+        state.wifiA = t0.wifi;
+        state.mockA = t0.mock;
+        el.btnPlay.addEventListener("click", () =>
+          setPlaying(!state.isPlaying),
+        );
+        el.btnSettings.addEventListener("click", () => {
+          if (state.settingsOpen) closeSettings();
+          else openSettings();
+        });
+        el.btnClose.addEventListener("click", closeSettings);
+        el.backdrop.addEventListener("click", closeSettings);
+        Array.prototype.forEach.call(el.modeSeg.children, (b) => {
+          b.addEventListener("click", () => setMode(b.dataset.mode));
+        });
+        Array.prototype.forEach.call(el.speedSeg.children, (b) => {
+          b.addEventListener("click", () =>
+            setSpeed(parseFloat(b.dataset.speed)),
+          );
+        });
+        el.btnNext.addEventListener("click", onStep);
+        el.btnFrame.addEventListener("click", toggleVideoMode);
+        el.btnReset.addEventListener("click", reset);
+        document.addEventListener("keydown", handleInput);
+        mqDesktop.addEventListener("change", placeNodes);
+        const ro = new ResizeObserver(() => resize());
+        ro.observe(el.vizArea);
+        ro.observe(el.frameSubtitleSlot);
+        window.addEventListener("resize", resize);
+        placeNodes();
+        renderControls();
+        updateSubtitles(0);
+        window.setTimeout(() => {
+          state.started = true;
+        }, 500);
+        requestAnimationFrame(loop);
+      }
+      try {
+        init();
+      } catch (err) {
+        el.fatal.hidden = false;
+        el.fatal.textContent =
+          "Не удалось запустить визуализацию. Обновите страницу и попробуйте снова.";
+        if (window.console && console.error) console.error(err);
+      }
+    </script>
+  </body>
+</html>

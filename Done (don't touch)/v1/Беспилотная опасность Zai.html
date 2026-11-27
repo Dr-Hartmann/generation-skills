@@ -1,0 +1,2585 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Беспилотная опасность</title>
+    <style>
+      :root {
+        --ui-bg: #0f0f13;
+        --ui-bg-gradient: #111118;
+        --ui-panel: #1a1a20;
+        --ui-panel-glass: rgba(26, 26, 32, 0.55);
+        --ui-modal-bg: rgba(26, 26, 32, 0.94);
+        --ui-modal-scrim: rgba(0, 0, 0, 0.55);
+        --ui-text: #ffffff;
+        --ui-muted: #a0a0a0;
+        --ui-label: #cfcfcf;
+        --ui-accent: #2eac65;
+        --ui-accent-dark: #1e7a47;
+        --ui-accent-soft: rgba(46, 172, 101, 0.14);
+        --ui-accent-soft-hover: rgba(46, 172, 101, 0.26);
+        --ui-accent-border: rgba(46, 172, 101, 0.5);
+        --ui-accent-shadow: rgba(46, 172, 101, 0.3);
+        --ui-accent-shadow-strong: rgba(46, 172, 101, 0.35);
+        --ui-accent-ambient-1: rgba(46, 172, 101, 0.34);
+        --ui-accent-ambient-2: rgba(30, 122, 71, 0.3);
+        --ui-accent-ambient-3: rgba(20, 80, 45, 0.38);
+        --ui-accent-halo: rgba(46, 172, 101, 0.14);
+        --ui-danger: #e5484d;
+        --ui-danger-hover-border: rgba(229, 72, 77, 0.6);
+        --ui-white-06: rgba(255, 255, 255, 0.06);
+        --ui-white-08: rgba(255, 255, 255, 0.08);
+        --ui-white-10: rgba(255, 255, 255, 0.1);
+        --ui-white-12: rgba(255, 255, 255, 0.12);
+        --ui-white-14: rgba(255, 255, 255, 0.14);
+        --ui-border-soft: rgba(255, 255, 255, 0.12);
+        --ui-border-faint: rgba(255, 255, 255, 0.08);
+        --ui-scrim-strong: rgba(0, 0, 0, 0.65);
+        --ui-surface-inset: rgba(0, 0, 0, 0.35);
+        --ui-shadow-text: rgba(0, 0, 0, 0.8);
+        --ui-ambient-blur: 90px;
+        --panel-w: clamp(320px, 30vw, 380px);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        color: var(--ui-text);
+        background: var(--ui-bg);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .ambient-clip {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #ambient {
+        position: absolute;
+        inset: -10%;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+      #ambient i {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(var(--ui-ambient-blur));
+      }
+      #ambient .b1 {
+        width: 46vmin;
+        height: 46vmin;
+        left: -6%;
+        top: 8%;
+        background: var(--ui-accent-ambient-1);
+        animation: drift 9s ease-in-out infinite alternate;
+      }
+      #ambient .b2 {
+        width: 40vmin;
+        height: 40vmin;
+        right: -4%;
+        top: 38%;
+        background: var(--ui-accent-ambient-2);
+        animation: drift 11s ease-in-out infinite alternate-reverse;
+      }
+      #ambient .b3 {
+        width: 52vmin;
+        height: 52vmin;
+        left: 16%;
+        bottom: -8%;
+        background: var(--ui-accent-ambient-3);
+        animation: drift 13s ease-in-out infinite alternate;
+      }
+      @keyframes drift {
+        from {
+          transform: translate(0, 0) scale(1);
+        }
+        to {
+          transform: translate(4vmin, -5vmin) scale(1.12);
+        }
+      }
+      body.v916 #ambient {
+        opacity: 1;
+      }
+      @media (max-width: 767.98px) {
+        .ambient-clip {
+          right: calc(80px + env(safe-area-inset-right, 0px));
+        }
+      }
+      .app {
+        position: relative;
+        z-index: 1;
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding-right: calc(80px + env(safe-area-inset-right, 0px));
+        padding-left: calc(16px + env(safe-area-inset-left, 0px));
+      }
+      .topbar {
+        position: relative;
+        z-index: 3;
+        padding-top: calc(16px + env(safe-area-inset-top, 0px));
+      }
+      .kicker {
+        color: var(--ui-muted);
+        font-size: clamp(10px, 2.6vw, 12px);
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .topbar h1 {
+        margin: 3px 0 0;
+        font-size: clamp(20px, 5.2vw, 30px);
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: var(--ui-text);
+      }
+      .stage {
+        position: relative;
+        z-index: 1;
+        flex: 1 1 auto;
+        min-height: 0;
+        margin-top: 10px;
+      }
+      .stage-inner {
+        position: absolute;
+        inset: 0;
+      }
+      .stage-inner canvas,
+      .vframe-slot canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .stage-dock-slot {
+        display: none;
+      }
+      .frame-layer {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 4;
+      }
+      body.video-mode .frame-layer {
+        display: flex;
+      }
+      .frame-layer::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .frame-glow {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(72%, 560px);
+        aspect-ratio: 1/1;
+        border-radius: 50%;
+        background: var(--ui-accent-halo);
+        filter: blur(var(--ui-ambient-blur));
+        transform: translate(-50%, -50%);
+      }
+      .vframe {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        background: var(--ui-bg);
+        border: 1px solid var(--ui-border-soft);
+        box-shadow:
+          0 0 0 1px var(--ui-white-06),
+          0 24px 80px rgba(0, 0, 0, 0.5),
+          0 0 60px var(--ui-accent-halo);
+      }
+      .vframe-slot {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+      }
+      .vframe-bottom {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        z-index: 3;
+      }
+      .frame-sub-slot,
+      .frame-dock-slot {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+      .bottomstack {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 12px;
+        margin-bottom: calc(25vh + env(safe-area-inset-bottom, 0px));
+      }
+      .sub-mobile-slot,
+      .dock-slot {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+      .panel {
+        display: none;
+      }
+      .subtitle {
+        min-height: 112px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        max-width: 560px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #00000080;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1.35;
+        font-weight: 700;
+        color: var(--ui-text);
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      .subtitle__inner {
+        display: block;
+        text-align: center;
+      }
+      .subtitle.show {
+        animation: subIn 0.32s ease-out forwards;
+      }
+      @keyframes subIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .subtitle__keyword {
+        color: var(--ui-accent);
+        font-weight: 800;
+      }
+      .dock {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border-radius: 999px;
+        background: var(--ui-panel-glass);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--ui-border-soft);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+      }
+      .app.controls-hidden .dock {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+      }
+      .dock .ctl {
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        border: none;
+        background: transparent;
+        display: grid;
+        place-items: center;
+        color: var(--ui-text);
+        cursor: pointer;
+        padding: 0;
+        transition:
+          background 0.2s,
+          transform 0.1s,
+          box-shadow 0.2s;
+      }
+      @media (hover: hover) {
+        .dock .ctl:hover {
+          background: var(--ui-white-10);
+        }
+      }
+      .dock .ctl:active {
+        transform: scale(0.95);
+      }
+      .dock .ctl:focus-visible {
+        outline: 2px solid var(--ui-accent);
+        outline-offset: 2px;
+      }
+      .ctl--play {
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        box-shadow: 0 4px 18px var(--ui-accent-shadow);
+      }
+      @media (hover: hover) {
+        .ctl--play:hover {
+          background: linear-gradient(
+            135deg,
+            var(--ui-accent),
+            var(--ui-accent-dark)
+          );
+        }
+      }
+      #btnPlay .ic-play {
+        display: none;
+      }
+      #btnPlay.paused .ic-play {
+        display: block;
+      }
+      #btnPlay.paused .ic-pause {
+        display: none;
+      }
+      @media (min-width: 768px) {
+        .app {
+          display: grid;
+          grid-template-columns: 1fr var(--panel-w);
+          grid-template-rows: auto minmax(0, 1fr);
+          padding: 0;
+        }
+        .topbar {
+          grid-column: 1/-1;
+          grid-row: 1;
+          padding: calc(16px + env(safe-area-inset-top, 0px)) 28px 12px 28px;
+        }
+        .stage {
+          grid-column: 1;
+          grid-row: 2;
+          margin-top: 0;
+        }
+        .stage-inner {
+          inset: 4px 20px 0 28px;
+        }
+        .bottomstack {
+          display: none;
+        }
+        .panel {
+          display: flex;
+          flex-direction: column;
+          grid-column: 2;
+          grid-row: 2;
+          margin: 0 20px 18px 4px;
+          padding: 16px;
+          border-radius: 20px;
+          background: var(--ui-panel-glass);
+          border: 1px solid var(--ui-border-faint);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          min-height: 0;
+        }
+        .panel-sub-slot {
+          display: flex;
+          width: 100%;
+          align-items: flex-start;
+        }
+        .stage-dock-slot {
+          display: flex;
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 18px;
+          justify-content: center;
+          pointer-events: none;
+          z-index: 5;
+        }
+        .stage-dock-slot .dock {
+          pointer-events: auto;
+        }
+        body.video-mode .app {
+          grid-template-columns: 1fr;
+        }
+        body.video-mode .panel {
+          display: none;
+        }
+        body.video-mode .bottomstack {
+          display: none;
+        }
+      }
+      @media (max-width: 767.98px) {
+        .panel-sub-slot {
+          display: none;
+        }
+      }
+      #modalWrap {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: max(16px, env(safe-area-inset-top, 0px)) 16px
+          max(16px, env(safe-area-inset-bottom, 0px));
+        background: var(--ui-modal-scrim);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+      #modalWrap.open {
+        display: flex;
+      }
+      #modalWrap.closing {
+        display: flex;
+      }
+      #modal {
+        width: min(92vw, 380px);
+        max-height: 90vh;
+        max-height: 90dvh;
+        overflow: auto;
+        color: var(--ui-text);
+        background: var(--ui-modal-bg);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 20px;
+        padding: 20px;
+        animation: pop 0.25s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+        outline: none;
+      }
+      #modalWrap.closing #modal {
+        animation: popOut 0.18s ease-in both;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes popOut {
+        from {
+          opacity: 1;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+      }
+      #modal button {
+        font-family: inherit;
+        color: var(--ui-text);
+        cursor: pointer;
+      }
+      #modal button:focus-visible {
+        outline: 2px solid var(--ui-accent);
+        outline-offset: 2px;
+      }
+      .modal-close {
+        display: grid;
+        place-items: center;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+      }
+      .mhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .mhead h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 800;
+      }
+      .mstep {
+        color: var(--ui-muted);
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .seg {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .seg button {
+        flex: 1;
+        min-height: 44px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-border-soft);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+      .seg button.active {
+        background: linear-gradient(
+          135deg,
+          var(--ui-accent),
+          var(--ui-accent-dark)
+        );
+        border-color: transparent;
+        box-shadow: 0 4px 14px var(--ui-accent-shadow);
+      }
+      #mSpeedSeg {
+        margin-bottom: 14px;
+      }
+      .mlabel-line {
+        color: var(--ui-label);
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      #mNext {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-accent-soft);
+        border: 1px solid var(--ui-accent-border);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+      }
+      #mNext:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      #mNext:not(:disabled):hover {
+        background: var(--ui-accent-soft-hover);
+      }
+      .mrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .mlabel {
+        flex: 1;
+        color: var(--ui-label);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .sw {
+        position: relative;
+        display: inline-block;
+        flex: 0 0 52px;
+        width: 52px;
+        height: 30px;
+      }
+      .sw input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+      .sw span {
+        position: absolute;
+        inset: 0;
+        background: var(--ui-white-12);
+        border-radius: 999px;
+        transition: background 0.25s;
+        pointer-events: none;
+      }
+      .sw span::before {
+        content: "";
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        background: var(--ui-text);
+        border-radius: 50%;
+        transition: transform 0.25s;
+      }
+      .sw input:checked + span {
+        background: var(--ui-accent);
+      }
+      .sw input:checked + span::before {
+        transform: translateX(22px);
+      }
+      .sw input:focus-visible + span {
+        outline: 2px solid var(--ui-text);
+        outline-offset: 3px;
+      }
+      #mReset {
+        width: 100%;
+        min-height: 46px;
+        border-radius: 12px;
+        color: var(--ui-text);
+        background: var(--ui-white-06);
+        border: 1px solid var(--ui-white-14);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        transition: border-color 0.2s;
+      }
+      #mReset:hover {
+        border-color: var(--ui-danger-hover-border);
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: auto 1fr auto 1fr;
+        gap: 6px 10px;
+        align-items: center;
+        color: var(--ui-muted);
+        font-size: 12px;
+      }
+      .keys span {
+        justify-self: start;
+        padding: 2px 7px;
+        color: var(--ui-text);
+        background: var(--ui-white-08);
+        border: 1px solid var(--ui-border-soft);
+        border-radius: 6px;
+        font-weight: 800;
+      }
+      .keys i {
+        font-style: normal;
+      }
+      body.modal-open {
+        overflow: hidden;
+      }
+      .boot-error {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        top: 16px;
+        z-index: 50;
+        background: var(--ui-modal-bg);
+        border: 1px solid var(--ui-danger-hover-border);
+        border-radius: 14px;
+        padding: 14px;
+        color: var(--ui-text);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #ambient .b1,
+        #ambient .b2,
+        #ambient .b3 {
+          animation: none;
+        }
+        #modal,
+        #modalWrap.closing #modal {
+          animation: none;
+        }
+        .subtitle.show {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="v916">
+    <div class="ambient-clip" aria-hidden="true">
+      <div id="ambient">
+        <i class="b1"></i><i class="b2"></i><i class="b3"></i>
+      </div>
+    </div>
+    <div class="app" id="app">
+      <header class="topbar">
+        <div class="kicker">Безопасность школьников</div>
+        <h1>Беспилотная опасность</h1>
+      </header>
+      <main class="stage" id="stage">
+        <div class="stage-inner" id="canvasNormalSlot">
+          <canvas
+            id="scene"
+            role="img"
+            aria-label="Визуализация правил безопасного поведения при обнаружении беспилотного летательного аппарата"
+          ></canvas>
+        </div>
+        <div class="stage-dock-slot" id="dockDesktopSlot"></div>
+        <div class="frame-layer" id="frameLayer" aria-hidden="true">
+          <div class="frame-glow" aria-hidden="true"></div>
+          <div class="vframe" id="vframe">
+            <div class="vframe-slot" id="canvasFrameSlot"></div>
+            <div class="vframe-bottom">
+              <div class="frame-sub-slot" id="frameSubSlot"></div>
+              <div class="frame-dock-slot" id="frameDockSlot"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <aside class="panel" id="panel">
+        <div class="panel-sub-slot" id="subPanelSlot"></div>
+      </aside>
+      <div class="bottomstack" id="bottomstack">
+        <div class="sub-mobile-slot" id="subMobileSlot">
+          <div class="subtitle" id="subtitle" aria-live="polite"></div>
+        </div>
+        <div class="dock-slot" id="dockMobileSlot">
+          <footer class="dock" id="dock">
+            <button
+              id="btnPlay"
+              class="ctl ctl--play"
+              type="button"
+              aria-label="Пауза"
+            >
+              <svg
+                class="ic ic-pause"
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 5h3.4v14H8zM12.6 5H16v14h-3.4z"
+                  fill="currentColor"
+                />
+              </svg>
+              <svg
+                class="ic ic-play"
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                aria-hidden="true"
+              >
+                <path d="M8.5 5.5v13l10-6.5z" fill="currentColor" />
+              </svg>
+            </button>
+            <button
+              id="btnGear"
+              class="ctl js-gear"
+              type="button"
+              aria-label="Настройки"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10.3 3h3.4l.5 2.6c.7.2 1.3.6 1.9 1l2.5-.9 1.7 2.9-2 1.7c.1.4.1.8.1 1.2s0 .8-.1 1.2l2 1.7-1.7 2.9-2.5-.9c-.6.4-1.2.8-1.9 1l-.5 2.6h-3.4l-.5-2.6c-.7-.2-1.3-.6-1.9-1l-2.5.9-1.7-2.9 2-1.7c-.1-.4-.1-.8-.1-1.2s0-.8.1-1.2l-2-1.7 1.7-2.9 2.5.9c.6-.4 1.2-.8 1.9-1l.5-2.6zm1.7 6.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+    <div id="modalWrap" aria-hidden="true">
+      <section
+        id="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        tabindex="-1"
+      >
+        <header class="mhead">
+          <h2 id="modalTitle">Настройки</h2>
+          <button
+            class="modal-close"
+            id="mClose"
+            type="button"
+            data-modal-close
+            aria-label="Закрыть"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </header>
+        <div class="mstep" id="mStepTxt">Шаг 1 / 8</div>
+        <div class="seg" role="group" aria-label="Режим воспроизведения">
+          <button
+            id="mAuto"
+            class="active"
+            type="button"
+            data-mode="auto"
+            aria-pressed="true"
+          >
+            AUTO
+          </button>
+          <button
+            id="mStepBtn"
+            type="button"
+            data-mode="step"
+            aria-pressed="false"
+          >
+            STEP
+          </button>
+        </div>
+        <button id="mNext" type="button" data-modal-action="next-step" disabled>
+          Следующий шаг ▶
+        </button>
+        <div class="mlabel-line" id="mSpeedLabel">Скорость</div>
+        <div
+          class="seg"
+          id="mSpeedSeg"
+          role="group"
+          aria-labelledby="mSpeedLabel"
+        >
+          <button type="button" data-speed="0.5" aria-pressed="false">
+            0.5×
+          </button>
+          <button
+            type="button"
+            data-speed="1"
+            class="active"
+            aria-pressed="true"
+          >
+            1×
+          </button>
+          <button type="button" data-speed="2" aria-pressed="false">2×</button>
+        </div>
+        <div class="mrow">
+          <span class="mlabel" id="mNineLabel">Режим 9:16</span>
+          <label class="sw" aria-labelledby="mNineLabel">
+            <input type="checkbox" id="mNine" data-modal-toggle="video-mode" />
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+        <button id="mReset" type="button" data-modal-action="reset">
+          Reset
+        </button>
+        <div class="keys" aria-label="Горячие клавиши">
+          <span>Space</span><i>скрыть панель</i> <span>→</span
+          ><i>следующий шаг</i> <span>R</span><i>reset</i> <span>S</span
+          ><i>AUTO / STEP</i> <span>V</span><i>режим 9:16</i> <span>Esc</span
+          ><i>закрыть окно</i>
+        </div>
+      </section>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        var W = 450,
+          H = 800,
+          STEP_COUNT = 8,
+          STEP_DUR = 5.2,
+          TRANS = 0.5,
+          SETTLE = 1.0,
+          AUTO_DELAY = 500,
+          LAST = STEP_COUNT - 1;
+        var PAL = {
+          bg: "#0F0F13",
+          accent: "#2EAC65",
+          accentDark: "#1E7A47",
+          danger: "#E5484D",
+          warning: "#FFC94D",
+          warningLight: "#FFD98A",
+          warningGlow: "#FFE9A8",
+          warningPale: "#FFF3C4",
+          successGlow: "#7FE0A8",
+          textSoft: "#E6E6EC",
+          textBright: "#F2F2F6",
+          whiteSoft: "#EFEFEF",
+          skyStar: "#9AA0B5",
+          metalDark: "#0E0E12",
+          metalBase: "#14141A",
+          metalMid: "#15151B",
+          metalPanel: "#202028",
+          metalRaised: "#26262E",
+          metalBorder: "#2A2A34",
+          metalStroke: "#3A3A44",
+          metalWire: "#3C3C46",
+          metalSecondary: "#33333D",
+          dust: "#9C948A",
+          redBright: "#FF5A5F",
+        };
+        var SUBTITLES = [
+          {
+            step: 1,
+            segments: [
+              { text: "Услышали " },
+              { text: "характерный гул", emphasis: true },
+              { text: " и увидели необычный летательный объект в небе" },
+            ],
+          },
+          {
+            step: 2,
+            segments: [
+              { text: "Сохраняйте спокойствие: " },
+              { text: "не делайте самостоятельных выводов", emphasis: true },
+              { text: " об опасности" },
+            ],
+          },
+          {
+            step: 3,
+            segments: [
+              { text: "Прекратите занятия на открытой местности и " },
+              { text: "перейдите в капитальное помещение", emphasis: true },
+            ],
+          },
+          {
+            step: 4,
+            segments: [
+              { text: "Выбирайте укрытие: " },
+              {
+                text: "капитальные стены, помещения без окон, внутренние коридоры",
+                emphasis: true,
+              },
+            ],
+          },
+          {
+            step: 5,
+            segments: [
+              { text: "Следуйте " },
+              { text: "официальным предупреждениям", emphasis: true },
+              { text: " и указаниям педагогов и экстренных служб" },
+            ],
+          },
+          {
+            step: 6,
+            segments: [
+              { text: "Нельзя " },
+              { text: "приближаться к обломкам", emphasis: true },
+              { text: ", трогать и снимать их на камеру" },
+            ],
+          },
+          {
+            step: 7,
+            segments: [
+              { text: "Сообщите об угрозе по номеру " },
+              { text: "112", emphasis: true },
+              { text: ": место, время и ситуацию" },
+            ],
+          },
+          {
+            step: 8,
+            segments: [
+              { text: "Возвращайтесь к обычным делам " },
+              {
+                text: "только после официального сигнала отбоя",
+                emphasis: true,
+              },
+            ],
+          },
+        ];
+        var state = {
+          mode: "auto",
+          isPlaying: false,
+          started: false,
+          currentStep: 0,
+          prevStep: -1,
+          speed: 1,
+          videoMode: false,
+          stepElapsed: 0,
+          clock: 0,
+        };
+        var view = { scale: 1, ox: 0, oy: 0, dpr: 1, cw: 0, ch: 0 };
+        var els = {};
+        var modalApi = null;
+        var mqDesktop = null;
+        var nextDisabledCache = null;
+        function clamp01(v) {
+          return v < 0 ? 0 : v > 1 ? 1 : v;
+        }
+        function easeOut(v) {
+          var x = clamp01(v);
+          return 1 - Math.pow(1 - x, 3);
+        }
+        function easeInOut(v) {
+          var x = clamp01(v);
+          return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+        }
+        function lerp(a, b, p) {
+          return a + (b - a) * p;
+        }
+        function E(t, delay, dur) {
+          return easeOut((t - delay) / dur);
+        }
+        function rr(c, x, y, w, h, r) {
+          r = Math.min(r, w / 2, h / 2);
+          c.beginPath();
+          c.moveTo(x + r, y);
+          c.arcTo(x + w, y, x + w, y + h, r);
+          c.arcTo(x + w, y + h, x, y + h, r);
+          c.arcTo(x, y + h, x, y, r);
+          c.arcTo(x, y, x + w, y, r);
+          c.closePath();
+        }
+        function withAlpha(c, a, fn) {
+          var p = c.globalAlpha;
+          c.globalAlpha = Math.max(0, Math.min(1, p * a));
+          fn();
+          c.globalAlpha = p;
+        }
+        function fail(msg) {
+          if (window.console && console.error) console.error(msg);
+          try {
+            var d = document.createElement("div");
+            d.className = "boot-error";
+            d.textContent = "Не удалось запустить приложение: " + msg;
+            document.body.appendChild(d);
+          } catch (e) {}
+        }
+        function initSettingsModal() {
+          var overlay = document.getElementById("modalWrap");
+          var dialog = document.getElementById("modal");
+          if (!overlay || !dialog) {
+            fail("окно настроек не найдено");
+            return null;
+          }
+          var openers = Array.prototype.slice.call(
+            document.querySelectorAll(".js-gear"),
+          );
+          var closers = Array.prototype.slice.call(
+            overlay.querySelectorAll("[data-modal-close]"),
+          );
+          var prevFocus = null,
+            closeTimer = 0;
+          function finishClose() {
+            overlay.classList.remove("open", "closing");
+            overlay.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("modal-open");
+            if (prevFocus && prevFocus.focus) prevFocus.focus();
+          }
+          function open() {
+            if (overlay.classList.contains("open")) return;
+            clearTimeout(closeTimer);
+            overlay.classList.remove("closing");
+            prevFocus = document.activeElement;
+            overlay.classList.add("open");
+            overlay.setAttribute("aria-hidden", "false");
+            document.body.classList.add("modal-open");
+            dialog.focus();
+          }
+          function close() {
+            if (
+              !overlay.classList.contains("open") ||
+              overlay.classList.contains("closing")
+            )
+              return;
+            var reduce =
+              window.matchMedia &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reduce) {
+              finishClose();
+              return;
+            }
+            overlay.classList.add("closing");
+            closeTimer = setTimeout(finishClose, 180);
+          }
+          function toggle() {
+            overlay.classList.contains("open") ? close() : open();
+          }
+          openers.forEach(function (b) {
+            b.addEventListener("click", toggle);
+          });
+          closers.forEach(function (b) {
+            b.addEventListener("click", close);
+          });
+          overlay.addEventListener("click", function (e) {
+            if (e.target === overlay) close();
+          });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && overlay.classList.contains("open"))
+              close();
+          });
+          overlay.querySelectorAll("[data-mode]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              overlay.querySelectorAll("[data-mode]").forEach(function (it) {
+                var act = it === btn;
+                it.classList.toggle("active", act);
+                it.setAttribute("aria-pressed", String(act));
+              });
+              overlay.dispatchEvent(
+                new CustomEvent("settings:mode", {
+                  detail: { mode: btn.dataset.mode },
+                }),
+              );
+            });
+          });
+          var nextBtn = overlay.querySelector(
+            '[data-modal-action="next-step"]',
+          );
+          if (nextBtn)
+            nextBtn.addEventListener("click", function () {
+              overlay.dispatchEvent(new CustomEvent("settings:next-step"));
+            });
+          overlay
+            .querySelectorAll("#mSpeedSeg [data-speed]")
+            .forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                overlay.dispatchEvent(
+                  new CustomEvent("settings:speed", {
+                    detail: { value: Number(btn.dataset.speed) },
+                  }),
+                );
+              });
+            });
+          var nine = overlay.querySelector('[data-modal-toggle="video-mode"]');
+          if (nine)
+            nine.addEventListener("change", function () {
+              overlay.dispatchEvent(
+                new CustomEvent("settings:video-mode", {
+                  detail: { enabled: nine.checked },
+                }),
+              );
+            });
+          overlay
+            .querySelectorAll('[data-modal-action="reset"]')
+            .forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                overlay.dispatchEvent(new CustomEvent("settings:reset"));
+              });
+            });
+          return {
+            open: open,
+            close: close,
+            toggle: toggle,
+            setStepText: function (txt) {
+              var el = overlay.querySelector("#mStepTxt");
+              if (el) el.textContent = txt;
+            },
+          };
+        }
+        function move(el, slot) {
+          if (el && slot && el.parentNode !== slot) slot.appendChild(el);
+        }
+        function placeChrome() {
+          var desktop = mqDesktop && mqDesktop.matches;
+          var video = state.videoMode;
+          document.body.classList.toggle("video-mode", video);
+          els.frameLayer.setAttribute("aria-hidden", video ? "false" : "true");
+          if (video) {
+            move(els.scene, els.canvasFrameSlot);
+            move(els.subtitle, els.frameSubSlot);
+            move(els.dock, els.frameDockSlot);
+          } else if (desktop) {
+            move(els.scene, els.canvasNormalSlot);
+            move(els.subtitle, els.subPanelSlot);
+            move(els.dock, els.dockDesktopSlot);
+          } else {
+            move(els.scene, els.canvasNormalSlot);
+            move(els.subtitle, els.subMobileSlot);
+            move(els.dock, els.dockMobileSlot);
+          }
+          resize();
+        }
+        function resize() {
+          if (state.videoMode) {
+            var aw = els.frameLayer.clientWidth,
+              ah = els.frameLayer.clientHeight;
+            if (aw > 10 && ah > 10) {
+              var fw = Math.min(aw, (ah * 9) / 16),
+                fh = (fw * 16) / 9;
+              els.vframe.style.width = Math.floor(fw) + "px";
+              els.vframe.style.height = Math.floor(fh) + "px";
+            }
+          }
+          var parent = els.scene.parentNode;
+          if (!parent) return;
+          var cw = parent.clientWidth,
+            ch = parent.clientHeight;
+          if (cw < 2 || ch < 2) return;
+          var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+          var bw = Math.round(cw * dpr),
+            bh = Math.round(ch * dpr);
+          if (els.scene.width !== bw || els.scene.height !== bh) {
+            els.scene.width = bw;
+            els.scene.height = bh;
+          }
+          view.cw = cw;
+          view.ch = ch;
+          view.dpr = dpr;
+          view.scale = Math.min(cw / W, ch / H);
+          view.ox = (cw - W * view.scale) / 2;
+          view.oy = (ch - H * view.scale) / 2;
+        }
+        function updateSubtitles(n) {
+          var box = els.subtitle;
+          while (box.firstChild) box.removeChild(box.firstChild);
+          var data = SUBTITLES[n - 1];
+          if (!data) return;
+          var inner = document.createElement("span");
+          inner.className = "subtitle__inner";
+          data.segments.forEach(function (seg) {
+            if (seg.emphasis) {
+              var s = document.createElement("span");
+              s.className = "subtitle__keyword";
+              s.textContent = seg.text;
+              inner.appendChild(s);
+            } else {
+              inner.appendChild(document.createTextNode(seg.text));
+            }
+          });
+          box.appendChild(inner);
+          box.classList.remove("show");
+          void box.offsetWidth;
+          box.classList.add("show");
+        }
+        function renderControls() {
+          var paused = !state.isPlaying;
+          els.btnPlay.classList.toggle("paused", paused);
+          els.btnPlay.setAttribute(
+            "aria-label",
+            paused ? "Воспроизвести" : "Пауза",
+          );
+        }
+        function syncModalUI() {
+          if (modalApi)
+            modalApi.setStepText(
+              "Шаг " + (state.currentStep + 1) + " / " + STEP_COUNT,
+            );
+          var bAuto = document.getElementById("mAuto"),
+            bStep = document.getElementById("mStepBtn");
+          if (bAuto) {
+            bAuto.classList.toggle("active", state.mode === "auto");
+            bAuto.setAttribute("aria-pressed", String(state.mode === "auto"));
+          }
+          if (bStep) {
+            bStep.classList.toggle("active", state.mode === "step");
+            bStep.setAttribute("aria-pressed", String(state.mode === "step"));
+          }
+          var nb = document.getElementById("mNext");
+          var dis = !(
+            state.mode === "step" &&
+            state.currentStep < LAST &&
+            state.stepElapsed >= SETTLE
+          );
+          nextDisabledCache = dis;
+          if (nb) nb.disabled = dis;
+          var seg = document.querySelectorAll("#mSpeedSeg [data-speed]");
+          for (var i = 0; i < seg.length; i++) {
+            var on = Number(seg[i].getAttribute("data-speed")) === state.speed;
+            seg[i].classList.toggle("active", on);
+            seg[i].setAttribute("aria-pressed", String(on));
+          }
+          var nine = document.getElementById("mNine");
+          if (nine) nine.checked = state.videoMode;
+        }
+        function goToStep(idx) {
+          state.prevStep = state.currentStep;
+          state.currentStep = idx;
+          state.stepElapsed = 0;
+          updateSubtitles(idx + 1);
+          syncModalUI();
+        }
+        function startAuto() {
+          state.started = true;
+          state.isPlaying = true;
+          renderControls();
+        }
+        function togglePlay() {
+          state.isPlaying = !state.isPlaying;
+          renderControls();
+        }
+        function setMode(mode) {
+          if (mode !== "auto" && mode !== "step") return;
+          if (state.mode === mode) {
+            syncModalUI();
+            return;
+          }
+          state.mode = mode;
+          if (mode === "step")
+            state.stepElapsed = Math.max(state.stepElapsed, SETTLE);
+          syncModalUI();
+        }
+        function onStep() {
+          if (state.mode !== "step") return;
+          if (state.currentStep >= LAST) return;
+          if (state.stepElapsed < SETTLE) return;
+          goToStep(state.currentStep + 1);
+        }
+        function setSpeed(v) {
+          if (v !== 0.5 && v !== 1 && v !== 2) return;
+          state.speed = v;
+          syncModalUI();
+        }
+        function setVideoMode(on) {
+          state.videoMode = !!on;
+          placeChrome();
+          syncModalUI();
+        }
+        function toggleVideoMode() {
+          setVideoMode(!state.videoMode);
+        }
+        function resetApp() {
+          state.mode = "auto";
+          state.currentStep = 0;
+          state.prevStep = -1;
+          state.stepElapsed = 0;
+          state.isPlaying = true;
+          updateSubtitles(1);
+          syncModalUI();
+          renderControls();
+        }
+        function handleInput(e) {
+          var t = e.target;
+          if (
+            t &&
+            t.tagName &&
+            (t.tagName === "INPUT" ||
+              t.tagName === "TEXTAREA" ||
+              t.tagName === "SELECT" ||
+              t.isContentEditable)
+          )
+            return;
+          if (e.code === "Space") {
+            if (t && t.tagName === "BUTTON") return;
+            e.preventDefault();
+            els.app.classList.toggle("controls-hidden");
+            return;
+          }
+          if (e.code === "ArrowRight") {
+            if (state.mode === "step" && state.started) {
+              e.preventDefault();
+              onStep();
+            }
+            return;
+          }
+          if (e.code === "KeyR") {
+            resetApp();
+            return;
+          }
+          if (e.code === "KeyS") {
+            setMode(state.mode === "auto" ? "step" : "auto");
+            return;
+          }
+          if (e.code === "KeyV") {
+            toggleVideoMode();
+            return;
+          }
+        }
+        function bindSettings() {
+          var m = els.modalWrap;
+          m.addEventListener("settings:mode", function (e) {
+            setMode(e.detail.mode);
+          });
+          m.addEventListener("settings:next-step", onStep);
+          m.addEventListener("settings:speed", function (e) {
+            setSpeed(e.detail.value);
+          });
+          m.addEventListener("settings:video-mode", function (e) {
+            setVideoMode(e.detail.enabled);
+          });
+          m.addEventListener("settings:reset", resetApp);
+        }
+        var lastTs = 0;
+        function frame(ts) {
+          var dt = lastTs ? Math.min(ts - lastTs, 100) : 0;
+          lastTs = ts;
+          if (state.isPlaying) update((dt * state.speed) / 1000);
+          draw();
+          requestAnimationFrame(frame);
+        }
+        function update(dt) {
+          state.clock += dt;
+          state.stepElapsed += dt;
+          if (state.mode === "auto" && state.stepElapsed >= STEP_DUR) {
+            goToStep((state.currentStep + 1) % STEP_COUNT);
+            return;
+          }
+          if (state.mode === "step") {
+            var dis = !(
+              state.stepElapsed >= SETTLE && state.currentStep < LAST
+            );
+            if (dis !== nextDisabledCache) {
+              nextDisabledCache = dis;
+              var nb = document.getElementById("mNext");
+              if (nb) nb.disabled = dis;
+            }
+          }
+        }
+        function init() {
+          var ids = [
+            "app",
+            "stage",
+            "canvasNormalSlot",
+            "canvasFrameSlot",
+            "frameLayer",
+            "vframe",
+            "subPanelSlot",
+            "subMobileSlot",
+            "frameSubSlot",
+            "frameDockSlot",
+            "dockDesktopSlot",
+            "dockMobileSlot",
+            "subtitle",
+            "dock",
+            "btnPlay",
+            "btnGear",
+            "modalWrap",
+            "scene",
+          ];
+          for (var i = 0; i < ids.length; i++) {
+            var el = document.getElementById(ids[i]);
+            if (!el) {
+              fail("не найден элемент #" + ids[i]);
+              return;
+            }
+            els[ids[i]] = el;
+          }
+          els.ctx = els.scene.getContext("2d");
+          if (!els.ctx) {
+            fail("canvas 2d недоступен");
+            return;
+          }
+          mqDesktop = window.matchMedia("(min-width: 768px)");
+          if (mqDesktop.addEventListener)
+            mqDesktop.addEventListener("change", placeChrome);
+          else if (mqDesktop.addListener) mqDesktop.addListener(placeChrome);
+          els.btnPlay.addEventListener("click", togglePlay);
+          modalApi = initSettingsModal();
+          if (!modalApi) return;
+          bindSettings();
+          buildCityCache();
+          placeChrome();
+          updateSubtitles(1);
+          renderControls();
+          window.addEventListener("keydown", handleInput);
+          if (window.ResizeObserver) {
+            var ro = new ResizeObserver(resize);
+            ro.observe(els.stage);
+            ro.observe(els.vframe);
+          }
+          window.addEventListener("resize", resize);
+          resize();
+          requestAnimationFrame(frame);
+          setTimeout(function () {
+            if (!state.started) startAuto();
+          }, AUTO_DELAY);
+        }
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", init);
+        else init();
+        var STARS = [];
+        (function () {
+          var s = 42;
+          function rnd() {
+            s = (s * 16807) % 2147483647;
+            return s / 2147483647;
+          }
+          for (var i = 0; i < 70; i++)
+            STARS.push({
+              x: -220 + rnd() * 880,
+              y: 10 + rnd() * 470,
+              r: 0.7 + rnd() * 1.1,
+              p: rnd() * 6.283,
+            });
+        })();
+        var SKYLINE = [],
+          FRONT = [];
+        (function () {
+          var s = 99;
+          function rnd() {
+            s = (s * 48271) % 2147483647;
+            return s / 2147483647;
+          }
+          var x = -220;
+          while (x < 640) {
+            var w = 46 + rnd() * 40,
+              h = 120 + rnd() * 210;
+            SKYLINE.push({ x: x, w: w, h: h, seed: rnd() });
+            x += w + 6 + rnd() * 14;
+          }
+          var s2 = 7;
+          function rnd2() {
+            s2 = (s2 * 16807) % 2147483647;
+            return s2 / 2147483647;
+          }
+          var x2 = 176;
+          while (x2 < 680) {
+            var w2 = 54 + rnd2() * 50,
+              h2 = 70 + rnd2() * 150;
+            FRONT.push({ x: x2, w: w2, h: h2, seed: rnd2() });
+            x2 += w2 + 10 + rnd2() * 18;
+          }
+        })();
+        var LAMPS = [{ x: 238 }, { x: 418 }];
+        var cityCache = null;
+        function buildCityCache() {
+          var off = document.createElement("canvas");
+          off.width = 920;
+          off.height = 800;
+          var c = off.getContext("2d");
+          if (!c) return;
+          c.translate(220, 0);
+          SKYLINE.forEach(function (b) {
+            c.fillStyle = PAL.metalMid;
+            c.fillRect(b.x, 640 - b.h, b.w, b.h);
+            for (var wy = 640 - b.h + 10; wy < 618; wy += 16) {
+              for (var wx = b.x + 5; wx < b.x + b.w - 9; wx += 11) {
+                c.fillStyle = "rgba(0,0,0,.28)";
+                c.fillRect(wx, wy, 5, 7);
+              }
+            }
+          });
+          FRONT.forEach(function (b) {
+            c.fillStyle = PAL.metalPanel;
+            c.fillRect(b.x, 640 - b.h, b.w, b.h);
+            c.strokeStyle = PAL.metalBorder;
+            c.lineWidth = 1;
+            c.strokeRect(b.x + 0.5, 639.5 - b.h, b.w - 1, b.h - 1);
+            for (var wy = 640 - b.h + 12; wy < 618; wy += 17) {
+              for (var wx = b.x + 7; wx < b.x + b.w - 11; wx += 13) {
+                c.fillStyle = "rgba(0,0,0,.3)";
+                c.fillRect(wx, wy, 6, 8);
+              }
+            }
+          });
+          c.fillStyle = PAL.metalMid;
+          c.fillRect(-220, 640, 920, 26);
+          c.fillStyle = "rgba(0,0,0,.3)";
+          c.fillRect(-220, 666, 920, 3);
+          var rg = c.createLinearGradient(0, 669, 0, 800);
+          rg.addColorStop(0, "#1A1A20");
+          rg.addColorStop(1, PAL.metalDark);
+          c.fillStyle = rg;
+          c.fillRect(-220, 669, 920, 131);
+          c.strokeStyle = "rgba(60,60,70,.8)";
+          c.lineWidth = 4;
+          c.setLineDash([26, 22]);
+          c.beginPath();
+          c.moveTo(-220, 742);
+          c.lineTo(700, 742);
+          c.stroke();
+          c.setLineDash([]);
+          LAMPS.forEach(function (l) {
+            c.strokeStyle = PAL.metalWire;
+            c.lineWidth = 3.5;
+            c.beginPath();
+            c.moveTo(l.x, 666);
+            c.lineTo(l.x, 598);
+            c.lineTo(l.x + 14, 598);
+            c.stroke();
+            var g = c.createRadialGradient(l.x + 14, 596, 2, l.x + 14, 596, 30);
+            g.addColorStop(0, "rgba(255,217,138,.4)");
+            g.addColorStop(1, "rgba(255,217,138,0)");
+            c.fillStyle = g;
+            c.fillRect(l.x - 18, 566, 66, 66);
+            c.beginPath();
+            c.arc(l.x + 14, 596, 5, 0, 6.283);
+            c.fillStyle = PAL.warningLight;
+            c.fill();
+            c.beginPath();
+            c.ellipse(l.x + 14, 690, 55, 16, 0, 0, 6.283);
+            c.fillStyle = "rgba(255,201,77,.05)";
+            c.fill();
+          });
+          cityCache = off;
+        }
+        function drawBackdrop(c, x0, x1) {
+          var g = c.createLinearGradient(0, 0, 0, 800);
+          g.addColorStop(0, PAL.metalBase);
+          g.addColorStop(1, PAL.metalDark);
+          c.fillStyle = g;
+          c.fillRect(x0, 0, x1 - x0, 800);
+          var rg = c.createRadialGradient(90, 120, 10, 90, 120, 300);
+          rg.addColorStop(0, "rgba(46,172,101,.1)");
+          rg.addColorStop(1, "rgba(46,172,101,0)");
+          c.fillStyle = rg;
+          c.fillRect(x0, 0, x1 - x0, 620);
+          var rg2 = c.createRadialGradient(392, 96, 8, 392, 96, 180);
+          rg2.addColorStop(0, "rgba(239,239,239,.1)");
+          rg2.addColorStop(1, "rgba(239,239,239,0)");
+          c.fillStyle = rg2;
+          c.fillRect(x0, 0, x1 - x0, 480);
+          c.fillStyle = PAL.skyStar;
+          for (var i = 0; i < STARS.length; i++) {
+            var st = STARS[i];
+            if (st.x < x0 - 4 || st.x > x1 + 4) continue;
+            c.globalAlpha =
+              0.2 + 0.4 * Math.abs(Math.sin(state.clock * 0.7 + st.p));
+            c.beginPath();
+            c.arc(st.x, st.y, st.r, 0, 6.283);
+            c.fill();
+          }
+          c.globalAlpha = 1;
+          c.beginPath();
+          c.arc(392, 96, 23, 0, 6.283);
+          c.fillStyle = "rgba(239,239,239,.85)";
+          c.fill();
+          if (cityCache) c.drawImage(cityCache, -220, 0);
+          c.fillStyle = "rgba(255,201,77,.1)";
+          SKYLINE.forEach(function (b) {
+            for (var wy = 640 - b.h + 10; wy < 618; wy += 16) {
+              for (var wx = b.x + 5; wx < b.x + b.w - 9; wx += 11) {
+                if ((wx * 7 + wy * 13 + Math.round(b.seed * 100)) % 97 < 16) {
+                  c.globalAlpha = 0.1 + 0.05 * Math.sin(state.clock * 0.8 + wx);
+                  c.fillRect(wx, wy, 5, 7);
+                }
+              }
+            }
+          });
+          c.globalAlpha = 1;
+          c.fillStyle = "rgba(255,201,77,.14)";
+          FRONT.forEach(function (b) {
+            for (var wy = 640 - b.h + 12; wy < 618; wy += 17) {
+              for (var wx = b.x + 7; wx < b.x + b.w - 11; wx += 13) {
+                if ((wx * 11 + wy * 17 + Math.round(b.seed * 100)) % 89 < 14) {
+                  c.globalAlpha =
+                    0.14 + 0.06 * Math.sin(state.clock * 0.9 + wy);
+                  c.fillRect(wx, wy, 6, 8);
+                }
+              }
+            }
+          });
+          c.globalAlpha = 1;
+        }
+        function drawSoundArcs(c, x, y, k, a, danger) {
+          if (a <= 0.02) return;
+          for (var i = 0; i < 3; i++) {
+            var r = (k * 72 + i * 38) % 115;
+            var al = (1 - r / 115) * 0.45 * a;
+            if (al <= 0.02) continue;
+            c.beginPath();
+            c.arc(x, y, r + 8, -2.55, -0.55);
+            c.strokeStyle =
+              (danger ? "rgba(229,72,77," : "rgba(239,239,239,") +
+              al.toFixed(3) +
+              ")";
+            c.lineWidth = 2;
+            c.stroke();
+          }
+        }
+        function drawRings(c, x, y, k, prefix, a, maxR) {
+          if (a <= 0.02) return;
+          for (var i = 0; i < 3; i++) {
+            var r = (k * 55 + i * 42) % maxR;
+            var al = (1 - r / maxR) * 0.5 * a;
+            if (al <= 0.02) continue;
+            c.beginPath();
+            c.arc(x, y, 10 + r, 0, 6.283);
+            c.strokeStyle = prefix + al.toFixed(3) + ")";
+            c.lineWidth = 2.2;
+            c.stroke();
+          }
+        }
+        function drawBeam(c, x, y, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            c.beginPath();
+            c.moveTo(x - 4, y + 14);
+            c.lineTo(x - 34, 660);
+            c.lineTo(x + 34, 660);
+            c.lineTo(x + 4, y + 14);
+            c.closePath();
+            c.fillStyle = "rgba(255,243,196,.1)";
+            c.fill();
+          });
+        }
+        function drawDrone(c, x, y, o) {
+          o = o || {};
+          var a = o.alpha == null ? 1 : o.alpha;
+          if (a <= 0.01) return;
+          var k = o.clock || 0;
+          withAlpha(c, a, function () {
+            c.save();
+            c.translate(x, y);
+            c.scale(o.scale || 1, o.scale || 1);
+            c.translate(0, Math.sin(k * 2.1) * 4);
+            if (o.danger) {
+              var g = c.createRadialGradient(0, 0, 4, 0, 0, 48);
+              g.addColorStop(0, "rgba(229,72,77,.2)");
+              g.addColorStop(1, "rgba(229,72,77,0)");
+              c.fillStyle = g;
+              c.fillRect(-48, -48, 96, 96);
+            }
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 3.4;
+            c.lineCap = "round";
+            var R = 30;
+            c.beginPath();
+            c.moveTo(-9, -4);
+            c.lineTo(-R, -9);
+            c.moveTo(9, -4);
+            c.lineTo(R, -9);
+            c.moveTo(-9, 4);
+            c.lineTo(-R, 9);
+            c.moveTo(9, 4);
+            c.lineTo(R, 9);
+            c.stroke();
+            var pts = [
+              [R, -9],
+              [-R, -9],
+              [R, 9],
+              [-R, 9],
+            ];
+            for (var i = 0; i < 4; i++) {
+              c.save();
+              c.translate(pts[i][0], pts[i][1]);
+              c.fillStyle = "rgba(239,239,239,.12)";
+              c.beginPath();
+              c.ellipse(0, 0, 17, 4.5, 0, 0, 6.283);
+              c.fill();
+              var rot = k * (21 + i * 1.7);
+              c.strokeStyle = "rgba(239,239,239,.5)";
+              c.lineWidth = 1.6;
+              for (var j = 0; j < 2; j++) {
+                c.beginPath();
+                c.ellipse(
+                  0,
+                  0,
+                  15,
+                  3.6,
+                  0,
+                  rot + j * 3.14159,
+                  rot + j * 3.14159 + 1.1,
+                );
+                c.stroke();
+              }
+              c.restore();
+            }
+            rr(c, -23, -8, 46, 17, 8);
+            c.fillStyle = PAL.metalRaised;
+            c.fill();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 1.6;
+            c.stroke();
+            rr(c, -10, -14, 20, 7, 3);
+            c.fillStyle = PAL.metalPanel;
+            c.fill();
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 14, 6, 0, 6.283);
+            c.fillStyle = PAL.metalDark;
+            c.fill();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 1.5;
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 14, 2.4, 0, 6.283);
+            c.fillStyle = PAL.metalWire;
+            c.fill();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 2.4;
+            c.beginPath();
+            c.moveTo(-13, 9);
+            c.lineTo(-15, 18);
+            c.moveTo(13, 9);
+            c.lineTo(15, 18);
+            c.stroke();
+            var blink = Math.sin(k * (o.danger ? 9 : 4)) > 0;
+            c.beginPath();
+            c.arc(0, -12, 3, 0, 6.283);
+            c.fillStyle = o.danger
+              ? blink
+                ? PAL.redBright
+                : "rgba(229,72,77,.35)"
+              : blink
+                ? PAL.successGlow
+                : "rgba(127,224,168,.3)";
+            c.fill();
+            c.restore();
+          });
+        }
+        function drawPerson(c, x, y, o) {
+          o = o || {};
+          var a = o.alpha == null ? 1 : o.alpha;
+          if (a <= 0.01) return;
+          var k = o.clock || 0;
+          withAlpha(c, a, function () {
+            c.save();
+            c.translate(x, y);
+            c.scale(o.scale || 1, o.scale || 1);
+            var bodyC = PAL.metalRaised;
+            c.lineCap = "round";
+            var sw = o.walking ? Math.sin(k * 7 * (o.walkRate || 1)) * 7 : 0;
+            c.strokeStyle = bodyC;
+            c.lineWidth = 6;
+            c.beginPath();
+            c.moveTo(0, -26);
+            c.lineTo(sw, 0);
+            c.stroke();
+            c.beginPath();
+            c.moveTo(0, -26);
+            c.lineTo(-sw, 0);
+            c.stroke();
+            rr(c, -9, -52, 18, 28, 7);
+            c.fillStyle = bodyC;
+            c.fill();
+            rr(c, -13.5, -48, 5, 17, 2.5);
+            c.fillStyle = PAL.accentDark;
+            c.fill();
+            c.strokeStyle = bodyC;
+            c.lineWidth = 5;
+            if (o.phone) {
+              c.beginPath();
+              c.moveTo(-6, -44);
+              c.lineTo(-9, -58);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(6, -44);
+              c.lineTo(9, -58);
+              c.stroke();
+            } else {
+              var asw = o.walking ? -sw * 0.55 : 0;
+              c.beginPath();
+              c.moveTo(-6, -46);
+              c.lineTo(-10 + asw, -30);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(6, -46);
+              c.lineTo(10 - asw, -30);
+              c.stroke();
+            }
+            var hy = o.lookUp ? -66 : -63;
+            c.beginPath();
+            c.arc(0, hy, 8.5, 0, 6.283);
+            c.fillStyle = bodyC;
+            c.fill();
+            c.beginPath();
+            c.arc(0, hy, 8.5, Math.PI * 1.05, Math.PI * 1.95);
+            c.strokeStyle = PAL.accent;
+            c.lineWidth = 3;
+            c.stroke();
+            c.restore();
+          });
+        }
+        function drawSchool(c, k, lit) {
+          var x = 28,
+            y = 350,
+            w = 140,
+            h = 290;
+          rr(c, x - 6, y - 12, w + 12, 16, 4);
+          c.fillStyle = PAL.metalSecondary;
+          c.fill();
+          c.strokeStyle = PAL.metalBorder;
+          c.lineWidth = 1.5;
+          c.stroke();
+          rr(c, x, y, w, h, 6);
+          c.fillStyle = PAL.metalPanel;
+          c.fill();
+          c.strokeStyle = PAL.metalBorder;
+          c.lineWidth = 2;
+          c.stroke();
+          [445, 540].forEach(function (fy) {
+            c.beginPath();
+            c.moveTo(x + 4, fy);
+            c.lineTo(x + w - 4, fy);
+            c.strokeStyle = PAL.metalBorder;
+            c.lineWidth = 1.5;
+            c.stroke();
+          });
+          var cols = [x + 14, x + 56, x + 98],
+            rows = [368, 462, 556];
+          for (var ri = 0; ri < 3; ri++)
+            for (var ci = 0; ci < 3; ci++) {
+              if (ri === 2 && ci === 1) continue;
+              rr(c, cols[ci], rows[ri], 28, 34, 4);
+              c.fillStyle = PAL.metalDark;
+              c.fill();
+              c.strokeStyle = PAL.metalBorder;
+              c.lineWidth = 1.5;
+              c.stroke();
+              if ((ri * 3 + ci) % 4 === 1) {
+                c.fillStyle =
+                  "rgba(255,201,77," +
+                  (
+                    0.16 +
+                    lit * 0.15 +
+                    0.04 * Math.sin(k * 1.2 + ri + ci)
+                  ).toFixed(3) +
+                  ")";
+                c.fill();
+              }
+            }
+          rr(c, x + 56, 598, 28, 42, 3);
+          c.fillStyle = PAL.metalRaised;
+          c.fill();
+          c.strokeStyle = PAL.metalStroke;
+          c.lineWidth = 1.5;
+          c.stroke();
+          rr(c, x + 44, 566, 52, 20, 5);
+          c.fillStyle = "rgba(46,172,101,.16)";
+          c.fill();
+          c.strokeStyle = "rgba(46,172,101,.5)";
+          c.lineWidth = 1.2;
+          c.stroke();
+          c.font = "800 10px system-ui, sans-serif";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillStyle = PAL.successGlow;
+          c.fillText("ШКОЛА", x + 70, 577);
+        }
+        function drawSchoolCutaway(c, k) {
+          var x = 28,
+            y = 350,
+            w = 140,
+            h = 290;
+          rr(c, x - 6, y - 12, w + 12, 16, 4);
+          c.fillStyle = PAL.metalSecondary;
+          c.fill();
+          c.strokeStyle = PAL.metalBorder;
+          c.lineWidth = 1.5;
+          c.stroke();
+          rr(c, x, y, w, h, 6);
+          c.fillStyle = PAL.metalBase;
+          c.fill();
+          c.strokeStyle = PAL.metalBorder;
+          c.lineWidth = 2;
+          c.stroke();
+          c.lineWidth = 5;
+          c.strokeStyle = PAL.metalSecondary;
+          rr(c, x + 3, y + 3, w - 6, h - 6, 4);
+          c.stroke();
+          [445, 540].forEach(function (fy) {
+            c.beginPath();
+            c.moveTo(x + 10, fy);
+            c.lineTo(x + w - 10, fy);
+            c.strokeStyle = PAL.metalBorder;
+            c.lineWidth = 1.5;
+            c.stroke();
+          });
+          rr(c, 80, y + 8, 36, h - 16, 5);
+          c.fillStyle = "rgba(46,172,101,.18)";
+          c.fill();
+          c.setLineDash([7, 5]);
+          c.strokeStyle = PAL.accent;
+          c.lineWidth = 1.8;
+          c.stroke();
+          c.setLineDash([]);
+          var hatch = function (wx, wy) {
+            rr(c, wx, wy, 30, 36, 4);
+            c.fillStyle = PAL.metalDark;
+            c.fill();
+            c.save();
+            c.clip();
+            c.strokeStyle = "rgba(255,201,77,.8)";
+            c.lineWidth = 3;
+            for (var i = -2; i < 6; i++) {
+              c.beginPath();
+              c.moveTo(wx - 6 + i * 9, wy + 42);
+              c.lineTo(wx + 6 + i * 9, wy - 6);
+              c.stroke();
+            }
+            c.restore();
+            rr(c, wx, wy, 30, 36, 4);
+            c.strokeStyle = "rgba(255,201,77,.7)";
+            c.lineWidth = 1.8;
+            c.stroke();
+          };
+          [366, 462, 556].forEach(function (wy) {
+            hatch(x + 12, wy);
+            hatch(x + w - 42, wy);
+          });
+          rr(c, 84, 600, 28, 40, 3);
+          c.fillStyle = PAL.accentDark;
+          c.fill();
+          c.strokeStyle = PAL.accent;
+          c.lineWidth = 1.5;
+          c.stroke();
+        }
+        function drawShield(c, x, y, r) {
+          c.beginPath();
+          c.arc(x, y, r, 0, 6.283);
+          c.fillStyle = "rgba(46,172,101,.2)";
+          c.fill();
+          c.strokeStyle = PAL.accent;
+          c.lineWidth = 2.2;
+          c.stroke();
+          c.beginPath();
+          c.moveTo(x - r * 0.45, y + r * 0.02);
+          c.lineTo(x - r * 0.08, y + r * 0.42);
+          c.lineTo(x + r * 0.5, y - r * 0.38);
+          c.strokeStyle = PAL.successGlow;
+          c.lineWidth = 3.2;
+          c.lineCap = "round";
+          c.lineJoin = "round";
+          c.stroke();
+        }
+        function drawWarn(c, x, y, s, a, k) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            var pulse = 1 + Math.sin(k * 5) * 0.05;
+            c.save();
+            c.translate(x, y);
+            c.scale(s * pulse, s * pulse);
+            c.beginPath();
+            c.moveTo(0, -19);
+            c.lineTo(18, 13);
+            c.lineTo(-18, 13);
+            c.closePath();
+            c.fillStyle = PAL.warning;
+            c.fill();
+            c.lineJoin = "round";
+            c.strokeStyle = PAL.warningLight;
+            c.lineWidth = 3;
+            c.stroke();
+            c.fillStyle = PAL.metalDark;
+            c.font = "800 19px system-ui, sans-serif";
+            c.textAlign = "center";
+            c.textBaseline = "middle";
+            c.fillText("!", 0, 6);
+            c.restore();
+          });
+        }
+        function drawDoorGlow(c, x, y, a, k) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            var r = 14 + Math.sin(k * 3) * 3;
+            c.beginPath();
+            c.arc(x, y - 20, r, 0, 6.283);
+            c.strokeStyle = "rgba(46,172,101,.55)";
+            c.lineWidth = 2.5;
+            c.stroke();
+            c.beginPath();
+            c.arc(x, y - 20, r + 10, 0, 6.283);
+            c.strokeStyle = "rgba(46,172,101,.25)";
+            c.lineWidth = 2;
+            c.stroke();
+          });
+        }
+        function drawPathArrow(c, x1, y, x2, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            c.setLineDash([11, 9]);
+            c.lineCap = "round";
+            c.strokeStyle = "rgba(46,172,101,.85)";
+            c.lineWidth = 3.2;
+            c.beginPath();
+            c.moveTo(x1, y);
+            c.lineTo(x2 + 10, y);
+            c.stroke();
+            c.setLineDash([]);
+            c.beginPath();
+            c.moveTo(x2 - 4, y);
+            c.lineTo(x2 + 10, y - 8);
+            c.lineTo(x2 + 10, y + 8);
+            c.closePath();
+            c.fillStyle = "rgba(46,172,101,.9)";
+            c.fill();
+          });
+        }
+        function drawMast(c, x, baseY, a, k) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            c.strokeStyle = PAL.metalWire;
+            c.lineWidth = 4;
+            c.lineCap = "round";
+            c.beginPath();
+            c.moveTo(x, baseY);
+            c.lineTo(x, baseY - 56);
+            c.stroke();
+            var ty = baseY - 62;
+            c.beginPath();
+            c.arc(x, ty, 7, 0, 6.283);
+            c.fillStyle = PAL.accent;
+            c.shadowColor = "rgba(46,172,101,.8)";
+            c.shadowBlur = 14;
+            c.fill();
+            c.shadowBlur = 0;
+            for (var i = 0; i < 3; i++) {
+              var r = (k * 58 + i * 34) % 100;
+              var al = (1 - r / 100) * 0.5;
+              if (al <= 0.02) continue;
+              c.beginPath();
+              c.arc(x, ty, 9 + r, 0, 6.283);
+              c.strokeStyle = "rgba(46,172,101," + al.toFixed(3) + ")";
+              c.lineWidth = 2;
+              c.stroke();
+            }
+          });
+        }
+        function drawIconChip(c, x, y, kind, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            var s = 0.8 + 0.2 * a;
+            c.save();
+            c.translate(x, y);
+            c.scale(s, s);
+            rr(c, -21, -17, 42, 34, 11);
+            c.fillStyle = "rgba(26,26,32,.8)";
+            c.fill();
+            c.strokeStyle = "rgba(255,255,255,.16)";
+            c.lineWidth = 1.4;
+            c.stroke();
+            c.strokeStyle = PAL.textSoft;
+            c.fillStyle = PAL.textSoft;
+            c.lineWidth = 2;
+            c.lineCap = "round";
+            c.lineJoin = "round";
+            if (kind === "radio") {
+              c.beginPath();
+              c.moveTo(-10, -3);
+              c.lineTo(-5, -3);
+              c.lineTo(0, -8);
+              c.lineTo(0, 8);
+              c.lineTo(-5, 3);
+              c.lineTo(-10, 3);
+              c.closePath();
+              c.fill();
+              c.beginPath();
+              c.arc(3, 0, 5.5, -1, 1);
+              c.stroke();
+              c.beginPath();
+              c.arc(3, 0, 9.5, -1.1, 1.1);
+              c.stroke();
+            } else if (kind === "tv") {
+              rr(c, -11, -6, 22, 15, 3);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(-5, -6);
+              c.lineTo(-1, -12);
+              c.moveTo(5, -6);
+              c.lineTo(1, -12);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(-3, 12);
+              c.lineTo(3, 12);
+              c.stroke();
+            } else {
+              rr(c, -5.5, -11, 11, 22, 3.5);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(-2.4, 8);
+              c.lineTo(2.4, 8);
+              c.stroke();
+            }
+            c.restore();
+          });
+        }
+        function drawForbidden(c, x, y, r, kind, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            c.save();
+            c.translate(x, y);
+            var s = 0.75 + 0.25 * a;
+            c.scale(s, s);
+            c.beginPath();
+            c.arc(0, 0, r, 0, 6.283);
+            c.fillStyle = "rgba(14,14,18,.8)";
+            c.fill();
+            c.lineWidth = 4;
+            c.strokeStyle = PAL.danger;
+            c.stroke();
+            c.strokeStyle = PAL.whiteSoft;
+            c.fillStyle = PAL.whiteSoft;
+            c.lineWidth = 2.2;
+            c.lineCap = "round";
+            if (kind === "come") {
+              c.beginPath();
+              c.arc(-7, 7, 3.4, 0, 6.283);
+              c.fill();
+              c.beginPath();
+              c.moveTo(-2, 2);
+              c.lineTo(6, -6);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(6, -6);
+              c.lineTo(1.6, -5.6);
+              c.moveTo(6, -6);
+              c.lineTo(5.6, -1.6);
+              c.stroke();
+            } else if (kind === "hand") {
+              rr(c, -7, -9, 14, 17, 5);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(-3.5, -9);
+              c.lineTo(-3.5, -13);
+              c.moveTo(0, -9);
+              c.lineTo(0, -14);
+              c.moveTo(3.5, -9);
+              c.lineTo(3.5, -13);
+              c.stroke();
+            } else {
+              rr(c, -9, -6, 18, 13, 2.5);
+              c.stroke();
+              c.beginPath();
+              c.arc(0, 0.5, 3.2, 0, 6.283);
+              c.stroke();
+              c.beginPath();
+              c.moveTo(-4, -6);
+              c.lineTo(-2.5, -9);
+              c.lineTo(2.5, -9);
+              c.lineTo(4, -6);
+              c.stroke();
+            }
+            c.beginPath();
+            c.moveTo(-r * 0.66, r * 0.66);
+            c.lineTo(r * 0.66, -r * 0.66);
+            c.strokeStyle = PAL.danger;
+            c.lineWidth = 4.6;
+            c.stroke();
+            c.restore();
+          });
+        }
+        function drawDebris(c, x, y, k, smoke) {
+          withAlpha(c, 1, function () {
+            c.save();
+            c.translate(x, y);
+            c.beginPath();
+            c.ellipse(0, 4, 46, 10, 0, 0, 6.283);
+            c.fillStyle = "rgba(14,14,18,.8)";
+            c.fill();
+            c.save();
+            c.translate(-10, -6);
+            c.rotate(0.35);
+            rr(c, -20, -7, 40, 14, 7);
+            c.fillStyle = PAL.metalRaised;
+            c.fill();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 1.5;
+            c.stroke();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(-6, -7);
+            c.lineTo(-14, -16);
+            c.stroke();
+            c.restore();
+            c.save();
+            c.translate(26, 2);
+            c.rotate(-0.5);
+            c.strokeStyle = PAL.metalWire;
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(-12, 0);
+            c.lineTo(12, 0);
+            c.moveTo(0, -12);
+            c.lineTo(0, 12);
+            c.stroke();
+            c.restore();
+            c.save();
+            c.translate(-34, 4);
+            c.rotate(1.2);
+            c.strokeStyle = PAL.metalWire;
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(-10, 0);
+            c.lineTo(10, 0);
+            c.stroke();
+            c.restore();
+            if (smoke) {
+              for (var i = 0; i < 3; i++) {
+                var ph = (k * 0.5 + i * 0.33) % 1;
+                c.beginPath();
+                c.arc(
+                  -8 + Math.sin(k + i * 2) * 6,
+                  -14 - ph * 36,
+                  4 + ph * 7,
+                  0,
+                  6.283,
+                );
+                c.fillStyle =
+                  "rgba(156,148,138," + (0.22 * (1 - ph)).toFixed(3) + ")";
+                c.fill();
+              }
+            }
+            c.restore();
+          });
+        }
+        function drawTape(c, x, y, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            var tape = function (dx, ang) {
+              c.save();
+              c.translate(dx, -4);
+              c.rotate(ang);
+              rr(c, -36, -8, 72, 16, 5);
+              c.fillStyle = PAL.warning;
+              c.fill();
+              c.save();
+              c.clip();
+              c.fillStyle = PAL.metalDark;
+              for (var i = -3; i <= 3; i++) {
+                c.save();
+                c.translate(i * 15, 0);
+                c.rotate(0.6);
+                c.fillRect(-4, -24, 8, 48);
+                c.restore();
+              }
+              c.restore();
+              rr(c, -36, -8, 72, 16, 5);
+              c.strokeStyle = PAL.metalDark;
+              c.lineWidth = 1.6;
+              c.stroke();
+              c.restore();
+            };
+            tape(-44, 0.14);
+            tape(44, -0.14);
+          });
+        }
+        function drawPhone(c, x, y, w, h, a, k) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            rr(c, x - w / 2, y - h / 2, w, h, 18);
+            c.fillStyle = PAL.metalDark;
+            c.fill();
+            c.strokeStyle = PAL.metalStroke;
+            c.lineWidth = 2.5;
+            c.stroke();
+            rr(c, x - w / 2 + 8, y - h / 2 + 9, w - 16, h - 18, 12);
+            c.fillStyle = PAL.metalBase;
+            c.fill();
+            c.strokeStyle = "rgba(46,172,101,.35)";
+            c.lineWidth = 1.5;
+            c.stroke();
+            c.fillStyle = PAL.textBright;
+            c.font = "800 46px system-ui, sans-serif";
+            c.textAlign = "center";
+            c.textBaseline = "middle";
+            c.fillText("112", x, y - 8);
+            c.beginPath();
+            c.arc(x, y + 58, 3.4, 0, 6.283);
+            c.fillStyle = "rgba(46,172,101,.9)";
+            c.fill();
+            for (var i = 0; i < 2; i++) {
+              var r = (k * 55 + i * 32) % 86;
+              var al = (1 - r / 86) * 0.5;
+              if (al <= 0.02) continue;
+              c.beginPath();
+              c.arc(x, y - h / 2, r + 6, 0, 6.283);
+              c.strokeStyle = "rgba(46,172,101," + al.toFixed(3) + ")";
+              c.lineWidth = 2;
+              c.stroke();
+            }
+          });
+        }
+        function drawChip(c, x, y, txt, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            c.font = "700 14px system-ui, sans-serif";
+            var w = c.measureText(txt).width + 26;
+            rr(c, x - w / 2, y - 15, w, 30, 15);
+            c.fillStyle = "rgba(46,172,101,.16)";
+            c.fill();
+            c.strokeStyle = "rgba(46,172,101,.5)";
+            c.lineWidth = 1.5;
+            c.stroke();
+            c.fillStyle = PAL.textSoft;
+            c.textAlign = "center";
+            c.textBaseline = "middle";
+            c.fillText(txt, x, y + 1);
+          });
+        }
+        function drawBanner(c, x, y, a) {
+          if (a <= 0.01) return;
+          withAlpha(c, a, function () {
+            var w = 236,
+              h = 54;
+            rr(c, x - w / 2, y - h / 2, w, h, 16);
+            c.fillStyle = "rgba(46,172,101,.18)";
+            c.strokeStyle = PAL.accent;
+            c.lineWidth = 2;
+            c.shadowColor = "rgba(46,172,101,.45)";
+            c.shadowBlur = 16;
+            c.fill();
+            c.stroke();
+            c.shadowBlur = 0;
+            drawShield(c, x - w / 2 + 30, y, 13);
+            c.fillStyle = PAL.textBright;
+            c.font = "800 23px system-ui, sans-serif";
+            c.textAlign = "left";
+            c.textBaseline = "middle";
+            c.fillText("ОТБОЙ", x - w / 2 + 52, y + 1);
+          });
+        }
+        function drawGlowTop(c, a) {
+          withAlpha(c, a, function () {
+            var g = c.createRadialGradient(225, 150, 10, 225, 150, 240);
+            g.addColorStop(0, "rgba(127,224,168,.16)");
+            g.addColorStop(1, "rgba(127,224,168,0)");
+            c.fillStyle = g;
+            c.fillRect(-40, 0, 530, 420);
+          });
+        }
+        function step1(c, t, k) {
+          drawSchool(c, k, 0);
+          drawPerson(c, 252, 652, { clock: k, lookUp: true });
+          var fx = easeInOut(E(t, 0.1, 1.3));
+          var dx = lerp(-70, 225, fx),
+            dy = lerp(118, 152, fx);
+          var e = E(t, 0.1, 0.7);
+          drawBeam(c, dx, dy, e * 0.9);
+          drawSoundArcs(c, dx, dy, k, e, false);
+          drawDrone(c, dx, dy, { clock: k, alpha: e });
+        }
+        function step2(c, t, k) {
+          drawSchool(c, k, 0);
+          drawPerson(c, 252, 652, { clock: k, lookUp: true });
+          var e = E(t, 0, 0.6);
+          var dy = lerp(152, 242, e);
+          drawRings(c, 225, dy, k, "rgba(229,72,77,", e, 120);
+          drawWarn(c, 252, 556, 1, E(t, 0.35, 0.5), k);
+          drawDrone(c, 225, dy, { clock: k, danger: true, alpha: e });
+        }
+        function step3(c, t, k) {
+          drawSchool(c, k, 0.25);
+          var e = E(t, 0, 0.5);
+          drawSoundArcs(c, 308, 232, k, e * 0.55, false);
+          drawDrone(c, 308, 232, { clock: k, alpha: e });
+          drawPathArrow(c, 240, 648, 134, E(t, 0.3, 0.6));
+          var wp = easeInOut(E(t, 0.25, 1.7));
+          drawPerson(c, lerp(252, 120, wp), 652, {
+            clock: k,
+            walking: true,
+            walkRate: 1.15,
+          });
+          drawDoorGlow(c, 98, 634, E(t, 0.5, 0.6), k);
+        }
+        function step4(c, t, k) {
+          var eC = easeOut(E(t, 0.05, 0.7));
+          withAlpha(c, 1 - eC, function () {
+            drawSchool(c, k, 0);
+          });
+          withAlpha(c, eC, function () {
+            drawSchoolCutaway(c, k);
+            drawPerson(c, 98, 634, { clock: k, scale: 0.8 });
+            drawShield(c, 98, 410, 12);
+          });
+          drawDrone(c, 352, 206, { clock: k, alpha: 0.5 });
+        }
+        function step5(c, t, k) {
+          drawSchool(c, k, 0.45);
+          drawPerson(c, 140, 652, { clock: k });
+          drawMast(c, 98, 340, E(t, 0, 0.5), k);
+          drawIconChip(c, 312, 296, "radio", E(t, 0.5, 0.45));
+          drawIconChip(c, 368, 272, "tv", E(t, 0.9, 0.45));
+          drawIconChip(c, 414, 300, "phone", E(t, 1.3, 0.45));
+          drawDrone(c, 398, 166, { clock: k, alpha: 0.4, scale: 0.8 });
+        }
+        function step6(c, t, k) {
+          drawSchool(c, k, 0);
+          drawPerson(c, 168, 652, { clock: k });
+          drawDebris(c, 300, 706, k, true);
+          withAlpha(c, 0.7, function () {
+            c.setLineDash([9, 7]);
+            c.strokeStyle = "rgba(229,72,77,.75)";
+            c.lineWidth = 2.5;
+            c.beginPath();
+            c.ellipse(300, 700, 100, 34, 0, 0, 6.283);
+            c.stroke();
+            c.setLineDash([]);
+          });
+          drawForbidden(c, 252, 596, 17, "come", E(t, 0.3, 0.45));
+          drawForbidden(c, 300, 578, 17, "hand", E(t, 0.8, 0.45));
+          drawForbidden(c, 348, 596, 17, "camera", E(t, 1.3, 0.45));
+        }
+        function step7(c, t, k, x0, x1) {
+          drawSchool(c, k, 0);
+          withAlpha(c, 0.5, function () {
+            c.fillStyle = "rgba(0,0,0,.55)";
+            c.fillRect(x0, 0, x1 - x0, 800);
+          });
+          var e = E(t, 0.1, 0.6);
+          drawPerson(c, 225, 700, { clock: k, phone: true, scale: 1.02 });
+          drawPhone(c, 225, 540, 118, 206, e, k);
+          drawChip(c, 344, 452, "Место", E(t, 0.7, 0.4));
+          drawChip(c, 350, 502, "Время", E(t, 1.05, 0.4));
+          drawChip(c, 346, 552, "Ситуация", E(t, 1.4, 0.4));
+        }
+        function step8(c, t, k) {
+          drawSchool(c, k, 0.8);
+          drawDebris(c, 300, 706, k, false);
+          drawTape(c, 300, 714, E(t, 0.35, 0.5));
+          var wp = easeInOut(E(t, 0.3, 1.7));
+          drawPerson(c, lerp(122, 268, wp), 652, {
+            clock: k,
+            walking: true,
+            walkRate: 0.85,
+          });
+          drawBanner(c, 225, 142, E(t, 0.1, 0.6));
+          drawGlowTop(c, E(t, 0.1, 0.8));
+        }
+        function drawStepLayer(c, n, alpha, t, k, x0, x1) {
+          if (alpha <= 0) return;
+          c.save();
+          c.globalAlpha = alpha;
+          switch (n) {
+            case 1:
+              step1(c, t, k);
+              break;
+            case 2:
+              step2(c, t, k);
+              break;
+            case 3:
+              step3(c, t, k);
+              break;
+            case 4:
+              step4(c, t, k);
+              break;
+            case 5:
+              step5(c, t, k);
+              break;
+            case 6:
+              step6(c, t, k);
+              break;
+            case 7:
+              step7(c, t, k, x0, x1);
+              break;
+            case 8:
+              step8(c, t, k);
+              break;
+          }
+          c.restore();
+        }
+        function draw() {
+          var c = els.ctx;
+          if (!c || !view.cw) return;
+          c.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+          c.fillStyle = PAL.bg;
+          c.fillRect(0, 0, view.cw, view.ch);
+          c.translate(view.ox, view.oy);
+          c.scale(view.scale, view.scale);
+          var x0 = -view.ox / view.scale - 2,
+            x1 = (view.cw - view.ox) / view.scale + 2;
+          drawBackdrop(c, x0, x1);
+          var t = state.stepElapsed,
+            k = state.clock;
+          var fade = Math.min(t / TRANS, 1);
+          if (
+            state.prevStep >= 0 &&
+            state.prevStep !== state.currentStep &&
+            fade < 1
+          ) {
+            drawStepLayer(c, state.prevStep + 1, 1 - fade, STEP_DUR, k, x0, x1);
+          }
+          drawStepLayer(c, state.currentStep + 1, fade, t, k, x0, x1);
+          c.setTransform(1, 0, 0, 1, 0, 0);
+        }
+      })();
+    </script>
+  </body>
+</html>

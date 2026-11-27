@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#0F0F13" />
     <meta
       name="description"
-      content="Основы защиты цифровых устройств, учётных записей, персональных данных и безопасного поведения в интернете."
+      content="Как устроены компьютерные сети, адресация, маршрутизация, протоколы, интернет-сервисы и защита соединений."
     />
     <meta name="color-scheme" content="dark" />
-    <title>Кибербезопасность</title>
+    <title>Компьютерные сети и интернет</title>
     <style>
       :root {
         --app-bg: #0f0f13;
@@ -499,7 +499,7 @@
   <body>
     <div class="app-root" id="appRoot">
       <header class="app-header">
-        <h1 id="appTitle">Кибербезопасность</h1>
+        <h1 id="appTitle">Компьютерные сети и интернет</h1>
       </header>
 
       <main class="workspace">
@@ -560,10 +560,9 @@
     </div>
 
     <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section
+      <dialog
         class="settings-dialog"
         id="settingsDialog"
-        role="dialog"
         aria-modal="true"
         aria-labelledby="settingsTitle"
         tabindex="-1"
@@ -590,18 +589,15 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <div
-          class="segmented-control"
-          role="group"
-          aria-label="Режим воспроизведения"
-        >
+        <fieldset class="segmented-control">
+          <legend class="sr-only">Режим воспроизведения</legend>
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </div>
+        </fieldset>
 
         <button
           class="dialog-action"
@@ -641,74 +637,71 @@
           <span><kbd>V</kbd> Рамка 9:16</span>
           <span><kbd>Esc</kbd> Закрыть настройки</span>
         </div>
-      </section>
+      </dialog>
     </div>
 
     <script>
       const APP_CONFIG = {
         steps: [
           {
-            heading: "Три принципа",
+            heading: "Сеть",
             subtitle:
-              "Защита информации опирается на три принципа: конфиденциальность, целостность, доступность.",
-            detail: "CIA • риски • контроль",
+              "Сеть объединяет устройства для обмена данными и ресурсами.",
+            detail: "LAN • WAN • Wi-Fi",
+            icon: "network",
+            nodes: ["LAN", "WAN", "Wi-Fi"],
+          },
+          {
+            heading: "Оборудование",
+            subtitle:
+              "Коммутатор связывает устройства, маршрутизатор соединяет сети.",
+            detail: "Роутер • switch • access point",
+            icon: "network",
+            nodes: ["Роутер", "Switch", "Access Point"],
+          },
+          {
+            heading: "Адресация",
+            subtitle: "IP-адрес помогает доставить данные нужному устройству.",
+            detail: "IPv4 • IPv6 • MAC",
+            icon: "network",
+            nodes: ["IPv4", "IPv6", "MAC"],
+          },
+          {
+            heading: "DNS",
+            subtitle: "DNS преобразует доменное имя в IP-адрес сервера.",
+            detail: "Домен • запрос • IP",
+            icon: "network",
+            nodes: ["DNS", "Домен", "IP"],
+          },
+          {
+            heading: "Протоколы",
+            subtitle:
+              "TCP контролирует доставку, UDP передаёт пакеты без подтверждения.",
+            detail: "Пакеты • TCP • UDP",
+            icon: "network",
+            nodes: ["TCP", "UDP", "Пакеты"],
+          },
+          {
+            heading: "Маршрут",
+            subtitle: "Маршрутизаторы направляют пакеты между разными сетями.",
+            detail: "Узлы • маршрут • шлюз",
+            icon: "network",
+            nodes: ["Маршрут", "Узел", "Сеть"],
+          },
+          {
+            heading: "Шифрование",
+            subtitle: "HTTPS и TLS защищают обмен данными с веб-сервисом.",
+            detail: "Сертификат • TLS • HTTPS",
             icon: "shield",
-            nodes: ["Данные", "Целостность", "Доступ"],
+            nodes: ["TLS", "HTTPS", "Сертификат"],
           },
           {
-            heading: "Фишинг",
+            heading: "Диагностика",
             subtitle:
-              "Фишинговые сообщения маскируются под знакомые сервисы и людей.",
-            detail: "Письмо • ссылка • подделка",
-            icon: "mail",
-            nodes: ["Письмо", "Ссылка", "Подделка"],
-          },
-          {
-            heading: "Проверка",
-            subtitle:
-              "Проверяй адрес сайта, отправителя и неожиданные вложения.",
-            detail: "Домен • адрес • вложение",
-            icon: "shield",
-            nodes: ["Домен", "Адрес", "Вложение"],
-          },
-          {
-            heading: "Пароли",
-            subtitle: "Уникальные пароли и менеджер паролей защищают аккаунты.",
-            detail: "Уникальность • менеджер • хранилище",
-            icon: "lock",
-            nodes: ["Уникальность", "Менеджер", "Хранилище"],
-          },
-          {
-            heading: "2FA",
-            subtitle:
-              "Многофакторная аутентификация добавляет второй уровень проверки личности.",
-            detail: "Пароль • подтверждение • доступ",
-            icon: "lock",
-            nodes: ["Пароль", "Код", "Подтверждение"],
-          },
-          {
-            heading: "Устройство",
-            subtitle:
-              "Обновления и разрешения приложений укрепляют защиту устройства.",
-            detail: "Обновления • разрешения • защита",
-            icon: "shield",
-            nodes: ["Обновления", "Разрешения", "Защита"],
-          },
-          {
-            heading: "Цифровой след",
-            subtitle:
-              "Публикации, фотографии и геолокация формируют цифровой след.",
-            detail: "Приватность • профиль • данные",
-            icon: "phone",
-            nodes: ["Фото", "Геоданные", "Профиль"],
-          },
-          {
-            heading: "Инцидент",
-            subtitle:
-              "При инциденте используй доверенное устройство и поддержку сервиса.",
-            detail: "Смена пароля • сессии • помощь",
-            icon: "lock",
-            nodes: ["Сессии", "Поддержка", "Восстановление"],
+              "Диагностика проверяет адресацию, DNS и качество соединения.",
+            detail: "Ping • маршрут • соединение",
+            icon: "chart",
+            nodes: ["Ping", "DNS", "Wi-Fi"],
           },
         ],
         palette: {

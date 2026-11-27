@@ -1,0 +1,1981 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0F0F13" />
+    <title>Беспилотная опасность — памятка школьнику</title>
+    <style>
+      :root {
+        --bg: #0f0f13;
+        --panel: #1a1a20;
+        --accent: #2eac65;
+        --glow: #1e7a47;
+        --text: #ffffff;
+        --muted: #a0a0a0;
+        --caption-bg: #00000080;
+        --side-width: clamp(320px, 30vw, 380px);
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      button {
+        font: inherit;
+      }
+
+      .app-shell {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: clamp(18px, 2.2vw, 30px);
+        overflow: hidden;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 0 0 auto;
+        margin-bottom: 18px;
+        min-width: 0;
+      }
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(46, 172, 101, 0.42);
+        border-radius: 14px;
+        background: rgba(46, 172, 101, 0.1);
+        box-shadow: 0 0 28px rgba(30, 122, 71, 0.15);
+      }
+      .brand-mark svg {
+        width: 23px;
+        height: 23px;
+      }
+      h1 {
+        margin: 0;
+        min-width: 0;
+        font-size: clamp(19px, 2.1vw, 29px);
+        line-height: 1.15;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+      }
+      .topbar__tag {
+        margin-left: auto;
+        padding: 7px 11px;
+        border: 1px solid rgba(160, 160, 160, 0.18);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        white-space: nowrap;
+      }
+
+      .workspace {
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--side-width);
+        grid-template-rows: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "scene caption"
+          "controls .";
+        column-gap: clamp(18px, 2.2vw, 30px);
+        row-gap: 14px;
+      }
+      .frame {
+        display: contents;
+      }
+
+      .visual-stage {
+        grid-area: scene;
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(160, 160, 160, 0.12);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: 0 18px 70px rgba(0, 0, 0, 0.22);
+      }
+      #sceneCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: manipulation;
+      }
+      .stage-label {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        max-width: calc(100% - 36px);
+        padding: 8px 11px;
+        border: 1px solid rgba(160, 160, 160, 0.16);
+        border-radius: 999px;
+        background: rgba(15, 15, 19, 0.72);
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        backdrop-filter: blur(8px);
+        pointer-events: none;
+      }
+      .stage-label::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        flex: 0 0 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px var(--glow);
+      }
+
+      .subtitle {
+        grid-area: caption;
+        align-self: center;
+        min-width: 0;
+        min-height: 210px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(20px, 2.3vw, 30px);
+        border: 1px solid rgba(160, 160, 160, 0.13);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: 0 14px 48px rgba(0, 0, 0, 0.16);
+      }
+      .subtitle__eyebrow {
+        margin-bottom: 14px;
+        color: var(--accent);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+      }
+      .subtitle__text {
+        margin: 0;
+        font-size: clamp(20px, 2.1vw, 30px);
+        line-height: 1.22;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        text-wrap: pretty;
+      }
+      .subtitle__keyword {
+        color: var(--accent);
+      }
+      .subtitle__detail {
+        margin: 17px 0 0;
+        color: var(--muted);
+        font-size: clamp(13px, 1.1vw, 15px);
+        line-height: 1.55;
+      }
+      .subtitle.is-changing .subtitle__text,
+      .subtitle.is-changing .subtitle__detail {
+        animation: subtitle-in 300ms ease both;
+      }
+      @keyframes subtitle-in {
+        from {
+          opacity: 0;
+          transform: translateY(7px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .controlbar {
+        grid-area: controls;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-self: start;
+        align-self: end;
+        min-height: 62px;
+        padding: 7px;
+        border: 1px solid rgba(160, 160, 160, 0.13);
+        border-radius: 18px;
+        background: rgba(26, 26, 32, 0.94);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+      .controlbar.is-hidden {
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+      }
+      .control-button {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(160, 160, 160, 0.16);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--text);
+        cursor: pointer;
+        touch-action: manipulation;
+        transition:
+          background 160ms ease,
+          border-color 160ms ease,
+          transform 160ms ease,
+          box-shadow 160ms ease;
+      }
+      .control-button svg {
+        width: 19px;
+        height: 19px;
+      }
+      .control-button--primary {
+        border-color: rgba(46, 172, 101, 0.55);
+        background: var(--accent);
+        color: var(--bg);
+        box-shadow: 0 0 22px rgba(30, 122, 71, 0.22);
+      }
+      .control-button:active {
+        transform: scale(0.96);
+      }
+      .control-button:focus-visible,
+      .setting-button:focus-visible,
+      .mode-button:focus-visible,
+      .speed-button:focus-visible,
+      .modal-close:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .settings-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.72);
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 180ms ease,
+          visibility 180ms ease;
+      }
+      .settings-overlay.is-open {
+        opacity: 1;
+        visibility: visible;
+      }
+      .settings-dialog {
+        width: min(100%, 520px);
+        max-height: 90dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(160, 160, 160, 0.18);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow:
+          0 28px 100px rgba(0, 0, 0, 0.5),
+          0 0 42px rgba(30, 122, 71, 0.1);
+        transform: scale(0.95);
+        transition: transform 180ms ease;
+      }
+      .settings-overlay.is-open .settings-dialog {
+        transform: scale(1);
+      }
+      .settings-header {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 22px;
+        border-bottom: 1px solid rgba(160, 160, 160, 0.13);
+      }
+      .settings-header h2 {
+        margin: 0;
+        font-size: 21px;
+        font-weight: 800;
+      }
+      .modal-close {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(160, 160, 160, 0.16);
+        border-radius: 14px;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .modal-close svg {
+        width: 18px;
+        height: 18px;
+      }
+      .settings-content {
+        min-height: 0;
+        overflow: auto;
+        padding: 20px 22px 24px;
+        overscroll-behavior: contain;
+      }
+      .setting-block + .setting-block {
+        margin-top: 22px;
+      }
+      .setting-label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .step-readout {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 16px;
+        border: 1px solid rgba(160, 160, 160, 0.13);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+      .step-readout strong {
+        font-size: 17px;
+      }
+      .step-readout span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        padding: 5px;
+        border: 1px solid rgba(160, 160, 160, 0.13);
+        border-radius: 15px;
+        background: rgba(0, 0, 0, 0.18);
+      }
+      .mode-button,
+      .speed-button,
+      .setting-button {
+        min-height: 48px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        touch-action: manipulation;
+        transition:
+          background 160ms ease,
+          color 160ms ease,
+          border-color 160ms ease;
+      }
+      .mode-button.is-active,
+      .speed-button.is-active {
+        border-color: rgba(46, 172, 101, 0.45);
+        background: rgba(46, 172, 101, 0.13);
+        color: var(--text);
+        box-shadow: inset 0 0 18px rgba(30, 122, 71, 0.08);
+      }
+      .next-step {
+        width: 100%;
+        min-height: 50px;
+        margin-top: 10px;
+        border: 1px solid rgba(46, 172, 101, 0.5);
+        border-radius: 13px;
+        background: var(--accent);
+        color: var(--bg);
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+          opacity 160ms ease,
+          filter 160ms ease;
+      }
+      .next-step:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        filter: grayscale(1);
+      }
+      .speed-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .speed-button {
+        border-color: rgba(160, 160, 160, 0.15);
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--text);
+        font-weight: 700;
+      }
+      .setting-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 54px;
+        padding: 11px 14px;
+        border: 1px solid rgba(160, 160, 160, 0.14);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+        cursor: pointer;
+      }
+      .setting-toggle span {
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .switch {
+        position: relative;
+        width: 48px;
+        height: 28px;
+        flex: 0 0 48px;
+        border-radius: 999px;
+        background: rgba(160, 160, 160, 0.25);
+        transition: background 160ms ease;
+      }
+      .switch::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--text);
+        transition: transform 160ms ease;
+      }
+      .setting-toggle[aria-checked="true"] .switch {
+        background: var(--accent);
+      }
+      .setting-toggle[aria-checked="true"] .switch::after {
+        transform: translateX(20px);
+        background: var(--bg);
+      }
+      .reset-button {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid rgba(160, 160, 160, 0.18);
+        border-radius: 13px;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .hotkeys {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .hotkeys li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      kbd {
+        min-width: 28px;
+        padding: 4px 7px;
+        border: 1px solid rgba(160, 160, 160, 0.2);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--text);
+        text-align: center;
+        font:
+          700 11px system-ui,
+          sans-serif;
+      }
+
+      @media (hover: hover) {
+        .control-button:hover,
+        .modal-close:hover {
+          border-color: rgba(46, 172, 101, 0.65);
+          background: rgba(46, 172, 101, 0.12);
+        }
+        .control-button--primary:hover {
+          filter: brightness(1.08);
+        }
+        .mode-button:hover:not(.is-active),
+        .speed-button:hover:not(.is-active) {
+          background: rgba(255, 255, 255, 0.06);
+          color: var(--text);
+        }
+        .next-step:hover:not(:disabled) {
+          filter: brightness(1.08);
+        }
+        .reset-button:hover {
+          border-color: rgba(46, 172, 101, 0.5);
+          background: rgba(46, 172, 101, 0.08);
+        }
+      }
+
+      @media (max-width: 767px) {
+        .app-shell {
+          width: calc(100% - 80px - env(safe-area-inset-right));
+          height: 100vh;
+          height: 100dvh;
+          padding: calc(16px + env(safe-area-inset-top)) 0
+            calc(25vh + env(safe-area-inset-bottom))
+            calc(16px + env(safe-area-inset-left));
+          margin: 0 auto 0 0;
+        }
+        .topbar {
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .brand-mark {
+          width: 36px;
+          height: 36px;
+          flex-basis: 36px;
+          border-radius: 12px;
+        }
+        .brand-mark svg {
+          width: 19px;
+          height: 19px;
+        }
+        h1 {
+          font-size: clamp(17px, 5vw, 21px);
+        }
+        .topbar__tag {
+          display: none;
+        }
+        .workspace {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          min-height: 0;
+        }
+        .visual-stage {
+          flex: 1 1 auto;
+          min-height: 110px;
+          border-radius: 18px;
+        }
+        .stage-label {
+          top: 10px;
+          left: 10px;
+          font-size: 9px;
+          padding: 7px 9px;
+        }
+        .subtitle {
+          flex: 0 0 auto;
+          min-height: 0;
+          margin-top: 12px;
+          padding: 12px 14px;
+          border-radius: 15px;
+          background: var(--caption-bg);
+          backdrop-filter: blur(8px);
+        }
+        .subtitle__eyebrow {
+          margin-bottom: 6px;
+          font-size: 9px;
+        }
+        .subtitle__text {
+          font-size: clamp(16px, 4.5vw, 22px);
+          line-height: 1.2;
+        }
+        .subtitle__detail {
+          margin-top: 7px;
+          font-size: 12px;
+          line-height: 1.38;
+        }
+        .controlbar {
+          flex: 0 0 auto;
+          align-self: center;
+          justify-self: auto;
+          margin-top: 24px;
+          min-height: 58px;
+          padding: 5px;
+          border-radius: 16px;
+        }
+        .control-button {
+          width: 48px;
+          height: 48px;
+        }
+        .workspace.video-mode {
+          align-items: center;
+          justify-content: center;
+        }
+        .workspace.video-mode .frame {
+          display: flex;
+          flex-direction: column;
+          width: auto;
+          height: 100%;
+          max-width: 100%;
+          min-height: 0;
+          aspect-ratio: 9 / 16;
+          overflow: hidden;
+          border: 1px solid rgba(160, 160, 160, 0.2);
+          border-radius: 20px;
+          background: var(--panel);
+          box-shadow: 0 0 36px rgba(30, 122, 71, 0.12);
+        }
+        .workspace.video-mode .visual-stage {
+          flex: 1 1 auto;
+          min-height: 0;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        .workspace.video-mode .subtitle {
+          flex: 0 0 auto;
+          margin: 0;
+          padding: 9px 11px 7px;
+          border: 0;
+          border-top: 1px solid rgba(160, 160, 160, 0.12);
+          border-radius: 0;
+          background: var(--caption-bg);
+        }
+        .workspace.video-mode .subtitle__detail {
+          font-size: 10px;
+          line-height: 1.3;
+        }
+        .workspace.video-mode .controlbar {
+          flex: 0 0 auto;
+          align-self: center;
+          margin: 0 0 7px;
+          padding: 4px;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+        }
+        .settings-overlay {
+          padding: 12px;
+        }
+        .settings-dialog {
+          max-height: 90dvh;
+          border-radius: 20px;
+        }
+        .settings-header {
+          padding: 14px 16px;
+        }
+        .settings-content {
+          padding: 16px;
+        }
+        .hotkeys {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 767px) and (max-height: 700px) {
+        .topbar {
+          margin-bottom: 8px;
+        }
+        .subtitle {
+          padding: 8px 10px;
+          margin-top: 8px;
+        }
+        .subtitle__eyebrow {
+          margin-bottom: 4px;
+        }
+        .subtitle__detail {
+          margin-top: 5px;
+          font-size: 11px;
+          line-height: 1.25;
+        }
+        .controlbar {
+          margin-top: 16px;
+        }
+        .visual-stage {
+          min-height: 80px;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .workspace.video-mode {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .workspace.video-mode .frame {
+          display: flex;
+          flex-direction: column;
+          width: auto;
+          height: 100%;
+          max-width: 100%;
+          min-height: 0;
+          aspect-ratio: 9 / 16;
+          overflow: hidden;
+          border: 1px solid rgba(160, 160, 160, 0.2);
+          border-radius: 24px;
+          background: var(--panel);
+          box-shadow: 0 0 48px rgba(30, 122, 71, 0.13);
+        }
+        .workspace.video-mode .visual-stage {
+          flex: 1 1 auto;
+          min-height: 0;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        .workspace.video-mode .subtitle {
+          flex: 0 0 auto;
+          min-height: 0;
+          margin: 0;
+          padding: 15px 18px 10px;
+          border: 0;
+          border-top: 1px solid rgba(160, 160, 160, 0.12);
+          border-radius: 0;
+          background: var(--caption-bg);
+          backdrop-filter: blur(8px);
+        }
+        .workspace.video-mode .subtitle__text {
+          font-size: clamp(16px, 1.6vw, 22px);
+        }
+        .workspace.video-mode .subtitle__detail {
+          margin-top: 8px;
+          font-size: 12px;
+        }
+        .workspace.video-mode .controlbar {
+          flex: 0 0 auto;
+          align-self: center;
+          margin: 0 0 9px;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 3.2 20 6v5.7c0 4.7-3.2 7.7-8 9.1-4.8-1.4-8-4.4-8-9.1V6l8-2.8Z"
+              stroke="#2EAC65"
+            />
+            <path d="m8.3 12.1 2.3 2.3 5-5.1" />
+          </svg>
+        </div>
+        <h1>Беспилотная опасность</h1>
+        <div class="topbar__tag">ПАМЯТКА ШКОЛЬНИКУ</div>
+      </header>
+
+      <main class="workspace" id="workspace">
+        <div class="frame" id="videoFrame">
+          <section
+            class="visual-stage"
+            id="visualStage"
+            aria-label="Схематичная иллюстрация текущего шага"
+          >
+            <canvas id="sceneCanvas" aria-hidden="true"></canvas>
+            <div class="stage-label" id="stageLabel">РАСПОЗНАЙ И СООБЩИ</div>
+          </section>
+
+          <section
+            class="subtitle"
+            id="subtitle"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="subtitle__eyebrow">ПОРЯДОК ДЕЙСТВИЙ</div>
+            <p class="subtitle__text" id="subtitleText">
+              Сохраняй спокойствие и следуй официальным указаниям.
+            </p>
+            <p class="subtitle__detail" id="detailText">
+              Не пытайся самостоятельно определить тип аппарата или уровень
+              угрозы.
+            </p>
+          </section>
+
+          <nav
+            class="controlbar"
+            id="controlbar"
+            aria-label="Управление воспроизведением"
+          >
+            <button
+              class="control-button control-button--primary"
+              id="playButton"
+              type="button"
+              aria-label="Пауза"
+              title="Пауза"
+            >
+              <svg
+                id="playIcon"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M7 5h4v14H7zM15 5h4v14h-4z" />
+              </svg>
+            </button>
+            <button
+              class="control-button"
+              id="settingsButton"
+              type="button"
+              aria-label="Открыть настройки"
+              title="Настройки"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 8.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Z" />
+                <path
+                  d="m19.1 13.2 1.2.9-1.2 2.1-1.4-.5a7.7 7.7 0 0 1-1.4.8l-.2 1.5h-2.4l-.3-1.5a7.6 7.6 0 0 1-1.5-.1l-1 1.1-2-1.2.5-1.4a7.4 7.4 0 0 1-.8-1.4l-1.5-.2v-2.4l1.5-.3c.1-.5.3-1 .6-1.5l-.7-1.3 1.8-1.5 1.2.9c.5-.2 1-.3 1.6-.3l.7-1.4 2.3.4.1 1.5c.5.2 1 .5 1.4.9l1.4-.5 1.1 2.1-1.2.9c.1.5.1 1 0 1.4Z"
+                  transform="translate(-1 -1)"
+                />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </main>
+    </div>
+
+    <div class="settings-overlay" id="settingsOverlay" aria-hidden="true">
+      <section
+        class="settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settingsTitle"
+      >
+        <header class="settings-header">
+          <h2 id="settingsTitle">Настройки</h2>
+          <button
+            class="modal-close"
+            id="closeSettingsButton"
+            type="button"
+            aria-label="Закрыть настройки"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+        <div class="settings-content">
+          <div class="setting-block">
+            <span class="setting-label">Текущая последовательность</span>
+            <div class="step-readout">
+              <strong id="stepReadout">Шаг 1 / 8</strong
+              ><span id="stepName">Распознавание</span>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <span class="setting-label">Режим просмотра</span>
+            <div class="segmented" role="group" aria-label="Режим просмотра">
+              <button
+                class="mode-button is-active"
+                id="autoModeButton"
+                type="button"
+                aria-pressed="true"
+              >
+                AUTO
+              </button>
+              <button
+                class="mode-button"
+                id="stepModeButton"
+                type="button"
+                aria-pressed="false"
+              >
+                STEP
+              </button>
+            </div>
+            <button
+              class="next-step"
+              id="nextStepButton"
+              type="button"
+              disabled
+            >
+              Следующий шаг ▶
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <span class="setting-label">Скорость воспроизведения</span>
+            <div
+              class="speed-options"
+              role="group"
+              aria-label="Скорость воспроизведения"
+            >
+              <button
+                class="speed-button"
+                type="button"
+                data-speed="0.5"
+                aria-pressed="false"
+              >
+                0.5×
+              </button>
+              <button
+                class="speed-button is-active"
+                type="button"
+                data-speed="1"
+                aria-pressed="true"
+              >
+                1×
+              </button>
+              <button
+                class="speed-button"
+                type="button"
+                data-speed="2"
+                aria-pressed="false"
+              >
+                2×
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <span class="setting-label">Отображение</span>
+            <button
+              class="setting-toggle"
+              id="videoModeToggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+            >
+              <span>Режим вертикальной рамки 9:16</span
+              ><i class="switch" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <button class="reset-button" id="resetButton" type="button">
+              ↺ Сбросить последовательность
+            </button>
+          </div>
+
+          <div class="setting-block">
+            <span class="setting-label">Горячие клавиши · ПК</span>
+            <ul class="hotkeys">
+              <li><span>Скрыть контролы</span><kbd>Space</kbd></li>
+              <li><span>Следующий шаг в STEP</span><kbd>→</kbd></li>
+              <li><span>Сброс</span><kbd>R</kbd></li>
+              <li><span>Режим AUTO / STEP</span><kbd>S</kbd></li>
+              <li><span>Вертикальная рамка</span><kbd>V</kbd></li>
+              <li><span>Закрыть настройки</span><kbd>Esc</kbd></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const COLORS = {
+          bg: "#0F0F13",
+          panel: "#1A1A20",
+          accent: "#2EAC65",
+          glow: "#1E7A47",
+          text: "#FFFFFF",
+          muted: "#A0A0A0",
+        };
+
+        const steps = [
+          {
+            title: "Распознавание",
+            label: "ЗАМЕТИЛ НЕОБЫЧНЫЙ ОБЪЕКТ?",
+            subtitle: [
+              { text: "Не делай выводов самостоятельно. ", emphasis: false },
+              { text: "Следуй официальным сообщениям.", emphasis: true },
+            ],
+            detail:
+              "Беспилотная опасность — официальное предупреждение или обнаружение БПЛА/обломков, опасных для людей и инфраструктуры. БПЛА — аппарат без пилота; типы — самолётные и мультироторные. Необычный объект, звук двигателя или низкий полёт — повод сообщить взрослому, а не оценивать угрозу самому.",
+          },
+          {
+            title: "Прекрати действия",
+            label: "НЕ ЗАДЕРЖИВАЙСЯ НА ОТКРЫТОМ МЕСТЕ",
+            subtitle: [
+              { text: "Прекрати занятия и ", emphasis: false },
+              { text: "не оставайся на улице.", emphasis: true },
+            ],
+            detail:
+              "Не наблюдай за объектом и не снимай его. В транспорте и общественных местах выполняй указания персонала. Оповещения поступают через сирены, громкоговорители, радио, телевидение и официальные каналы. В городе, селе и рядом с инфраструктурой действуй по указаниям взрослых и служб.",
+          },
+          {
+            title: "Найди безопасное место",
+            label: "ПЕРЕЙДИ В КАПИТАЛЬНОЕ ПОМЕЩЕНИЕ",
+            subtitle: [
+              {
+                text: "Иди в ближайшее капитальное помещение, ",
+                emphasis: false,
+              },
+              { text: "если путь безопасен.", emphasis: true },
+            ],
+            detail:
+              "Не пересекай опасную или открытую территорию ради укрытия. Если быстро попасть в помещение нельзя, действуй по указаниям взрослых и служб. Дома сразу сообщи взрослому и следуй официальным сообщениям.",
+          },
+          {
+            title: "Действуй организованно",
+            label: "В ШКОЛЕ — ВМЕСТЕ С КЛАССОМ",
+            subtitle: [
+              { text: "Следуй за педагогом. ", emphasis: false },
+              { text: "Не беги и не отставай.", emphasis: true },
+            ],
+            detail:
+              "В школе заранее знай план безопасности и выполняй команды учителя. Двигайся по предусмотренному маршруту, не возвращайся за вещами. Взрослые проверяют присутствие учащихся и помогают тем, кому нужна поддержка; говори спокойно и помогай группе сохранять порядок.",
+          },
+          {
+            title: "Оставайся в укрытии",
+            label: "ВЫБИРАЙ ВНУТРЕННЮЮ ЗОНУ",
+            subtitle: [
+              {
+                text: "Отойди от окон и стеклянных конструкций. ",
+                emphasis: false,
+              },
+              { text: "Сохраняй порядок.", emphasis: true },
+            ],
+            detail:
+              "Используй помещение или внутренний коридор, предусмотренный планом безопасности. Держись подальше от окон и наружных стен, слушай ответственных взрослых и не покидай укрытие самовольно.",
+          },
+          {
+            title: "Не приближайся к объектам",
+            label: "НЕ ТРОГАЙ АППАРАТ И ОБЛОМКИ",
+            subtitle: [
+              { text: "Не подходи, ", emphasis: false },
+              { text: "не трогай и не перемещай", emphasis: true },
+              { text: " предметы." },
+            ],
+            detail:
+              "Падение или повреждение аппарата может оставить опасные обломки. Не подходи, не осматривай, не трогай и не перемещай их; не пытайся сбить, поймать или обезвредить аппарат. Не запускай дрон и не используй другие устройства для наблюдения.",
+          },
+          {
+            title: "Сообщи об угрозе",
+            label: "СООБЩАЙ ТОЛЬКО ИЗ БЕЗОПАСНОГО МЕСТА",
+            subtitle: [
+              { text: "Сообщи взрослому или позвони ", emphasis: false },
+              { text: "112.", emphasis: true },
+            ],
+            detail:
+              "Назови место обнаружения, примерное время и что произошло. Не приближайся ради уточнений, не публикуй расположение людей, укрытий и экстренных служб. Не пересылай слухи и непроверенные сведения. Звони только из безопасного места.",
+          },
+          {
+            title: "Дождись отмены угрозы",
+            label: "ВЫХОД — ТОЛЬКО ПО РАЗРЕШЕНИЮ",
+            subtitle: [
+              { text: "Покидай укрытие ", emphasis: false },
+              { text: "только после официального разрешения.", emphasis: true },
+            ],
+            detail:
+              "Даже после окончания оповещения не подходи к местам падения и обломкам. Сообщи взрослым о пострадавших или повреждениях; помогай только по указанию взрослых и без риска для себя. Возвращайся к занятиям после официального разрешения.",
+          },
+        ];
+
+        const state = {
+          mode: "AUTO",
+          isPlaying: false,
+          currentStep: 0,
+          speed: 1,
+          videoMode: false,
+          controlsVisible: true,
+          transitionFrom: 0,
+          transitionElapsed: 900,
+          transitionActive: false,
+          stepElapsed: 0,
+          clock: 0,
+          lastFrame: 0,
+          rafId: 0,
+        };
+
+        const $ = (id) => document.getElementById(id);
+        const canvas = $("sceneCanvas");
+        const ctx = canvas.getContext("2d");
+        const workspace = $("workspace");
+        const videoFrame = $("videoFrame");
+        const visualStage = $("visualStage");
+        const subtitle = $("subtitle");
+        const subtitleText = $("subtitleText");
+        const detailText = $("detailText");
+        const stageLabel = $("stageLabel");
+        const controlbar = $("controlbar");
+        const settingsOverlay = $("settingsOverlay");
+        const playButton = $("playButton");
+        const playIcon = $("playIcon");
+        const stepReadout = $("stepReadout");
+        const stepName = $("stepName");
+        const nextStepButton = $("nextStepButton");
+        const autoModeButton = $("autoModeButton");
+        const stepModeButton = $("stepModeButton");
+        const speedButtons = [...document.querySelectorAll(".speed-button")];
+        const videoModeToggle = $("videoModeToggle");
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        );
+
+        let canvasWidth = 1;
+        let canvasHeight = 1;
+        let pixelRatio = 1;
+        let canvasScale = 1;
+        let canvasOffsetX = 0;
+        let canvasOffsetY = 0;
+        let resizeObserver = null;
+        let settingsReturnFocus = null;
+
+        function roundedRect(
+          context,
+          x,
+          y,
+          width,
+          height,
+          radius,
+          fill,
+          stroke,
+          lineWidth = 1,
+        ) {
+          context.beginPath();
+          context.roundRect(x, y, width, height, radius);
+          if (fill) {
+            context.fillStyle = fill;
+            context.fill();
+          }
+          if (stroke) {
+            context.lineWidth = lineWidth;
+            context.strokeStyle = stroke;
+            context.stroke();
+          }
+        }
+
+        function line(
+          x1,
+          y1,
+          x2,
+          y2,
+          color = COLORS.muted,
+          width = 2,
+          dash = [],
+        ) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash(dash);
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.lineCap = "round";
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function circle(x, y, radius, fill, stroke, width = 2) {
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          if (fill) {
+            ctx.fillStyle = fill;
+            ctx.fill();
+          }
+          if (stroke) {
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = width;
+            ctx.stroke();
+          }
+        }
+
+        function text(
+          value,
+          x,
+          y,
+          size = 14,
+          color = COLORS.muted,
+          weight = 700,
+          align = "left",
+        ) {
+          ctx.save();
+          ctx.fillStyle = color;
+          ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+          ctx.textAlign = align;
+          ctx.textBaseline = "middle";
+          ctx.fillText(value, x, y);
+          ctx.restore();
+        }
+
+        function arrow(x1, y1, x2, y2, color = COLORS.accent, width = 4) {
+          const angle = Math.atan2(y2 - y1, x2 - x1);
+          line(x1, y1, x2, y2, color, width);
+          ctx.save();
+          ctx.translate(x2, y2);
+          ctx.rotate(angle);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-13, -7);
+          ctx.lineTo(-13, 7);
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function drawPerson(
+          x,
+          y,
+          scale = 1,
+          color = COLORS.text,
+          accent = false,
+        ) {
+          const s = scale;
+          const head = accent ? COLORS.accent : color;
+          circle(x, y - 36 * s, 10 * s, head);
+          line(x, y - 24 * s, x, y + 8 * s, color, 7 * s);
+          line(x, y - 12 * s, x - 14 * s, y + 2 * s, color, 5 * s);
+          line(x, y - 12 * s, x + 14 * s, y + 2 * s, color, 5 * s);
+          line(x, y + 8 * s, x - 12 * s, y + 29 * s, color, 6 * s);
+          line(x, y + 8 * s, x + 12 * s, y + 29 * s, color, 6 * s);
+        }
+
+        function drawSchool(x, y, width, height) {
+          roundedRect(
+            ctx,
+            x,
+            y,
+            width,
+            height,
+            12,
+            "rgba(160,160,160,.08)",
+            "rgba(255,255,255,.65)",
+            3,
+          );
+          ctx.beginPath();
+          ctx.moveTo(x - 12, y + 4);
+          ctx.lineTo(x + width / 2, y - 42);
+          ctx.lineTo(x + width + 12, y + 4);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(46,172,101,.12)";
+          ctx.fill();
+          ctx.strokeStyle = COLORS.accent;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          const cols = 4;
+          for (let i = 0; i < cols; i++) {
+            roundedRect(
+              ctx,
+              x + 24 + i * ((width - 58) / cols),
+              y + 26,
+              27,
+              25,
+              5,
+              "rgba(46,172,101,.16)",
+              "rgba(255,255,255,.36)",
+              1.5,
+            );
+          }
+          roundedRect(
+            ctx,
+            x + width / 2 - 22,
+            y + height - 56,
+            44,
+            56,
+            7,
+            "rgba(46,172,101,.2)",
+            COLORS.accent,
+            2,
+          );
+          circle(x + width / 2 + 11, y + height - 28, 2, COLORS.accent);
+        }
+
+        function drawDroneSymbol(x, y) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.setLineDash([4, 7]);
+          ctx.strokeStyle = "rgba(160,160,160,.55)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 45, 0.1, Math.PI * 1.8);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          line(-28, 0, 28, 0, COLORS.text, 4);
+          line(0, -12, 0, 12, COLORS.text, 3);
+          circle(0, 0, 8, COLORS.text);
+          circle(-34, -6, 7, null, COLORS.muted, 2);
+          circle(34, -6, 7, null, COLORS.muted, 2);
+          ctx.restore();
+        }
+
+        function drawBackground() {
+          ctx.fillStyle = COLORS.panel;
+          ctx.fillRect(0, 0, 640, 520);
+          const glow = ctx.createRadialGradient(470, 70, 10, 470, 70, 300);
+          glow.addColorStop(0, "rgba(30,122,71,.15)");
+          glow.addColorStop(1, "rgba(30,122,71,0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, 640, 520);
+          ctx.save();
+          ctx.strokeStyle = "rgba(160,160,160,.055)";
+          ctx.lineWidth = 1;
+          for (let x = 30; x < 640; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 520);
+            ctx.stroke();
+          }
+          for (let y = 20; y < 520; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(640, y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function drawSceneOne() {
+          text("ОБРАТИ ВНИМАНИЕ", 60, 94, 13, COLORS.accent, 800);
+          drawSchool(170, 270, 310, 150);
+          line(30, 440, 610, 440, "rgba(160,160,160,.55)", 3);
+          drawDroneSymbol(420, 162);
+          line(420, 212, 420, 246, COLORS.muted, 2, [4, 7]);
+          roundedRect(
+            ctx,
+            48,
+            160,
+            210,
+            62,
+            12,
+            "rgba(255,255,255,.04)",
+            "rgba(160,160,160,.25)",
+            1.5,
+          );
+          text("НЕ ГАДАЙ", 70, 184, 16, COLORS.text, 800);
+          text("СООБЩИ ВЗРОСЛОМУ", 70, 205, 11, COLORS.muted, 700);
+          circle(530, 115, 7, COLORS.accent);
+          circle(555, 94, 3, "rgba(160,160,160,.7)");
+          circle(575, 130, 4, "rgba(160,160,160,.45)");
+        }
+
+        function drawSceneTwo() {
+          text("ПРЕКРАТИ ДЕЙСТВИЯ", 60, 94, 13, COLORS.accent, 800);
+          line(44, 414, 596, 414, "rgba(160,160,160,.55)", 3);
+          drawPerson(150, 370, 1.25, COLORS.text, false);
+          circle(150, 315, 38, "rgba(255,255,255,.035)", COLORS.accent, 3);
+          line(150, 291, 150, 339, COLORS.accent, 5);
+          drawSchool(390, 265, 175, 149);
+          arrow(210, 370, 345, 370, COLORS.accent, 5);
+          text("НЕ ОСТАВАЙСЯ", 150, 468, 13, COLORS.muted, 800, "center");
+          text("НА ОТКРЫТОМ МЕСТЕ", 470, 458, 12, COLORS.text, 800, "center");
+        }
+
+        function drawSceneThree() {
+          text("БЕЗОПАСНЫЙ МАРШРУТ", 60, 94, 13, COLORS.accent, 800);
+          drawSchool(360, 190, 210, 235);
+          drawPerson(145, 370, 1.15, COLORS.text, false);
+          arrow(195, 360, 330, 360, COLORS.accent, 5);
+          roundedRect(
+            ctx,
+            64,
+            164,
+            205,
+            70,
+            13,
+            "rgba(46,172,101,.10)",
+            "rgba(46,172,101,.4)",
+            1.5,
+          );
+          text("КАПИТАЛЬНОЕ", 88, 190, 14, COLORS.text, 800);
+          text("ЗДАНИЕ", 88, 212, 14, COLORS.accent, 800);
+          line(44, 440, 596, 440, "rgba(160,160,160,.45)", 3);
+          text(
+            "ТОЛЬКО ЕСЛИ ПУТЬ БЕЗОПАСЕН",
+            320,
+            484,
+            12,
+            COLORS.muted,
+            700,
+            "center",
+          );
+        }
+
+        function drawSceneFour() {
+          text("ВЫПОЛНЯЙ УКАЗАНИЯ ПЕДАГОГА", 60, 94, 13, COLORS.accent, 800);
+          roundedRect(
+            ctx,
+            80,
+            160,
+            480,
+            260,
+            18,
+            "rgba(255,255,255,.025)",
+            "rgba(160,160,160,.45)",
+            2,
+          );
+          roundedRect(
+            ctx,
+            385,
+            210,
+            135,
+            174,
+            12,
+            "rgba(46,172,101,.11)",
+            COLORS.accent,
+            2,
+          );
+          text("ВНУТРЬ", 452, 300, 13, COLORS.accent, 800, "center");
+          drawPerson(155, 340, 0.85, COLORS.text, true);
+          drawPerson(220, 340, 0.85, COLORS.text, false);
+          drawPerson(285, 340, 0.85, COLORS.text, false);
+          drawPerson(350, 340, 0.85, COLORS.text, false);
+          arrow(250, 245, 390, 245, COLORS.accent, 5);
+          text("ИДЁМ ВМЕСТЕ", 230, 450, 15, COLORS.text, 800, "center");
+          text("БЕЗ БЕГА И ДАВКИ", 230, 474, 11, COLORS.muted, 700, "center");
+        }
+
+        function drawSceneFive() {
+          text("ВНУТРЕННЯЯ ЗОНА", 60, 94, 13, COLORS.accent, 800);
+          roundedRect(
+            ctx,
+            70,
+            155,
+            500,
+            280,
+            14,
+            "rgba(255,255,255,.025)",
+            "rgba(160,160,160,.5)",
+            3,
+          );
+          roundedRect(
+            ctx,
+            95,
+            195,
+            115,
+            90,
+            8,
+            "rgba(160,160,160,.05)",
+            "rgba(160,160,160,.6)",
+            2,
+          );
+          line(152, 195, 152, 285, COLORS.muted, 2);
+          line(95, 240, 210, 240, COLORS.muted, 2);
+          text("ОКНА", 152, 310, 11, COLORS.muted, 700, "center");
+          roundedRect(
+            ctx,
+            290,
+            190,
+            230,
+            210,
+            14,
+            "rgba(46,172,101,.07)",
+            "rgba(46,172,101,.55)",
+            2,
+          );
+          drawPerson(365, 340, 0.85, COLORS.text, true);
+          drawPerson(445, 340, 0.85, COLORS.text, false);
+          text("ДЕРЖИСЬ", 405, 224, 12, COLORS.accent, 800, "center");
+          text("ПОДАЛЬШЕ ОТ ОКОН", 405, 246, 11, COLORS.text, 700, "center");
+          line(245, 172, 245, 415, COLORS.muted, 1.5, [5, 7]);
+        }
+
+        function drawSceneSix() {
+          text("НЕ ПРИКАСАЙСЯ", 60, 94, 13, COLORS.accent, 800);
+          line(40, 416, 600, 416, "rgba(160,160,160,.5)", 3);
+          ctx.save();
+          ctx.setLineDash([9, 8]);
+          ctx.beginPath();
+          ctx.arc(330, 340, 125, 0, Math.PI * 2);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "rgba(160,160,160,.65)";
+          ctx.stroke();
+          ctx.restore();
+          roundedRect(
+            ctx,
+            285,
+            320,
+            90,
+            38,
+            14,
+            "rgba(160,160,160,.25)",
+            "rgba(255,255,255,.7)",
+            2,
+          );
+          circle(298, 339, 4, COLORS.muted);
+          circle(362, 339, 4, COLORS.muted);
+          circle(330, 339, 6, COLORS.text);
+          circle(330, 340, 152, null, COLORS.accent, 3);
+          line(222, 220, 260, 258, COLORS.accent, 5);
+          line(260, 220, 222, 258, COLORS.accent, 5);
+          text("НЕ ПОДХОДИ", 330, 477, 16, COLORS.text, 800, "center");
+        }
+
+        function drawSceneSeven() {
+          text("СООБЩИ ИНФОРМАЦИЮ", 60, 94, 13, COLORS.accent, 800);
+          roundedRect(
+            ctx,
+            235,
+            135,
+            170,
+            290,
+            24,
+            "rgba(255,255,255,.05)",
+            "rgba(255,255,255,.72)",
+            3,
+          );
+          roundedRect(
+            ctx,
+            252,
+            170,
+            136,
+            205,
+            12,
+            "rgba(46,172,101,.10)",
+            "rgba(46,172,101,.45)",
+            1.5,
+          );
+          text("112", 320, 240, 48, COLORS.accent, 800, "center");
+          text("ЭКСТРЕННАЯ", 320, 278, 11, COLORS.text, 800, "center");
+          text("ПОМОЩЬ", 320, 297, 11, COLORS.text, 800, "center");
+          circle(320, 399, 8, COLORS.muted);
+          roundedRect(
+            ctx,
+            45,
+            200,
+            150,
+            90,
+            13,
+            "rgba(255,255,255,.035)",
+            "rgba(160,160,160,.32)",
+            1.5,
+          );
+          text("ГДЕ?", 120, 225, 12, COLORS.accent, 800, "center");
+          text("КОГДА?", 120, 247, 12, COLORS.text, 700, "center");
+          text("ЧТО ПРОИЗОШЛО?", 120, 269, 10, COLORS.muted, 700, "center");
+          roundedRect(
+            ctx,
+            445,
+            200,
+            150,
+            90,
+            13,
+            "rgba(255,255,255,.035)",
+            "rgba(160,160,160,.32)",
+            1.5,
+          );
+          text("СНАЧАЛА", 520, 225, 12, COLORS.accent, 800, "center");
+          text("БЕЗОПАСНОСТЬ", 520, 247, 11, COLORS.text, 700, "center");
+          text("НЕ ПОДХОДИ", 520, 269, 11, COLORS.muted, 700, "center");
+        }
+
+        function drawSceneEight() {
+          text("ДОЖДИСЬ ОФИЦИАЛЬНОГО СИГНАЛА", 60, 94, 13, COLORS.accent, 800);
+          drawSchool(205, 240, 255, 170);
+          circle(495, 175, 56, "rgba(46,172,101,.12)", COLORS.accent, 3);
+          line(470, 175, 488, 193, COLORS.accent, 7);
+          line(488, 193, 524, 151, COLORS.accent, 7);
+          drawPerson(130, 400, 0.8, COLORS.text, true);
+          arrow(155, 395, 195, 395, COLORS.accent, 4);
+          text("СНАЧАЛА РАЗРЕШЕНИЕ", 320, 475, 14, COLORS.text, 800, "center");
+        }
+
+        const sceneDrawers = [
+          drawSceneOne,
+          drawSceneTwo,
+          drawSceneThree,
+          drawSceneFour,
+          drawSceneFive,
+          drawSceneSix,
+          drawSceneSeven,
+          drawSceneEight,
+        ];
+
+        function resizeVideoFrame() {
+          if (!state.videoMode) {
+            videoFrame.style.width = "";
+            videoFrame.style.height = "";
+            return;
+          }
+          const bounds = workspace.getBoundingClientRect();
+          const frameWidth = Math.min(bounds.width, (bounds.height * 9) / 16);
+          videoFrame.style.width = `${frameWidth}px`;
+          videoFrame.style.height = `${(frameWidth * 16) / 9}px`;
+        }
+
+        function resize() {
+          resizeVideoFrame();
+          const rect = visualStage.getBoundingClientRect();
+          if (!rect.width || !rect.height || !ctx) return;
+          canvasWidth = rect.width;
+          canvasHeight = rect.height;
+          pixelRatio = Math.min(window.devicePixelRatio || 1, 2.5);
+          canvas.width = Math.round(canvasWidth * pixelRatio);
+          canvas.height = Math.round(canvasHeight * pixelRatio);
+          canvasScale = Math.min(canvasWidth / 640, canvasHeight / 520);
+          canvasOffsetX = (canvasWidth - 640 * canvasScale) / 2;
+          canvasOffsetY = (canvasHeight - 520 * canvasScale) / 2;
+          draw();
+        }
+
+        function drawScene(index, alpha = 1) {
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.translate(canvasOffsetX, canvasOffsetY);
+          ctx.scale(canvasScale, canvasScale);
+          drawBackground();
+          sceneDrawers[index]();
+          ctx.restore();
+        }
+
+        function draw() {
+          if (!ctx || !canvas.width || !canvas.height) return;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = COLORS.panel;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+          if (state.transitionActive) {
+            const progress = Math.max(
+              0,
+              Math.min(1, state.transitionElapsed / 900),
+            );
+            drawScene(state.transitionFrom, 1 - progress);
+            drawScene(state.currentStep, progress);
+          } else {
+            drawScene(state.currentStep, 1);
+          }
+        }
+
+        function updateSubtitles(stepIndex) {
+          const item = steps[stepIndex];
+          subtitleText.replaceChildren();
+          for (const segment of item.subtitle) {
+            const span = document.createElement("span");
+            if (segment.emphasis) span.className = "subtitle__keyword";
+            span.textContent = segment.text;
+            subtitleText.appendChild(span);
+          }
+          detailText.textContent = item.detail;
+          stageLabel.textContent = item.label;
+          stepReadout.textContent = `Шаг ${stepIndex + 1} / ${steps.length}`;
+          stepName.textContent = item.title;
+          subtitle.classList.remove("is-changing");
+          void subtitle.offsetWidth;
+          subtitle.classList.add("is-changing");
+          renderControls();
+        }
+
+        function onStep() {
+          if (state.transitionActive) return;
+          const next = state.currentStep + 1;
+          if (next >= steps.length) {
+            if (state.mode === "STEP") return;
+            state.transitionFrom = state.currentStep;
+            state.currentStep = 0;
+          } else {
+            state.transitionFrom = state.currentStep;
+            state.currentStep = next;
+          }
+          state.transitionElapsed = 0;
+          state.transitionActive = true;
+          state.stepElapsed = 0;
+          updateSubtitles(state.currentStep);
+          draw();
+        }
+
+        function startAuto() {
+          state.mode = "AUTO";
+          state.isPlaying = true;
+          state.stepElapsed = 0;
+          if (state.transitionActive) {
+            state.transitionActive = false;
+            state.transitionElapsed = 900;
+          }
+          renderControls();
+        }
+
+        function setMode(mode) {
+          if (mode !== "AUTO" && mode !== "STEP") return;
+          if (state.mode === mode) return;
+          state.mode = mode;
+          state.stepElapsed = 0;
+          if (mode === "STEP") {
+            state.transitionActive = false;
+            state.transitionElapsed = 900;
+            state.isPlaying = false;
+          } else {
+            state.isPlaying = true;
+          }
+          renderControls();
+          draw();
+        }
+
+        function setPlaying(playing) {
+          if (state.mode === "STEP" && !state.transitionActive) {
+            state.isPlaying = false;
+            renderControls();
+            return;
+          }
+          state.isPlaying = Boolean(playing);
+          renderControls();
+        }
+
+        function setSpeed(speed) {
+          if (![0.5, 1, 2].includes(speed)) return;
+          state.speed = speed;
+          renderControls();
+        }
+
+        function setVideoMode(enabled) {
+          state.videoMode = Boolean(enabled);
+          workspace.classList.toggle("video-mode", state.videoMode);
+          videoModeToggle.setAttribute("aria-checked", String(state.videoMode));
+          requestAnimationFrame(resize);
+        }
+
+        function reset() {
+          state.mode = "AUTO";
+          state.currentStep = 0;
+          state.transitionFrom = 0;
+          state.transitionElapsed = 900;
+          state.transitionActive = false;
+          state.stepElapsed = 0;
+          state.isPlaying = true;
+          updateSubtitles(0);
+          renderControls();
+          draw();
+        }
+
+        function renderControls() {
+          playIcon.innerHTML = state.isPlaying
+            ? '<path d="M7 5h4v14H7zM15 5h4v14h-4z"/>'
+            : '<path d="M8 5v14l11-7z"/>';
+          playButton.setAttribute(
+            "aria-label",
+            state.isPlaying ? "Пауза" : "Продолжить",
+          );
+          playButton.title = state.isPlaying ? "Пауза" : "Продолжить";
+          autoModeButton.classList.toggle("is-active", state.mode === "AUTO");
+          stepModeButton.classList.toggle("is-active", state.mode === "STEP");
+          autoModeButton.setAttribute(
+            "aria-pressed",
+            String(state.mode === "AUTO"),
+          );
+          stepModeButton.setAttribute(
+            "aria-pressed",
+            String(state.mode === "STEP"),
+          );
+          nextStepButton.disabled =
+            state.mode !== "STEP" ||
+            state.transitionActive ||
+            state.currentStep >= steps.length - 1;
+          speedButtons.forEach((button) => {
+            const active = Number(button.dataset.speed) === state.speed;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
+          stepReadout.textContent = `Шаг ${state.currentStep + 1} / ${steps.length}`;
+          stepName.textContent = steps[state.currentStep].title;
+        }
+
+        function openSettings() {
+          if (settingsOverlay.classList.contains("is-open")) {
+            closeSettings();
+            return;
+          }
+          settingsReturnFocus = document.activeElement;
+          settingsOverlay.classList.add("is-open");
+          settingsOverlay.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          $("closeSettingsButton").focus();
+        }
+
+        function closeSettings() {
+          if (!settingsOverlay.classList.contains("is-open")) return;
+          settingsOverlay.classList.remove("is-open");
+          settingsOverlay.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          if (
+            settingsReturnFocus &&
+            typeof settingsReturnFocus.focus === "function"
+          )
+            settingsReturnFocus.focus();
+        }
+
+        function update(dt) {
+          state.clock += dt;
+          if (!state.isPlaying) return;
+          const scaledDt = dt * state.speed;
+          if (state.transitionActive) {
+            state.transitionElapsed += scaledDt;
+            if (state.transitionElapsed >= 900) {
+              state.transitionElapsed = 900;
+              state.transitionActive = false;
+              if (state.mode === "STEP") state.isPlaying = false;
+            }
+            return;
+          }
+          if (state.mode === "AUTO") {
+            state.stepElapsed += scaledDt;
+            if (state.stepElapsed >= 5000) onStep();
+          }
+        }
+
+        function frame(timestamp) {
+          if (!state.lastFrame) state.lastFrame = timestamp;
+          const dt = Math.min(timestamp - state.lastFrame, 80);
+          state.lastFrame = timestamp;
+          update(dt);
+          draw();
+          renderControls();
+          state.rafId = requestAnimationFrame(frame);
+        }
+
+        function handleInput(event) {
+          if (event.defaultPrevented || event.repeat) return;
+          const target = event.target;
+          const editable =
+            target instanceof HTMLElement &&
+            (target.isContentEditable ||
+              ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+          if (editable) return;
+          if (event.key === "Escape") {
+            if (settingsOverlay.classList.contains("is-open")) {
+              event.preventDefault();
+              closeSettings();
+            }
+            return;
+          }
+          if (settingsOverlay.classList.contains("is-open")) return;
+          if (!window.matchMedia("(min-width: 768px)").matches) return;
+          switch (event.key) {
+            case " ":
+              event.preventDefault();
+              state.controlsVisible = !state.controlsVisible;
+              controlbar.classList.toggle("is-hidden", !state.controlsVisible);
+              break;
+            case "ArrowRight":
+              if (state.mode === "STEP" && !nextStepButton.disabled) {
+                event.preventDefault();
+                state.isPlaying = true;
+                onStep();
+                renderControls();
+              }
+              break;
+            case "r":
+            case "R":
+              event.preventDefault();
+              reset();
+              break;
+            case "s":
+            case "S":
+              event.preventDefault();
+              setMode(state.mode === "AUTO" ? "STEP" : "AUTO");
+              break;
+            case "v":
+            case "V":
+              event.preventDefault();
+              setVideoMode(!state.videoMode);
+              break;
+            default:
+              break;
+          }
+        }
+
+        function bindEvents() {
+          playButton.addEventListener("click", () =>
+            setPlaying(!state.isPlaying),
+          );
+          $("settingsButton").addEventListener("click", openSettings);
+          $("closeSettingsButton").addEventListener("click", closeSettings);
+          settingsOverlay.addEventListener("click", (event) => {
+            if (event.target === settingsOverlay) closeSettings();
+          });
+          autoModeButton.addEventListener("click", () => setMode("AUTO"));
+          stepModeButton.addEventListener("click", () => setMode("STEP"));
+          nextStepButton.addEventListener("click", () => {
+            if (nextStepButton.disabled) return;
+            state.isPlaying = true;
+            onStep();
+            renderControls();
+          });
+          speedButtons.forEach((button) =>
+            button.addEventListener("click", () =>
+              setSpeed(Number(button.dataset.speed)),
+            ),
+          );
+          videoModeToggle.addEventListener("click", () =>
+            setVideoMode(!state.videoMode),
+          );
+          $("resetButton").addEventListener("click", reset);
+          window.addEventListener("keydown", handleInput);
+          window.addEventListener("resize", resize, { passive: true });
+          if ("ResizeObserver" in window) {
+            resizeObserver = new ResizeObserver(resize);
+            resizeObserver.observe(visualStage);
+          }
+          document.addEventListener("visibilitychange", () => {
+            if (document.hidden) state.lastFrame = 0;
+          });
+        }
+
+        function init() {
+          if (!canvas || !ctx) {
+            console.error("Не удалось инициализировать область визуализации.");
+            return;
+          }
+          bindEvents();
+          updateSubtitles(0);
+          resize();
+          state.rafId = requestAnimationFrame(frame);
+          window.setTimeout(() => {
+            if (state.mode === "AUTO") {
+              state.isPlaying = true;
+              renderControls();
+            }
+          }, 500);
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>
