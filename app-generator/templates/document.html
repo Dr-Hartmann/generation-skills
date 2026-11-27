@@ -104,16 +104,18 @@
 
         <div class="step-indicator" id="modalStepIndicator">Шаг 1 / 6</div>
 
-        <optgroup
+        <div
           class="segmented-control"
-          aria-label="Режим воспроизведения</legend>
+          role="group"
+          aria-label="Режим воспроизведения"
+        >
           <button id="autoModeButton" type="button" aria-pressed="true">
             AUTO
           </button>
           <button id="stepModeButton" type="button" aria-pressed="false">
             STEP
           </button>
-        </fieldset>
+        </div>
 
         <button
           class="dialog-action"
