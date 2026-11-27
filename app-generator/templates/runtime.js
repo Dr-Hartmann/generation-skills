@@ -300,6 +300,7 @@
   function openSettings() {
     returnFocusTo = document.activeElement;
     elements.backdrop.classList.add("open");
+    elements.dialog.open = true;
     elements.backdrop.setAttribute("aria-hidden", "false");
     elements.settingsButton.setAttribute("aria-expanded", "true");
     elements.appRoot.inert = true;
@@ -308,6 +309,7 @@
 
   function closeSettings() {
     elements.backdrop.classList.remove("open");
+    elements.dialog.open = false;
     elements.backdrop.setAttribute("aria-hidden", "true");
     elements.settingsButton.setAttribute("aria-expanded", "false");
     elements.appRoot.inert = false;

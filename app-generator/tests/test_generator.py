@@ -40,6 +40,29 @@ class GeneratorTests(unittest.TestCase):
         self.assertIn("window.AppScene", document)
         self.assertNotIn("{{", document)
 
+    def test_example_contains_all_required_ids(self) -> None:
+        from html.parser import HTMLParser
+
+        class IdCollector(HTMLParser):
+            def __init__(self) -> None:
+                super().__init__(convert_charrefs=True)
+                self.ids: list[str] = []
+
+            def handle_starttag(
+                self, tag: str, attrs: list[tuple[str, str | None]]
+            ) -> None:
+                values = dict(attrs)
+                if values.get("id"):
+                    self.ids.append(values["id"])
+
+        parser = IdCollector()
+        parser.feed(self.build_example())
+        parser.close()
+        from generate_app import REQUIRED_IDS
+
+        missing = sorted(set(REQUIRED_IDS).difference(parser.ids))
+        self.assertEqual(missing, [])
+
     def test_rejects_too_many_subtitle_words(self) -> None:
         data = deepcopy(self.scene_data)
         data["steps"][0]["subtitle"] = "слово " * 13
@@ -78,10 +101,12 @@ class GeneratorTests(unittest.TestCase):
             validate_html(document, self.spec["meta"]["viewport"])
 
     def test_all_done_archive_files_pass_the_canonical_validator(self) -> None:
+        # v2 holds archive files produced by the current generator generation;
+        # v1 is a historical reference predating the current meta requirements.
         archive = ROOT.parent / "Done (don't touch)"
-        html_files = sorted(archive.glob("*.html"))
+        html_files = sorted(archive.glob("v2/*.html"))
         self.assertEqual(
-            len(html_files), 21, "Update archive coverage when its file set changes."
+            len(html_files), 22, "Update archive coverage when its file set changes."
         )
         for html_file in html_files:
             with self.subTest(file=html_file.name):
@@ -110,6 +135,11 @@ class GeneratorTests(unittest.TestCase):
         duplicate_body = document.replace("<body>", "<body><body>", 1)
         with self.assertRaisesRegex(ValueError, "exactly one <body>"):
             validate_html(duplicate_body, self.spec["meta"]["viewport"])
+
+    def test_runtime_shows_and_hides_native_dialog(self) -> None:
+        runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
+        self.assertIn("elements.dialog.open = true;", runtime)
+        self.assertIn("elements.dialog.open = false;", runtime)
 
     def test_scene_initialization_precedes_first_draw(self) -> None:
         runtime = (TEMPLATE_DIR / "runtime.js").read_text(encoding="utf-8")
